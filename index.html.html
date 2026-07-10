@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root{
     --bg:#14120F;
@@ -196,6 +197,13 @@
     border-radius:var(--radius-md); padding:12px 14px; display:flex; align-items:center; gap:10px;
     color:var(--text-faint); font-size:13.5px;
   }
+  .search-bar svg{ flex-shrink:0; }
+  .search-bar input{
+    flex:1; background:none; border:none; outline:none;
+    color:var(--text); font-family:'Inter',sans-serif; font-size:13.5px;
+  }
+  .search-bar input::placeholder{ color:var(--text-faint); }
+  .no-results{ padding:30px 20px; text-align:center; color:var(--text-faint); font-size:13px; }
   .filter-btn{
     width:44px; height:44px; border-radius:var(--radius-md);
     background:var(--surface); border:1px solid var(--border);
@@ -372,11 +380,151 @@
     width:4px; height:4px; border-radius:50%; background:transparent; margin-top:1px;
   }
   .nav-item.active .nav-indicator{ background:var(--amber); }
+
+  /* ---- FILTER / SORT ---- */
+  .filter-btn{ position:relative; }
+  .filter-dot{
+    position:absolute; top:8px; right:8px; width:7px; height:7px; border-radius:50%;
+    background:var(--amber); display:none; box-shadow:0 0 0 2px var(--surface);
+  }
+  .filter-dot.show{ display:block; }
+
+  .sort-wrap{ position:relative; }
+  .sort-menu{
+    position:absolute; top:26px; right:0; z-index:60;
+    background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md);
+    padding:6px; min-width:170px;
+    box-shadow:0 12px 30px -8px rgba(0,0,0,0.6);
+    display:none;
+  }
+  .sort-menu.open{ display:block; }
+  .sort-opt{
+    padding:10px 12px; font-size:12.5px; color:var(--text-dim); border-radius:9px; font-weight:500;
+  }
+  .sort-opt.active{ background:var(--surface-3); color:var(--amber); font-weight:600; }
+
+  .modal-overlay{
+    position:absolute; inset:0; z-index:200;
+    background:rgba(5,4,3,0.55);
+    display:flex; align-items:flex-end;
+    opacity:0; pointer-events:none;
+    transition:opacity .22s ease;
+  }
+  .modal-overlay.open{ opacity:1; pointer-events:auto; }
+  .filter-sheet{
+    width:100%; max-height:88%; background:var(--bg);
+    border-top:1px solid var(--border);
+    border-radius:24px 24px 0 0;
+    display:flex; flex-direction:column;
+    transform:translateY(100%);
+    transition:transform .28s cubic-bezier(.32,.72,0,1);
+  }
+  .modal-overlay.open .filter-sheet{ transform:translateY(0); }
+  .sheet-handle{ width:36px; height:4px; border-radius:2px; background:var(--surface-3); margin:12px auto 4px; }
+  .sheet-header{ display:flex; align-items:center; justify-content:space-between; padding:8px 20px 4px; }
+  .sheet-header h2{ font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; }
+  .sheet-close{
+    width:30px; height:30px; border-radius:50%; background:var(--surface);
+    display:flex; align-items:center; justify-content:center; border:1px solid var(--border);
+  }
+  .sheet-body{ padding:18px 20px 4px; overflow-y:auto; flex:1; }
+  .filter-block{ margin-bottom:24px; }
+  .filter-label{ font-size:13px; font-weight:600; margin-bottom:12px; }
+  .filter-label-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .filter-label-row .filter-label{ margin-bottom:0; }
+  .range-readout{ font-size:12.5px; color:var(--teal); font-weight:600; }
+
+  .star-row{ display:flex; align-items:center; gap:6px; }
+  .star{ font-size:26px; color:var(--surface-3); cursor:pointer; line-height:1; transition:color .1s ease; }
+  .star.on{ color:var(--amber); }
+  .star-readout{ margin-left:8px; font-size:12px; color:var(--text-faint); font-weight:500; }
+
+  input[type="range"]{
+    -webkit-appearance:none; width:100%; height:4px; border-radius:2px;
+    background:var(--surface-3); outline:none;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:18px; height:18px; border-radius:50%;
+    background:var(--amber); border:3px solid var(--bg); box-shadow:0 0 0 1px var(--amber);
+    cursor:pointer;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:18px; height:18px; border-radius:50%;
+    background:var(--amber); border:3px solid var(--bg); box-shadow:0 0 0 1px var(--amber);
+    cursor:pointer;
+  }
+
+  .chip-select{ display:flex; flex-wrap:wrap; gap:8px; }
+  .chip-opt{
+    padding:8px 13px; border-radius:20px; background:var(--surface);
+    border:1px solid var(--border); font-size:12px; font-weight:600; color:var(--text-dim);
+  }
+  .chip-opt.on{ background:var(--teal); color:#0A0908; border-color:var(--teal); }
+
+  .sheet-footer{
+    display:flex; gap:10px; padding:14px 20px 26px; border-top:1px solid var(--border);
+  }
+  .reset-btn{
+    flex:0 0 auto; padding:14px 18px; border-radius:14px; background:var(--surface);
+    border:1px solid var(--border); color:var(--text-dim); font-size:13.5px; font-weight:600;
+    font-family:'Inter',sans-serif;
+  }
+  .apply-btn{
+    flex:1; padding:14px; border-radius:14px; background:var(--amber); border:none;
+    color:var(--bg); font-size:13.5px; font-weight:700; font-family:'Space Grotesk',sans-serif;
+  }
+
+  /* ---- AUTH ---- */
+  .phone.pre-auth .bottom-nav{ display:none; }
+  .auth-wrap{
+    min-height:100%; padding:50px 28px 10px; display:flex; flex-direction:column; align-items:center;
+  }
+  .auth-brand{ text-align:center; margin-bottom:34px; }
+  .auth-vu{ justify-content:center; height:20px; margin-bottom:16px; }
+  .auth-vu span{ width:4px; }
+  .auth-brand h1{ font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; margin-bottom:8px; }
+  .auth-brand p{ font-size:12.5px; color:var(--text-dim); }
+  #google-official-wrap{ display:flex; justify-content:center; min-height:44px; }
+  .google-fallback-btn{
+    width:100%; max-width:300px; display:flex; align-items:center; justify-content:center; gap:10px;
+    background:#1E1E1E; border:1px solid #3A3A3A; border-radius:22px; padding:12px;
+    color:#F3EFE7; font-size:13.5px; font-weight:600; font-family:'Inter',sans-serif;
+  }
+  .auth-divider{
+    width:100%; max-width:300px; display:flex; align-items:center; gap:12px; margin:22px 0;
+    color:var(--text-faint); font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+  }
+  .auth-divider::before, .auth-divider::after{ content:""; flex:1; height:1px; background:var(--border); }
+  .auth-tabs{
+    width:100%; max-width:300px; display:flex; background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:3px; margin-bottom:14px;
+  }
+  .auth-tab{ flex:1; text-align:center; padding:9px; border-radius:9px; font-size:12.5px; font-weight:600; color:var(--text-faint); }
+  .auth-tab.active{ background:var(--surface-3); color:var(--text); }
+  .auth-input{
+    width:100%; max-width:300px; background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:14px 16px; color:var(--text); font-family:'Inter',sans-serif; font-size:13.5px;
+    outline:none; margin-bottom:8px;
+  }
+  .auth-input::placeholder{ color:var(--text-faint); }
+  .auth-error{ width:100%; max-width:300px; color:var(--danger); font-size:11.5px; min-height:16px; margin-bottom:4px; }
+  .auth-submit{
+    width:100%; max-width:300px; background:var(--amber); border:none; border-radius:12px;
+    padding:14px; color:var(--bg); font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700;
+    margin-top:6px;
+  }
+  .auth-terms{ max-width:280px; text-align:center; font-size:10.5px; color:var(--text-faint); line-height:1.6; margin-top:18px; }
+  .auth-setup-note{
+    display:none; max-width:300px; margin-top:20px; padding:12px 14px; border-radius:12px;
+    background:var(--surface); border:1px solid var(--border); font-size:11px; color:var(--text-dim); line-height:1.6;
+  }
+  .auth-setup-note b{ color:var(--amber); }
+  .auth-setup-note.show{ display:block; }
 </style>
 </head>
 <body>
 
-<div class="phone">
+<div class="phone pre-auth" id="phone-root">
   <div class="notch"></div>
   <div class="statusbar">
     <span>9:41</span>
@@ -385,8 +533,52 @@
 
   <div class="screens">
 
+    <!-- ============ AUTH ============ -->
+    <div class="screen active" id="screen-auth" style="padding-bottom:30px;">
+      <div class="auth-wrap">
+        <div class="auth-brand">
+          <div class="vu on auth-vu"><span></span><span></span><span></span><span></span></div>
+          <h1>Sound Board</h1>
+          <p>Discover and book studios across Bengaluru.</p>
+        </div>
+
+        <div id="google-official-wrap">
+          <div id="g_id_onload"
+            data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+            data-callback="handleGoogleSignIn"
+            data-auto_prompt="false">
+          </div>
+          <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_black" data-size="large" data-width="300" data-text="continue_with"></div>
+        </div>
+
+        <button class="google-fallback-btn" id="google-fallback-btn" onclick="showSetupNote()" style="display:none;">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.9 14-5.1l-6.5-5.4C29.6 35.5 26.9 36.5 24 36.5c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.5 5.4C40.4 36.6 44 30.9 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+          Continue with Google
+        </button>
+
+        <div class="auth-divider"><span>or</span></div>
+
+        <div class="auth-tabs">
+          <div class="auth-tab active" data-mode="email" onclick="setAuthMode('email')">Email</div>
+          <div class="auth-tab" data-mode="phone" onclick="setAuthMode('phone')">Phone</div>
+        </div>
+
+        <input id="auth-email" class="auth-input" type="email" placeholder="you@example.com">
+        <input id="auth-phone" class="auth-input" type="tel" placeholder="+91 98765 43210" style="display:none;">
+        <div class="auth-error" id="auth-error"></div>
+
+        <button class="auth-submit" onclick="emailSignIn()">Continue</button>
+
+        <p class="auth-terms">By continuing, you agree to Sound Board's Terms & Privacy Policy.</p>
+
+        <div class="auth-setup-note" id="auth-setup-note">
+          <b>Google Sign-In needs setup first.</b> Open this file through a local server (not by double-clicking it) and add your own Google Client ID in the code — see the chat for exact steps. Until then, use Email or Phone above to try the app.
+        </div>
+      </div>
+    </div>
+
     <!-- ============ HOME ============ -->
-    <div class="screen active" id="screen-home">
+    <div class="screen" id="screen-home">
       <div class="home-header">
         <div>
           <div class="greet-label" id="greet-time">Good Evening</div>
@@ -454,83 +646,37 @@
       <div class="search-row">
         <div class="search-bar">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-          Search studios, areas, gear...
+          <input id="search-input" type="text" placeholder="Search studios, areas, gear..." oninput="filterStudios(this.value)">
         </div>
-        <div class="filter-btn">
+        <div class="filter-btn" onclick="openFilterModal()" id="filter-btn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F0A63C" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+          <div class="filter-dot" id="filter-dot"></div>
         </div>
       </div>
 
-      <div class="cat-row">
-        <div class="cat-chip active">🎸 Rehearsal</div>
-        <div class="cat-chip">🎙 Recording</div>
-        <div class="cat-chip">🥁 Drum Rooms</div>
-        <div class="cat-chip">🎹 Piano Rooms</div>
-        <div class="cat-chip">🎧 Mixing</div>
+      <div class="cat-row" id="cat-row">
+        <div class="cat-chip" data-tag="Rehearsal">🎸 Rehearsal</div>
+        <div class="cat-chip" data-tag="Recording">🎙 Recording</div>
+        <div class="cat-chip" data-tag="Drum Rooms">🥁 Drum Rooms</div>
+        <div class="cat-chip" data-tag="Piano Rooms">🎹 Piano Rooms</div>
+        <div class="cat-chip" data-tag="Mixing">🎧 Mixing</div>
       </div>
 
       <div class="section-head" style="padding:0 20px; margin-top:18px;">
-        <h2>Nearby studios</h2>
-        <span class="see-all">Sort ⇅</span>
-      </div>
-
-      <div class="studio-list">
-        <div class="studio-card" onclick="openDetail('basement9')">
-          <div class="studio-thumb"><div class="swatch" style="background:linear-gradient(135deg,#3A2818,#1A2624)"></div></div>
-          <div class="studio-info">
-            <div>
-              <div class="studio-name">Basement 9 Studios</div>
-              <div class="studio-tags">Rehearsal · Recording</div>
-            </div>
-            <div>
-              <div class="studio-meta-row"><span class="rating">⭐ 4.9</span><span>📍 2.3 km</span></div>
-              <div class="studio-bottom"><div class="price">₹600<span>/hr</span></div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="studio-card" onclick="openDetail('cuepoint')">
-          <div class="studio-thumb"><div class="swatch" style="background:linear-gradient(135deg,#2A3428,#1E241A)"></div></div>
-          <div class="studio-info">
-            <div>
-              <div class="studio-name">Cue Point</div>
-              <div class="studio-tags">Recording · Mixing</div>
-            </div>
-            <div>
-              <div class="studio-meta-row"><span class="rating">⭐ 4.8</span><span>📍 4.1 km</span></div>
-              <div class="studio-bottom"><div class="price">₹850<span>/hr</span></div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="studio-card" onclick="openDetail('drumyard')">
-          <div class="studio-thumb"><div class="swatch" style="background:linear-gradient(135deg,#241E2A,#2A1E22)"></div></div>
-          <div class="studio-info">
-            <div>
-              <div class="studio-name">The Drum Yard</div>
-              <div class="studio-tags">Drum Rooms · Rehearsal</div>
-            </div>
-            <div>
-              <div class="studio-meta-row"><span class="rating">⭐ 4.7</span><span>📍 6.8 km</span></div>
-              <div class="studio-bottom"><div class="price">₹450<span>/hr</span></div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="studio-card" onclick="openDetail('analogattic')">
-          <div class="studio-thumb"><div class="swatch" style="background:linear-gradient(135deg,#2A2418,#28201A)"></div></div>
-          <div class="studio-info">
-            <div>
-              <div class="studio-name">Analog Attic</div>
-              <div class="studio-tags">Recording · Piano Rooms</div>
-            </div>
-            <div>
-              <div class="studio-meta-row"><span class="rating">⭐ 5.0</span><span>📍 3.5 km</span></div>
-              <div class="studio-bottom"><div class="price">₹700<span>/hr</span></div></div>
-            </div>
+        <h2 id="results-count">Nearby studios</h2>
+        <div class="sort-wrap">
+          <span class="see-all" id="sort-trigger" onclick="toggleSort()">Sort ⇅</span>
+          <div class="sort-menu" id="sort-menu">
+            <div class="sort-opt active" data-sort="recommended">⭐ Recommended</div>
+            <div class="sort-opt" data-sort="nearest">📍 Nearest</div>
+            <div class="sort-opt" data-sort="rating">⭐ Highest Rated</div>
+            <div class="sort-opt" data-sort="price">💰 Lowest Price</div>
+            <div class="sort-opt" data-sort="newest">🆕 Newest</div>
           </div>
         </div>
       </div>
+
+      <div class="studio-list" id="studio-list"></div>
     </div>
 
     <!-- ============ STUDIO DETAILS ============ -->
@@ -703,32 +849,91 @@
       <div class="nav-indicator"></div>
     </div>
   </div>
+
+  <!-- ============ FILTER MODAL ============ -->
+  <div class="modal-overlay" id="filter-overlay" onclick="closeFilterModal(event)">
+    <div class="filter-sheet" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h2>Filters</h2>
+        <div class="sheet-close" onclick="closeFilterModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </div>
+      </div>
+
+      <div class="sheet-body">
+
+        <div class="filter-block">
+          <div class="filter-label">⭐ Minimum Rating</div>
+          <div class="star-row" id="star-row">
+            <div class="star" data-val="1">★</div>
+            <div class="star" data-val="2">★</div>
+            <div class="star" data-val="3">★</div>
+            <div class="star" data-val="4">★</div>
+            <div class="star" data-val="5">★</div>
+            <span class="star-readout" id="rating-readout">Any</span>
+          </div>
+        </div>
+
+        <div class="filter-block">
+          <div class="filter-label-row">
+            <div class="filter-label">💰 Max Price</div>
+            <span class="range-readout mono" id="price-readout">₹1000/hr</span>
+          </div>
+          <input type="range" id="price-slider" min="300" max="1000" step="50" value="1000" oninput="onPriceChange(this.value)">
+        </div>
+
+        <div class="filter-block">
+          <div class="filter-label-row">
+            <div class="filter-label">📍 Max Distance</div>
+            <span class="range-readout mono" id="distance-readout">10 km</span>
+          </div>
+          <input type="range" id="distance-slider" min="1" max="10" step="0.5" value="10" oninput="onDistanceChange(this.value)">
+        </div>
+
+        <div class="filter-block">
+          <div class="filter-label">🎙️ Services</div>
+          <div class="chip-select" id="services-select">
+            <div class="chip-opt" data-val="Rehearsal">Rehearsal</div>
+            <div class="chip-opt" data-val="Recording">Recording</div>
+            <div class="chip-opt" data-val="Mixing">Mixing</div>
+            <div class="chip-opt" data-val="Drum Rooms">Drum Rooms</div>
+            <div class="chip-opt" data-val="Piano Rooms">Piano Rooms</div>
+          </div>
+        </div>
+
+        <div class="filter-block">
+          <div class="filter-label">🎵 Genres</div>
+          <div class="chip-select" id="genres-select">
+            <div class="chip-opt" data-val="Indie Rock">Indie Rock</div>
+            <div class="chip-opt" data-val="Jazz">Jazz</div>
+            <div class="chip-opt" data-val="Lo-fi">Lo-fi</div>
+            <div class="chip-opt" data-val="Hip-Hop">Hip-Hop</div>
+            <div class="chip-opt" data-val="Electronic">Electronic</div>
+            <div class="chip-opt" data-val="Rock">Rock</div>
+            <div class="chip-opt" data-val="Metal">Metal</div>
+            <div class="chip-opt" data-val="Classical">Classical</div>
+          </div>
+        </div>
+
+        <div class="filter-block">
+          <div class="setting-row" style="padding:0;">
+            <div><div class="setting-label">✅ Verified studios only</div></div>
+            <div class="toggle" id="verified-toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="sheet-footer">
+        <button class="reset-btn" onclick="resetFilters()">Reset</button>
+        <button class="apply-btn" onclick="applyFilters()">Apply Filters</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-  const studioData = {
-    basement9: { name:"Basement 9 Studios", loc:"Koramangala, 2.3 km", price:"₹600/hr",
-      swatch:"linear-gradient(135deg,#3A2818,#1A2624)",
-      chips:["🎸 Rehearsal","🎙 Recording","🅿️ Parking","❄️ AC"],
-      about:"A live room built around a vintage analog console, tuned for bands that want their rehearsal to sound like a soundcheck. Treated acoustics, in-house backline, and an engineer on call.",
-      equip:["Fender Twin Reverb","Pearl Export Kit","Ampeg SVT Bass Rig","Shure SM58 x4"] },
-    cuepoint: { name:"Cue Point", loc:"HSR Layout, 4.1 km", price:"₹850/hr",
-      swatch:"linear-gradient(135deg,#2A3428,#1E241A)",
-      chips:["🎙 Recording","🎧 Mixing","☕ Lounge","🅿️ Parking"],
-      about:"A boutique recording suite with a Neve-style console and a mix room built for detail work. Popular with producers finishing singles and EPs.",
-      equip:["Neve-style Console","Neumann U87","Genelec Monitors","Universal Audio Rack"] },
-    drumyard: { name:"The Drum Yard", loc:"Whitefield, 6.8 km", price:"₹450/hr",
-      swatch:"linear-gradient(135deg,#241E2A,#2A1E22)",
-      chips:["🥁 Drum Rooms","🎸 Rehearsal","🔇 Soundproofed"],
-      about:"Three isolated drum rooms with a shared control booth. Built for drummers who practice loud and don't want to apologize for it.",
-      equip:["DW Collector's Kit","Pearl Reference","Roland V-Drums","In-ear Monitor Rig"] },
-    analogattic: { name:"Analog Attic", loc:"Indiranagar, 3.5 km", price:"₹700/hr",
-      swatch:"linear-gradient(135deg,#2A2418,#28201A)",
-      chips:["🎙 Recording","🎹 Piano Rooms","🪟 Natural Light"],
-      about:"A converted attic space with a 1960s upright and warm natural light. Favoured for stripped-down sessions and songwriter demos.",
-      equip:["Yamaha U1 Upright","Rode NT1-A Pair","Tascam Tape Deck","Vintage Fender Rhodes"] }
-  };
-
   function nav(screen){
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + screen).classList.add('active');
@@ -738,13 +943,228 @@
     document.getElementById('screen-' + screen).scrollTop = 0;
   }
 
+  document.querySelectorAll('.slot').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+      el.classList.add('selected');
+    });
+  });
+
+  const studios = [
+    { id:'basement9', name:"Basement 9 Studios", loc:"Koramangala", distanceKm:2.3, rating:4.9, price:600,
+      services:["Rehearsal","Recording"], genres:["Indie Rock","Jazz"], verified:true, daysAgo:5,
+      swatch:["#3A2818","#1A2624"],
+      chips:["🎸 Rehearsal","🎙 Recording","🅿️ Parking","❄️ AC"],
+      about:"A live room built around a vintage analog console, tuned for bands that want their rehearsal to sound like a soundcheck. Treated acoustics, in-house backline, and an engineer on call.",
+      equip:["Fender Twin Reverb","Pearl Export Kit","Ampeg SVT Bass Rig","Shure SM58 x4"],
+      slots:["10:00","13:00","16:00","19:00","21:00"],
+      reviews:[{name:"Ritvik M.",rating:5.0,text:"Tightest room we've rehearsed in. The console alone is worth the price."},{name:"Naina K.",rating:4.5,text:"Great acoustics, booking was smooth. Parking gets tight on weekends."}] },
+    { id:'cuepoint', name:"Cue Point", loc:"HSR Layout", distanceKm:4.1, rating:4.8, price:850,
+      services:["Recording","Mixing"], genres:["Hip-Hop","Electronic"], verified:true, daysAgo:20,
+      swatch:["#2A3428","#1E241A"],
+      chips:["🎙 Recording","🎧 Mixing","☕ Lounge","🅿️ Parking"],
+      about:"A boutique recording suite with a Neve-style console and a mix room built for detail work. Popular with producers finishing singles and EPs.",
+      equip:["Neve-style Console","Neumann U87","Genelec Monitors","Universal Audio Rack"],
+      slots:["09:00","12:00","15:00","18:00"],
+      reviews:[{name:"Farah S.",rating:5.0,text:"Mix room translated perfectly to my car and headphones. Booking again."}] },
+    { id:'drumyard', name:"The Drum Yard", loc:"Whitefield", distanceKm:6.8, rating:4.7, price:450,
+      services:["Drum Rooms","Rehearsal"], genres:["Rock","Metal"], verified:false, daysAgo:2,
+      swatch:["#241E2A","#2A1E22"],
+      chips:["🥁 Drum Rooms","🎸 Rehearsal","🔇 Soundproofed"],
+      about:"Three isolated drum rooms with a shared control booth. Built for drummers who practice loud and don't want to apologize for it.",
+      equip:["DW Collector's Kit","Pearl Reference","Roland V-Drums","In-ear Monitor Rig"],
+      slots:["11:00","14:00","17:00","20:00"],
+      reviews:[{name:"Karan V.",rating:4.5,text:"Isolation is real — three kits going at once and no bleed."}] },
+    { id:'analogattic', name:"Analog Attic", loc:"Indiranagar", distanceKm:3.5, rating:5.0, price:700,
+      services:["Recording","Piano Rooms"], genres:["Classical","Lo-fi"], verified:true, daysAgo:45,
+      swatch:["#2A2418","#28201A"],
+      chips:["🎙 Recording","🎹 Piano Rooms","🪟 Natural Light"],
+      about:"A converted attic space with a 1960s upright and warm natural light. Favoured for stripped-down sessions and songwriter demos.",
+      equip:["Yamaha U1 Upright","Rode NT1-A Pair","Tascam Tape Deck","Vintage Fender Rhodes"],
+      slots:["10:00","13:00","16:00"],
+      reviews:[{name:"Priya D.",rating:5.0,text:"The light in this room alone makes it worth booking for a demo session."}] },
+    { id:'studio21', name:"Studio 21", loc:"Jayanagar", distanceKm:5.5, rating:4.4, price:350,
+      services:["Rehearsal","Mixing"], genres:["Indie Rock","Electronic"], verified:false, daysAgo:1,
+      swatch:["#302818","#1E2A1C"],
+      chips:["🎸 Rehearsal","🎧 Mixing","💸 Budget-friendly"],
+      about:"A no-frills rehearsal space that keeps rates low for bands practicing on a budget. Basic backline included, BYO cymbals.",
+      equip:["Marshall JCM800","Fender Bassman","Basic 4-piece Kit","2x Mic Stands"],
+      slots:["09:00","12:00","15:00","18:00","20:00"],
+      reviews:[{name:"Aman T.",rating:4.0,text:"Cheapest hourly rate in the area by a good margin. Gear is basic but works."}] },
+    { id:'theloft', name:"The Loft Sessions", loc:"Malleshwaram", distanceKm:8.2, rating:4.6, price:950,
+      services:["Recording","Mixing","Piano Rooms"], genres:["Jazz","Classical"], verified:true, daysAgo:60,
+      swatch:["#241C2E","#1A2222"],
+      chips:["🎙 Recording","🎧 Mixing","🎹 Piano Rooms","🌇 Skyline View"],
+      about:"A premium top-floor suite with a grand piano and floor-to-ceiling windows. Built for full-band live tracking and film scoring sessions.",
+      equip:["Steinway Grand Piano","SSL Console","Vintage Ribbon Mics","Full Live Room"],
+      slots:["10:00","14:00","17:00"],
+      reviews:[{name:"Devika R.",rating:5.0,text:"Worth every rupee for a live band tracking session. The room sounds huge."}] },
+  ];
+
+  const state = { search:'', services:new Set(), genres:new Set(), minRating:0, maxPrice:1000, maxDistance:10, verifiedOnly:false, sort:'recommended' };
+  let pending = null;
+
+  function buildCard(s){
+    const gradient = 'linear-gradient(135deg,'+s.swatch[0]+','+s.swatch[1]+')';
+    return '<div class="studio-card" onclick="openDetail(\''+s.id+'\')">'
+      + '<div class="studio-thumb"><div class="swatch" style="background:'+gradient+'"></div></div>'
+      + '<div class="studio-info"><div>'
+      + '<div class="studio-name">'+s.name+(s.verified ? ' <span style="color:var(--teal); font-size:11px;">✓</span>' : '')+'</div>'
+      + '<div class="studio-tags">'+s.services.join(' · ')+'</div>'
+      + '</div><div>'
+      + '<div class="studio-meta-row"><span class="rating">⭐ '+s.rating.toFixed(1)+'</span><span>📍 '+s.distanceKm+' km</span></div>'
+      + '<div class="studio-bottom"><div class="price">₹'+s.price+'<span>/hr</span></div></div>'
+      + '</div></div></div>';
+  }
+
+  function getFiltered(){
+    const q = state.search.trim().toLowerCase();
+    let list = studios.filter(s => {
+      if(q && !(s.name.toLowerCase().includes(q) || s.loc.toLowerCase().includes(q))) return false;
+      if(state.services.size && ![...state.services].some(v => s.services.includes(v))) return false;
+      if(state.genres.size && ![...state.genres].some(v => s.genres.includes(v))) return false;
+      if(s.rating < state.minRating) return false;
+      if(s.price > state.maxPrice) return false;
+      if(s.distanceKm > state.maxDistance) return false;
+      if(state.verifiedOnly && !s.verified) return false;
+      return true;
+    });
+    switch(state.sort){
+      case 'nearest': list.sort((a,b) => a.distanceKm - b.distanceKm); break;
+      case 'rating': list.sort((a,b) => b.rating - a.rating); break;
+      case 'price': list.sort((a,b) => a.price - b.price); break;
+      case 'newest': list.sort((a,b) => a.daysAgo - b.daysAgo); break;
+      default: list.sort((a,b) => (b.rating - b.daysAgo/100) - (a.rating - a.daysAgo/100)); // recommended: rating-led, slight freshness boost
+    }
+    return list;
+  }
+
+  function render(){
+    const list = getFiltered();
+    const container = document.getElementById('studio-list');
+    container.innerHTML = list.length
+      ? list.map(buildCard).join('')
+      : '<div class="no-results">No studios match your filters.<br>Try widening your search.</div>';
+    document.getElementById('results-count').textContent = list.length + (list.length === 1 ? ' studio found' : ' studios found');
+
+    const hasActiveFilters = state.services.size || state.genres.size || state.minRating > 0 ||
+      state.maxPrice < 1000 || state.maxDistance < 10 || state.verifiedOnly;
+    document.getElementById('filter-dot').classList.toggle('show', !!hasActiveFilters);
+  }
+
+  function filterStudios(query){
+    state.search = query;
+    render();
+  }
+
+  document.querySelectorAll('#cat-row .cat-chip').forEach(el => {
+    el.addEventListener('click', () => {
+      const tag = el.dataset.tag;
+      const alreadyOnly = state.services.size === 1 && state.services.has(tag);
+      state.services = alreadyOnly ? new Set() : new Set([tag]);
+      document.querySelectorAll('#cat-row .cat-chip').forEach(c => c.classList.remove('active'));
+      if(!alreadyOnly) el.classList.add('active');
+      render();
+    });
+  });
+
+  // ---- Sort dropdown ----
+  function toggleSort(){
+    document.getElementById('sort-menu').classList.toggle('open');
+  }
+  document.querySelectorAll('.sort-opt').forEach(el => {
+    el.addEventListener('click', () => {
+      state.sort = el.dataset.sort;
+      document.querySelectorAll('.sort-opt').forEach(o => o.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('sort-menu').classList.remove('open');
+      render();
+    });
+  });
+  document.addEventListener('click', (e) => {
+    const wrap = document.querySelector('.sort-wrap');
+    if(wrap && !wrap.contains(e.target)) document.getElementById('sort-menu').classList.remove('open');
+  });
+
+  // ---- Filter modal ----
+  function openFilterModal(){
+    pending = {
+      services: new Set(state.services), genres: new Set(state.genres),
+      minRating: state.minRating, maxPrice: state.maxPrice, maxDistance: state.maxDistance,
+      verifiedOnly: state.verifiedOnly,
+    };
+    syncModalUI();
+    document.getElementById('filter-overlay').classList.add('open');
+  }
+  function closeFilterModal(e){
+    if(e && e.target !== e.currentTarget) return;
+    document.getElementById('filter-overlay').classList.remove('open');
+  }
+  function syncModalUI(){
+    document.querySelectorAll('#star-row .star').forEach(st => {
+      st.classList.toggle('on', Number(st.dataset.val) <= pending.minRating);
+    });
+    document.getElementById('rating-readout').textContent = pending.minRating > 0 ? pending.minRating + '+ stars' : 'Any';
+    document.getElementById('price-slider').value = pending.maxPrice;
+    document.getElementById('price-readout').textContent = '₹' + pending.maxPrice + '/hr';
+    document.getElementById('distance-slider').value = pending.maxDistance;
+    document.getElementById('distance-readout').textContent = pending.maxDistance + ' km';
+    document.querySelectorAll('#services-select .chip-opt').forEach(c => c.classList.toggle('on', pending.services.has(c.dataset.val)));
+    document.querySelectorAll('#genres-select .chip-opt').forEach(c => c.classList.toggle('on', pending.genres.has(c.dataset.val)));
+    document.getElementById('verified-toggle').classList.toggle('on', pending.verifiedOnly);
+  }
+  document.querySelectorAll('#star-row .star').forEach(st => {
+    st.addEventListener('click', () => {
+      const val = Number(st.dataset.val);
+      pending.minRating = pending.minRating === val ? 0 : val;
+      syncModalUI();
+    });
+  });
+  function onPriceChange(v){ pending.maxPrice = Number(v); document.getElementById('price-readout').textContent = '₹' + v + '/hr'; }
+  function onDistanceChange(v){ pending.maxDistance = Number(v); document.getElementById('distance-readout').textContent = v + ' km'; }
+  document.querySelectorAll('#services-select .chip-opt').forEach(c => {
+    c.addEventListener('click', () => {
+      const v = c.dataset.val;
+      pending.services.has(v) ? pending.services.delete(v) : pending.services.add(v);
+      c.classList.toggle('on');
+    });
+  });
+  document.querySelectorAll('#genres-select .chip-opt').forEach(c => {
+    c.addEventListener('click', () => {
+      const v = c.dataset.val;
+      pending.genres.has(v) ? pending.genres.delete(v) : pending.genres.add(v);
+      c.classList.toggle('on');
+    });
+  });
+  document.getElementById('verified-toggle').addEventListener('click', () => {
+    pending.verifiedOnly = !pending.verifiedOnly;
+  });
+  function resetFilters(){
+    pending = { services:new Set(), genres:new Set(), minRating:0, maxPrice:1000, maxDistance:10, verifiedOnly:false };
+    syncModalUI();
+  }
+  function applyFilters(){
+    state.services = new Set(pending.services);
+    state.genres = new Set(pending.genres);
+    state.minRating = pending.minRating;
+    state.maxPrice = pending.maxPrice;
+    state.maxDistance = pending.maxDistance;
+    state.verifiedOnly = pending.verifiedOnly;
+    // keep quick category row visually in sync with modal's service selection
+    document.querySelectorAll('#cat-row .cat-chip').forEach(c => {
+      c.classList.toggle('active', state.services.size === 1 && state.services.has(c.dataset.tag));
+    });
+    document.getElementById('filter-overlay').classList.remove('open');
+    render();
+  }
+
   function openDetail(id){
-    const d = studioData[id];
+    const d = studios.find(s => s.id === id);
     if(!d) return;
     document.getElementById('detail-name').textContent = d.name;
-    document.getElementById('detail-loc').textContent = d.loc;
-    document.getElementById('detail-price').textContent = d.price;
-    document.getElementById('detail-swatch').style.background = d.swatch;
+    document.getElementById('detail-loc').textContent = d.loc + ', ' + d.distanceKm + ' km';
+    document.getElementById('detail-price').textContent = '₹' + d.price + '/hr';
+    document.getElementById('detail-swatch').style.background = 'linear-gradient(135deg,'+d.swatch[0]+','+d.swatch[1]+')';
     document.getElementById('detail-about').textContent = d.about;
     document.getElementById('detail-chips').innerHTML = d.chips.map(c => '<div class="chip">'+c+'</div>').join('');
     document.getElementById('detail-equip').innerHTML = d.equip.map(e => '<div class="equip-item"><div class="dot"></div>'+e+'</div>').join('');
@@ -754,19 +1174,7 @@
     document.getElementById('screen-detail').scrollTop = 0;
   }
 
-  document.querySelectorAll('.slot').forEach(el => {
-    el.addEventListener('click', () => {
-      document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
-      el.classList.add('selected');
-    });
-  });
-
-  document.querySelectorAll('.cat-chip').forEach(el => {
-    el.addEventListener('click', () => {
-      document.querySelectorAll('.cat-chip').forEach(s => s.classList.remove('active'));
-      el.classList.add('active');
-    });
-  });
+  render();
 
   document.querySelectorAll('.theme-opt').forEach(el => {
     el.addEventListener('click', () => {
@@ -775,11 +1183,73 @@
     });
   });
 
-  function sendPromptSafe(){
-    if (typeof sendPrompt === 'function') {
-      sendPrompt("Book this studio slot");
-    }
+  // ---- AUTH ----
+  function setAuthMode(mode){
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+    document.getElementById('auth-email').style.display = mode === 'email' ? 'block' : 'none';
+    document.getElementById('auth-phone').style.display = mode === 'phone' ? 'block' : 'none';
+    document.getElementById('auth-error').textContent = '';
   }
+
+  function emailSignIn(){
+    const mode = document.querySelector('.auth-tab.active').dataset.mode;
+    const field = document.getElementById(mode === 'email' ? 'auth-email' : 'auth-phone');
+    const val = field.value.trim();
+    const errorEl = document.getElementById('auth-error');
+    if(!val){
+      errorEl.textContent = mode === 'email' ? 'Enter an email to continue.' : 'Enter a phone number to continue.';
+      return;
+    }
+    if(mode === 'email' && !val.includes('@')){
+      errorEl.textContent = 'That doesn\'t look like a valid email.';
+      return;
+    }
+    errorEl.textContent = '';
+    completeLogin();
+  }
+
+  // Called automatically by Google's script if a real Client ID is configured
+  // and this page is served over http(s) from a registered origin.
+  function handleGoogleSignIn(response){
+    completeLogin();
+  }
+
+  function completeLogin(){
+    document.getElementById('phone-root').classList.remove('pre-auth');
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-home').classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelector('.nav-item[data-screen="home"]').classList.add('active');
+  }
+
+  function logout(){
+    document.getElementById('phone-root').classList.add('pre-auth');
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-auth').classList.add('active');
+  }
+
+  function showSetupNote(){
+    document.getElementById('auth-setup-note').classList.add('show');
+  }
+
+  // If this file was opened directly (file://) or Google's script failed to
+  // load/initialize, the real Google button can't render — show the styled
+  // fallback button instead so the screen never looks broken.
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const usingFileProtocol = location.protocol === 'file:';
+      const googleLoaded = window.google && window.google.accounts && window.google.accounts.id;
+      if(usingFileProtocol || !googleLoaded){
+        document.getElementById('google-official-wrap').style.display = 'none';
+        document.getElementById('google-fallback-btn').style.display = 'flex';
+        if(usingFileProtocol) showSetupNote();
+      }
+    }, 900);
+  });
+
+  document.querySelectorAll('.list-item').forEach(el => {
+    if(el.textContent.includes('Log out')) el.addEventListener('click', logout);
+  });
 
   // greeting by time
   const hr = new Date().getHours();
