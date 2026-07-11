@@ -814,7 +814,7 @@
       <div class="topbar-icon-btn">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
       </div>
-      <div class="avatar" id="topbar-avatar">A</div>
+      <div class="avatar" id="topbar-avatar" onclick="nav('profile')">A</div>
     </div>
   </div>
 
@@ -839,7 +839,7 @@
 
           <div id="google-official-wrap">
             <div id="g_id_onload"
-              data-client_id="152399337619-oiovu7ruhtgt7m43jhk7310lmtmp2rua.apps.googleusercontent.com"
+              data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
               data-callback="handleGoogleSignIn"
               data-auto_prompt="false">
             </div>
@@ -880,7 +880,7 @@
           <div class="greet-label" id="greet-time">Good Evening</div>
           <div class="greet-name" id="greet-name">Hey there 👋</div>
         </div>
-        <div class="avatar" id="home-avatar">A</div>
+        <div class="avatar" id="home-avatar" onclick="nav('profile')">A</div>
       </div>
 
       <div class="demo-banner" id="demo-banner">
@@ -1121,6 +1121,9 @@
           </div>
           <div class="reminder-slider-row" id="reminder-slider-row">
             <input type="range" id="reminder-hours-slider" min="1" max="24" step="1" value="1" oninput="onReminderHoursChange(this.value)">
+          </div>
+          <div class="notif-blocked-msg" id="notif-blocked-msg" style="display:none; padding:10px 14px; font-size:11.5px; color:var(--text-faint); line-height:1.5; border-top:1px solid var(--border);">
+            Notifications are blocked for this site. To get booking reminders, enable notifications for Sound Board in your browser's site settings.
           </div>
           <div class="setting-row">
             <div><div class="setting-label">New offers</div><div class="setting-sub">Deals from studios you follow</div></div>
@@ -1377,6 +1380,11 @@
   function ensureSettings(){
     if(!profile.settings){
       profile.settings = { remindersEnabled:true, reminderHours:1, offersEnabled:true, updatesEnabled:false };
+    }
+    // Track the last known browser Notification permission so we know
+    // whether we're allowed to ask again or should just show a message.
+    if(typeof profile.settings.notificationPermission === 'undefined'){
+      profile.settings.notificationPermission = 'default';
     }
   }
   ensureSettings();
@@ -1964,6 +1972,17 @@
   // ---- SETTINGS ----
   function renderSettingsUI(){
     ensureSettings();
+
+    // Keep the stored permission in sync with the browser's actual current
+    // permission (it can change any time in browser site settings, outside
+    // our control), then reflect that in the toggle + message.
+    if(typeof Notification !== 'undefined' && Notification.permission){
+      profile.settings.notificationPermission = Notification.permission;
+      if(Notification.permission === 'denied'){
+        profile.settings.remindersEnabled = false;
+      }
+    }
+
     document.getElementById('reminders-toggle').classList.toggle('on', profile.settings.remindersEnabled);
     document.getElementById('offers-toggle').classList.toggle('on', profile.settings.offersEnabled);
     document.getElementById('updates-toggle').classList.toggle('on', profile.settings.updatesEnabled);
@@ -1971,14 +1990,84 @@
     document.getElementById('reminder-slider-row').classList.toggle('show', profile.settings.remindersEnabled);
     const hrs = profile.settings.reminderHours;
     document.getElementById('reminder-sub').textContent = hrs + (hrs === 1 ? ' hour' : ' hours') + ' before your session';
+
+    const blockedMsg = document.getElementById('notif-blocked-msg');
+    if(blockedMsg){
+      blockedMsg.style.display = (profile.settings.notificationPermission === 'denied') ? 'block' : 'none';
+    }
   }
 
   function onToggleReminders(el){
-    el.classList.toggle('on');
+    const turningOn = !el.classList.contains('on');
     ensureSettings();
-    profile.settings.remindersEnabled = el.classList.contains('on');
-    saveProfile();
-    document.getElementById('reminder-slider-row').classList.toggle('show', profile.settings.remindersEnabled);
+
+    const supportsNotifications = typeof Notification !== 'undefined';
+
+    if(!turningOn){
+      // Turning reminders off never needs permission.
+      el.classList.remove('on');
+      profile.settings.remindersEnabled = false;
+      saveProfile();
+      document.getElementById('reminder-slider-row').classList.remove('show');
+      return;
+    }
+
+    if(!supportsNotifications){
+      // Graceful fallback: this browser has no Notification API at all.
+      // Let the reminder toggle work as a plain in-app preference.
+      el.classList.add('on');
+      profile.settings.remindersEnabled = true;
+      saveProfile();
+      document.getElementById('reminder-slider-row').classList.add('show');
+      return;
+    }
+
+    if(Notification.permission === 'granted'){
+      // Already granted earlier — don't ask again, just turn it on.
+      el.classList.add('on');
+      profile.settings.remindersEnabled = true;
+      profile.settings.notificationPermission = 'granted';
+      saveProfile();
+      document.getElementById('reminder-slider-row').classList.add('show');
+      document.getElementById('notif-blocked-msg').style.display = 'none';
+      return;
+    }
+
+    if(Notification.permission === 'denied'){
+      // Already denied earlier — don't show the browser prompt again,
+      // keep the toggle off, and explain how to fix it.
+      el.classList.remove('on');
+      profile.settings.remindersEnabled = false;
+      profile.settings.notificationPermission = 'denied';
+      saveProfile();
+      document.getElementById('reminder-slider-row').classList.remove('show');
+      document.getElementById('notif-blocked-msg').style.display = 'block';
+      return;
+    }
+
+    // Permission is "default" — this is the first time, so ask.
+    Notification.requestPermission().then(function(result){
+      profile.settings.notificationPermission = result;
+      if(result === 'granted'){
+        el.classList.add('on');
+        profile.settings.remindersEnabled = true;
+        document.getElementById('reminder-slider-row').classList.add('show');
+        document.getElementById('notif-blocked-msg').style.display = 'none';
+      } else {
+        el.classList.remove('on');
+        profile.settings.remindersEnabled = false;
+        document.getElementById('reminder-slider-row').classList.remove('show');
+        document.getElementById('notif-blocked-msg').style.display = (result === 'denied') ? 'block' : 'none';
+      }
+      saveProfile();
+    }).catch(function(){
+      // requestPermission failed unexpectedly — leave the toggle off
+      // rather than pretend it worked.
+      el.classList.remove('on');
+      profile.settings.remindersEnabled = false;
+      saveProfile();
+      document.getElementById('reminder-slider-row').classList.remove('show');
+    });
   }
 
   function onReminderHoursChange(v){
