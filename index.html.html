@@ -55,17 +55,6 @@
     display:flex;
     flex-direction:column;
   }
-  .notch{
-    position:absolute; top:0; left:50%; transform:translateX(-50%);
-    width:120px; height:24px; background:#050403;
-    border-radius:0 0 16px 16px; z-index:50;
-  }
-  .statusbar{
-    height:48px; flex-shrink:0;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:0 26px; font-size:13px; font-weight:600; letter-spacing:0.02em;
-    color:var(--text);
-  }
   .screens{ flex:1; position:relative; overflow:hidden; }
   .screen{
     position:absolute; inset:0;
@@ -520,16 +509,71 @@
   }
   .auth-setup-note b{ color:var(--amber); }
   .auth-setup-note.show{ display:block; }
+
+  /* ---- DEMO BANNER ---- */
+  .demo-banner{
+    margin:14px 20px 0; padding:10px 14px; border-radius:12px;
+    background:var(--surface); border:1px solid var(--border);
+    display:flex; align-items:center; gap:10px;
+    font-size:11px; color:var(--text-faint); line-height:1.5;
+  }
+  .demo-banner span{ flex:1; }
+  .demo-banner-close{ cursor:pointer; color:var(--text-faint); font-size:12px; flex-shrink:0; padding:2px; }
+
+  /* ---- TOAST ---- */
+  .toast{
+    position:absolute; left:50%; bottom:100px; transform:translateX(-50%) translateY(20px);
+    background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    padding:12px 18px; border-radius:30px; font-size:12.5px; font-weight:600;
+    box-shadow:0 12px 30px -8px rgba(0,0,0,0.6); z-index:400;
+    opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease;
+    white-space:nowrap;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ---- FAVORITE HEART ---- */
+  .fav-btn{
+    position:absolute; top:8px; right:8px; width:26px; height:26px; border-radius:50%;
+    background:rgba(10,9,8,0.55); backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; color:var(--text-faint); z-index:5; border:1px solid rgba(255,255,255,0.1);
+  }
+  .fav-btn.on{ color:var(--danger); background:rgba(224,101,79,0.16); border-color:var(--danger); }
+  .detail-fav-btn{
+    position:absolute; top:18px; right:18px; z-index:5;
+    width:36px; height:36px; border-radius:50%;
+    background:rgba(10,9,8,0.55); backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    border:1px solid rgba(255,255,255,0.1); color:var(--text-faint); font-size:16px;
+  }
+  .detail-fav-btn.on{ color:var(--danger); background:rgba(224,101,79,0.18); border-color:var(--danger); }
+
+  /* ---- INFO MODAL / MENU LISTS ---- */
+  .empty-note{ color:var(--text-faint); font-size:12.5px; text-align:center; padding:30px 10px; line-height:1.6; }
+  .booking-row{
+    border-top:1px solid var(--border); padding:13px 0; display:flex; align-items:center; justify-content:space-between;
+  }
+  .booking-row:first-child{ border-top:none; }
+  .booking-row .b-name{ font-size:13px; font-weight:600; margin-bottom:3px; }
+  .booking-row .b-meta{ font-size:11px; color:var(--text-faint); }
+  .booking-row .b-price{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--teal); }
+  .fav-row{
+    display:flex; align-items:center; gap:12px; border-top:1px solid var(--border); padding:12px 0; cursor:pointer;
+  }
+  .fav-row:first-child{ border-top:none; }
+  .fav-row-thumb{ width:48px; height:48px; border-radius:10px; flex-shrink:0; }
+  .fav-row .f-name{ font-size:13px; font-weight:600; }
+  .fav-row .f-meta{ font-size:11px; color:var(--text-faint); margin-top:2px; }
+  .coming-soon-badge{
+    font-size:10px; color:var(--text-faint); background:var(--surface-3);
+    padding:4px 9px; border-radius:10px; font-weight:600; flex-shrink:0;
+  }
+  .list-item.disabled{ opacity:0.6; }
 </style>
 </head>
 <body>
 
 <div class="phone pre-auth" id="phone-root">
-  <div class="notch"></div>
-  <div class="statusbar">
-    <span>9:41</span>
-    <div class="vu on"><span></span><span></span><span></span><span></span></div>
-  </div>
 
   <div class="screens">
 
@@ -544,7 +588,7 @@
 
         <div id="google-official-wrap">
           <div id="g_id_onload"
-            data-client_id="152399337619-oiovu7ruhtgt7m43jhk7310lmtmp2rua.apps.googleusercontent.com"
+            data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
             data-callback="handleGoogleSignIn"
             data-auto_prompt="false">
           </div>
@@ -582,9 +626,14 @@
       <div class="home-header">
         <div>
           <div class="greet-label" id="greet-time">Good Evening</div>
-          <div class="greet-name">Adhrit 👋</div>
+          <div class="greet-name" id="greet-name">Hey there 👋</div>
         </div>
-        <div class="avatar">A</div>
+        <div class="avatar" id="home-avatar">A</div>
+      </div>
+
+      <div class="demo-banner" id="demo-banner">
+        <span>Demo data: Studio listings are sample data while Sound Board is in development.</span>
+        <div class="demo-banner-close" onclick="dismissDemoBanner()">✕</div>
       </div>
 
       <div class="section" style="margin-top:20px;">
@@ -684,6 +733,7 @@
       <div class="back-btn" onclick="nav('studios')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
       </div>
+      <div class="detail-fav-btn" id="detail-fav-btn" onclick="toggleFavorite(currentDetailId, event)">♡</div>
       <div class="detail-hero">
         <div class="swatch" id="detail-swatch" style="background:linear-gradient(135deg,#3A2818,#1A2624); position:absolute; inset:0;"></div>
         <div class="detail-hero-body">
@@ -737,46 +787,42 @@
           <div class="amt mono" id="detail-price">₹600/hr</div>
           <div class="lbl">Today, 1:00 PM</div>
         </div>
-        <button class="book-btn" onclick="sendPromptSafe()">Book Now</button>
+        <button class="book-btn" onclick="bookNow()">Book Now</button>
       </div>
     </div>
 
     <!-- ============ PROFILE ============ -->
     <div class="screen" id="screen-profile">
       <div class="profile-top">
-        <div class="avatar-lg">A</div>
-        <h2>Adhrit Rao</h2>
-        <p>Guitarist · Bengaluru. Booking rooms since Jul 2026.</p>
-        <div class="genre-row">
-          <div class="chip">Indie Rock</div>
-          <div class="chip">Lo-fi</div>
-          <div class="chip">Jazz</div>
-        </div>
+        <div class="avatar-lg" id="profile-avatar-lg">A</div>
+        <h2 id="profile-name">Musician</h2>
+        <p id="profile-email" style="font-size:12.5px; color:var(--text-dim);"></p>
+        <div class="genre-row" id="profile-genre-row"></div>
       </div>
 
       <div class="stat-row">
-        <div class="stat"><div class="n">12</div><div class="l">Bookings</div></div>
-        <div class="stat"><div class="n">4</div><div class="l">Studios</div></div>
-        <div class="stat"><div class="n">3</div><div class="l">Favorites</div></div>
+        <div class="stat"><div class="n" id="stat-bookings">0</div><div class="l">Bookings</div></div>
+        <div class="stat"><div class="n" id="stat-studios">0</div><div class="l">Studios</div></div>
+        <div class="stat"><div class="n" id="stat-favorites">0</div><div class="l">Favorites</div></div>
       </div>
 
       <div class="section" style="margin-top:0;">
         <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
-          <div class="list-item">
+          <div class="list-item" onclick="openBookingHistory()">
             <div class="list-icon">📅</div><span>Booking history</span>
             <span class="chev">›</span>
           </div>
-          <div class="list-item">
+          <div class="list-item" onclick="openFavoriteStudios()">
             <div class="list-icon">❤️</div><span>Favorite studios</span>
             <span class="chev">›</span>
           </div>
-          <div class="list-item">
+          <div class="list-item" onclick="openOnboarding(true)">
             <div class="list-icon">🎵</div><span>Genre preferences</span>
             <span class="chev">›</span>
           </div>
-          <div class="list-item">
+          <div class="list-item disabled" onclick="showToast('Payment methods — coming soon.')">
             <div class="list-icon">🧾</div><span>Payment methods</span>
-            <span class="chev">›</span>
+            <span class="coming-soon-badge">Coming soon</span>
           </div>
         </div>
       </div>
@@ -931,6 +977,58 @@
       </div>
     </div>
   </div>
+
+  <!-- ============ ONBOARDING MODAL ============ -->
+  <div class="modal-overlay" id="onboarding-overlay">
+    <div class="filter-sheet" onclick="event.stopPropagation()">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h2 id="onboarding-title">Welcome to Sound Board</h2>
+        <div class="sheet-close" id="onboarding-close" onclick="closeOnboarding()" style="display:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </div>
+      </div>
+      <div class="sheet-body">
+        <div class="filter-block" id="onboarding-username-block">
+          <div class="filter-label">Choose a username</div>
+          <input id="onboarding-username" class="auth-input" style="max-width:none; margin-bottom:0;" type="text" placeholder="Your name">
+        </div>
+        <div class="filter-block">
+          <div class="filter-label">🎵 Favorite genres</div>
+          <div class="chip-select" id="onboarding-genres">
+            <div class="chip-opt" data-val="Rock">Rock</div>
+            <div class="chip-opt" data-val="Metal">Metal</div>
+            <div class="chip-opt" data-val="Indie Rock">Indie Rock</div>
+            <div class="chip-opt" data-val="Jazz">Jazz</div>
+            <div class="chip-opt" data-val="Lo-fi">Lo-fi</div>
+            <div class="chip-opt" data-val="Hip-Hop">Hip-Hop</div>
+            <div class="chip-opt" data-val="Electronic">Electronic</div>
+            <div class="chip-opt" data-val="Classical">Classical</div>
+            <div class="chip-opt" data-val="Pop">Pop</div>
+          </div>
+        </div>
+      </div>
+      <div class="sheet-footer">
+        <button class="apply-btn" style="flex:1;" onclick="continueOnboarding()">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ INFO MODAL (booking history / favorites) ============ -->
+  <div class="modal-overlay" id="info-overlay" onclick="closeInfoModal(event)">
+    <div class="filter-sheet" onclick="event.stopPropagation()" style="max-height:75%;">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h2 id="info-modal-title">Title</h2>
+        <div class="sheet-close" onclick="closeInfoModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </div>
+      </div>
+      <div class="sheet-body" id="info-modal-body"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
 </div>
 
 <script>
@@ -949,6 +1047,42 @@
       el.classList.add('selected');
     });
   });
+
+  // ---- PROFILE / PERSISTENCE ----
+  const PROFILE_KEY = 'soundboardProfile';
+
+  function emptyProfile(){
+    return {
+      provider:null, name:'', email:'', picture:'', givenName:'', username:'',
+      genres:[], bookings:[], favorites:[], visitedStudios:[], onboarded:false
+    };
+  }
+  function loadProfile(){
+    try{
+      const raw = localStorage.getItem(PROFILE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
+  function saveProfile(){
+    try{ localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); }catch(e){}
+  }
+  function decodeJwt(token){
+    try{
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/');
+      const json = decodeURIComponent(
+        atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+      );
+      return JSON.parse(json);
+    }catch(e){ return null; }
+  }
+
+  let currentDetailId = null;
+  let profile = emptyProfile();
+  const _savedProfile = loadProfile();
+  if(_savedProfile && _savedProfile.onboarded){
+    profile = _savedProfile;
+  }
 
   const studios = [
     { id:'basement9', name:"Basement 9 Studios", loc:"Koramangala", distanceKm:2.3, rating:4.9, price:600,
@@ -1006,7 +1140,9 @@
 
   function buildCard(s){
     const gradient = 'linear-gradient(135deg,'+s.swatch[0]+','+s.swatch[1]+')';
-    return '<div class="studio-card" onclick="openDetail(\''+s.id+'\')">'
+    const isFav = profile.favorites.includes(s.id);
+    return '<div class="studio-card" style="position:relative;" onclick="openDetail(\''+s.id+'\')">'
+      + '<div class="fav-btn '+(isFav?'on':'')+'" onclick="toggleFavorite(\''+s.id+'\', event)">'+(isFav?'♥':'♡')+'</div>'
       + '<div class="studio-thumb"><div class="swatch" style="background:'+gradient+'"></div></div>'
       + '<div class="studio-info"><div>'
       + '<div class="studio-name">'+s.name+(s.verified ? ' <span style="color:var(--teal); font-size:11px;">✓</span>' : '')+'</div>'
@@ -1016,6 +1152,7 @@
       + '<div class="studio-bottom"><div class="price">₹'+s.price+'<span>/hr</span></div></div>'
       + '</div></div></div>';
   }
+
 
   function getFiltered(){
     const q = state.search.trim().toLowerCase();
@@ -1161,6 +1298,7 @@
   function openDetail(id){
     const d = studios.find(s => s.id === id);
     if(!d) return;
+    currentDetailId = id;
     document.getElementById('detail-name').textContent = d.name;
     document.getElementById('detail-loc').textContent = d.loc + ', ' + d.distanceKm + ' km';
     document.getElementById('detail-price').textContent = '₹' + d.price + '/hr';
@@ -1169,9 +1307,64 @@
     document.getElementById('detail-chips').innerHTML = d.chips.map(c => '<div class="chip">'+c+'</div>').join('');
     document.getElementById('detail-equip').innerHTML = d.equip.map(e => '<div class="equip-item"><div class="dot"></div>'+e+'</div>').join('');
 
+    const favBtn = document.getElementById('detail-fav-btn');
+    const isFav = profile.favorites.includes(id);
+    favBtn.classList.toggle('on', isFav);
+    favBtn.textContent = isFav ? '♥' : '♡';
+
+    if(!profile.visitedStudios.includes(id)){
+      profile.visitedStudios.push(id);
+      saveProfile();
+      updateStats();
+    }
+
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-detail').classList.add('active');
     document.getElementById('screen-detail').scrollTop = 0;
+  }
+
+  function toggleFavorite(id, event){
+    if(event) event.stopPropagation();
+    if(!id) return;
+    const idx = profile.favorites.indexOf(id);
+    if(idx > -1) profile.favorites.splice(idx, 1);
+    else profile.favorites.push(id);
+    saveProfile();
+    updateStats();
+    render();
+    if(id === currentDetailId){
+      const favBtn = document.getElementById('detail-fav-btn');
+      const isFav = profile.favorites.includes(id);
+      favBtn.classList.toggle('on', isFav);
+      favBtn.textContent = isFav ? '♥' : '♡';
+    }
+  }
+
+  function bookNow(){
+    const d = studios.find(s => s.id === currentDetailId);
+    if(!d) return;
+    const selectedSlotEl = document.querySelector('#screen-detail .slot.selected');
+    const slot = selectedSlotEl ? selectedSlotEl.textContent : d.slots[0];
+    const booking = {
+      id: 'bk_' + Date.now(),
+      studioId: d.id,
+      studioName: d.name,
+      slot: slot,
+      price: d.price,
+      date: new Date().toISOString()
+    };
+    profile.bookings.push(booking);
+    saveProfile();
+    updateStats();
+    showToast('Booking saved locally (demo mode).');
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
   }
 
   render();
@@ -1205,24 +1398,65 @@
       return;
     }
     errorEl.textContent = '';
-    completeLogin();
+    const demoInfo = {
+      name: mode === 'email' ? val.split('@')[0] : 'Musician',
+      email: mode === 'email' ? val : '',
+      picture: '',
+      givenName: mode === 'email' ? val.split('@')[0].split(/[._]/)[0] : 'there'
+    };
+    signInWithInfo(demoInfo, 'demo');
   }
 
   // Called automatically by Google's script if a real Client ID is configured
   // and this page is served over http(s) from a registered origin.
   function handleGoogleSignIn(response){
-    completeLogin();
+    const payload = decodeJwt(response.credential);
+    const googleInfo = payload
+      ? { name: payload.name, email: payload.email, picture: payload.picture, givenName: payload.given_name }
+      : { name: 'Google User', email: '', picture: '', givenName: 'there' };
+    signInWithInfo(googleInfo, 'google');
   }
 
-  function completeLogin(){
+  function signInWithInfo(info, provider){
+    if(profile.onboarded){
+      // Returning user in this browser — refresh identity fields, keep their data.
+      profile.name = info.name || profile.name;
+      profile.email = info.email || profile.email;
+      profile.picture = info.picture || profile.picture;
+      profile.givenName = info.givenName || profile.givenName;
+      profile.provider = provider;
+      saveProfile();
+      enterApp();
+    } else {
+      profile = emptyProfile();
+      profile.provider = provider;
+      profile.name = info.name || '';
+      profile.email = info.email || '';
+      profile.picture = info.picture || '';
+      profile.givenName = info.givenName || '';
+      profile.username = info.name || '';
+      openOnboarding(false);
+    }
+  }
+
+  function enterApp(){
     document.getElementById('phone-root').classList.remove('pre-auth');
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-home').classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.querySelector('.nav-item[data-screen="home"]').classList.add('active');
+    renderProfileUI();
+    render();
   }
 
   function logout(){
+    try{ localStorage.removeItem(PROFILE_KEY); }catch(e){}
+    try{
+      if(window.google && window.google.accounts && window.google.accounts.id){
+        window.google.accounts.id.disableAutoSelect();
+      }
+    }catch(e){}
+    profile = emptyProfile();
     document.getElementById('phone-root').classList.add('pre-auth');
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-auth').classList.add('active');
@@ -1250,6 +1484,145 @@
   document.querySelectorAll('.list-item').forEach(el => {
     if(el.textContent.includes('Log out')) el.addEventListener('click', logout);
   });
+
+  // ---- ONBOARDING ----
+  let onboardingEditOnly = false;
+
+  document.querySelectorAll('#onboarding-genres .chip-opt').forEach(c => {
+    c.addEventListener('click', () => c.classList.toggle('on'));
+  });
+
+  function openOnboarding(editOnly){
+    onboardingEditOnly = !!editOnly;
+    document.getElementById('onboarding-username-block').style.display = editOnly ? 'none' : 'block';
+    document.getElementById('onboarding-title').textContent = editOnly ? 'Edit your genres' : 'Welcome to Sound Board';
+    document.getElementById('onboarding-close').style.display = editOnly ? 'flex' : 'none';
+    document.getElementById('onboarding-username').value = profile.username || profile.name || '';
+    document.querySelectorAll('#onboarding-genres .chip-opt').forEach(c => {
+      c.classList.toggle('on', profile.genres.includes(c.dataset.val));
+    });
+    document.getElementById('onboarding-overlay').classList.add('open');
+  }
+
+  function closeOnboarding(){
+    document.getElementById('onboarding-overlay').classList.remove('open');
+  }
+
+  function continueOnboarding(){
+    const selectedGenres = [...document.querySelectorAll('#onboarding-genres .chip-opt.on')].map(c => c.dataset.val);
+    if(!onboardingEditOnly){
+      const uname = document.getElementById('onboarding-username').value.trim();
+      profile.username = uname || profile.name || 'Musician';
+      profile.onboarded = true;
+    }
+    profile.genres = selectedGenres;
+    saveProfile();
+    document.getElementById('onboarding-overlay').classList.remove('open');
+    renderProfileUI();
+    if(!onboardingEditOnly){
+      enterApp();
+    }
+  }
+
+  // ---- PROFILE RENDERING ----
+  function renderProfileUI(){
+    const displayName = profile.username || profile.name || 'Musician';
+    const initials = displayName.trim().charAt(0).toUpperCase() || 'U';
+    const avatarHtml = profile.picture
+      ? '<img src="' + profile.picture + '" alt="" style="width:100%; height:100%; border-radius:inherit; object-fit:cover;">'
+      : initials;
+
+    const homeAvatar = document.getElementById('home-avatar');
+    if(homeAvatar) homeAvatar.innerHTML = avatarHtml;
+    const profileAvatar = document.getElementById('profile-avatar-lg');
+    if(profileAvatar) profileAvatar.innerHTML = avatarHtml;
+
+    const greetName = document.getElementById('greet-name');
+    if(greetName) greetName.textContent = (profile.givenName || displayName.split(' ')[0] || 'there') + ' 👋';
+
+    const profileName = document.getElementById('profile-name');
+    if(profileName) profileName.textContent = displayName;
+    const profileEmail = document.getElementById('profile-email');
+    if(profileEmail) profileEmail.textContent = profile.email || '';
+
+    const genreRow = document.getElementById('profile-genre-row');
+    if(genreRow){
+      genreRow.innerHTML = profile.genres.length
+        ? profile.genres.map(g => '<div class="chip">' + g + '</div>').join('')
+        : '<div class="chip" style="color:var(--text-faint);">No genres selected yet</div>';
+    }
+
+    updateStats();
+  }
+
+  function updateStats(){
+    const b = document.getElementById('stat-bookings');
+    const s = document.getElementById('stat-studios');
+    const f = document.getElementById('stat-favorites');
+    if(b) b.textContent = profile.bookings.length;
+    if(s) s.textContent = profile.visitedStudios.length;
+    if(f) f.textContent = profile.favorites.length;
+  }
+
+  // ---- INFO MODAL: booking history / favorite studios ----
+  function openInfoModal(title, bodyHtml){
+    document.getElementById('info-modal-title').textContent = title;
+    document.getElementById('info-modal-body').innerHTML = bodyHtml;
+    document.getElementById('info-overlay').classList.add('open');
+  }
+  function closeInfoModal(e){
+    if(e && e.target !== e.currentTarget) return;
+    document.getElementById('info-overlay').classList.remove('open');
+  }
+
+  function openBookingHistory(){
+    if(!profile.bookings.length){
+      openInfoModal('Booking History', '<div class="empty-note">No bookings yet.<br>Book a studio to see it here.</div>');
+      return;
+    }
+    const rows = [...profile.bookings].reverse().map(b => {
+      const d = new Date(b.date);
+      const dateStr = d.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+      return '<div class="booking-row">'
+        + '<div><div class="b-name">' + b.studioName + '</div><div class="b-meta">' + dateStr + ' · ' + b.slot + '</div></div>'
+        + '<div class="b-price">₹' + b.price + '/hr</div>'
+        + '</div>';
+    }).join('');
+    openInfoModal('Booking History', rows);
+  }
+
+  function openFavoriteStudios(){
+    const favs = studios.filter(s => profile.favorites.includes(s.id));
+    if(!favs.length){
+      openInfoModal('Favorite Studios', '<div class="empty-note">No favorites yet.<br>Tap the heart on a studio to save it here.</div>');
+      return;
+    }
+    const rows = favs.map(s => {
+      const gradient = 'linear-gradient(135deg,' + s.swatch[0] + ',' + s.swatch[1] + ')';
+      return '<div class="fav-row" onclick="closeInfoModal(); openDetail(\'' + s.id + '\');">'
+        + '<div class="fav-row-thumb" style="background:' + gradient + '"></div>'
+        + '<div><div class="f-name">' + s.name + '</div><div class="f-meta">' + s.loc + ' · ₹' + s.price + '/hr</div></div>'
+        + '</div>';
+    }).join('');
+    openInfoModal('Favorite Studios', rows);
+  }
+
+  // ---- STARTUP ----
+  // Persistent sign-in: if a completed profile is already saved, skip the
+  // auth screen entirely and drop the user straight into the app.
+  if(profile.onboarded){
+    enterApp();
+  }
+
+  // Demo banner dismiss state persists across visits.
+  if(localStorage.getItem('soundboardBannerDismissed') === '1'){
+    const banner = document.getElementById('demo-banner');
+    if(banner) banner.style.display = 'none';
+  }
+  function dismissDemoBanner(){
+    document.getElementById('demo-banner').style.display = 'none';
+    try{ localStorage.setItem('soundboardBannerDismissed', '1'); }catch(e){}
+  }
 
   // greeting by time
   const hr = new Date().getHours();
