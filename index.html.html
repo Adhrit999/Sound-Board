@@ -583,45 +583,51 @@
 
   /* ---- AUTH ---- */
   .auth-wrap{
-    min-height:100%; padding:50px 28px 10px; display:flex; flex-direction:column; align-items:center;
+    min-height:100%; padding:60px 24px 40px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
   }
-  .auth-brand{ text-align:center; margin-bottom:34px; }
-  .auth-vu{ justify-content:center; height:20px; margin-bottom:16px; }
-  .auth-vu span{ width:4px; }
-  .auth-brand h1{ font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; margin-bottom:8px; }
-  .auth-brand p{ font-size:12.5px; color:var(--text-dim); }
-  #google-official-wrap{ display:flex; justify-content:center; min-height:44px; }
+  .auth-card{ width:100%; max-width:360px; }
+  .auth-brand-row{ display:flex; align-items:center; justify-content:center; gap:9px; margin-bottom:36px; }
+  .auth-brand-row .brand-name{ font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:700; }
+  .auth-vu{ height:14px; }
+  .auth-vu span{ width:3px; }
+  .auth-card h1{ font-family:'Space Grotesk',sans-serif; font-size:24px; font-weight:700; margin-bottom:6px; text-align:center; }
+  .auth-card p.auth-sub{ font-size:13px; color:var(--text-dim); text-align:center; margin-bottom:26px; }
+  #google-official-wrap{ display:flex; justify-content:center; min-height:44px; margin-bottom:2px; }
   .google-fallback-btn{
-    width:100%; max-width:300px; display:flex; align-items:center; justify-content:center; gap:10px;
-    background:#1E1E1E; border:1px solid #3A3A3A; border-radius:22px; padding:12px;
-    color:#F3EFE7; font-size:13.5px; font-weight:600; font-family:'Inter',sans-serif;
+    width:100%; display:flex; align-items:center; justify-content:center; gap:10px;
+    background:#F3EFE7; border:none; border-radius:14px; padding:14px;
+    color:#1E1B17; font-size:13.5px; font-weight:700; font-family:'Space Grotesk',sans-serif;
   }
   .auth-divider{
-    width:100%; max-width:300px; display:flex; align-items:center; gap:12px; margin:22px 0;
-    color:var(--text-faint); font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+    width:100%; display:flex; align-items:center; gap:12px; margin:22px 0;
+    color:var(--text-faint); font-size:11.5px;
   }
   .auth-divider::before, .auth-divider::after{ content:""; flex:1; height:1px; background:var(--border); }
   .auth-tabs{
-    width:100%; max-width:300px; display:flex; background:var(--surface); border:1px solid var(--border);
-    border-radius:12px; padding:3px; margin-bottom:14px;
+    width:100%; display:flex; background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:4px; margin-bottom:26px;
   }
-  .auth-tab{ flex:1; text-align:center; padding:9px; border-radius:9px; font-size:12.5px; font-weight:600; color:var(--text-faint); }
-  .auth-tab.active{ background:var(--surface-3); color:var(--text); }
+  .auth-tab{ flex:1; text-align:center; padding:10px; border-radius:9px; font-size:13px; font-weight:600; color:var(--text-dim); }
+  .auth-tab.active{ background:var(--amber); color:#14120F; }
   .auth-input{
-    width:100%; max-width:300px; background:var(--surface); border:1px solid var(--border);
-    border-radius:12px; padding:14px 16px; color:var(--text); font-family:'Inter',sans-serif; font-size:13.5px;
-    outline:none; margin-bottom:8px;
+    width:100%; background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:13px 14px; color:var(--text); font-family:'Inter',sans-serif; font-size:13.5px;
+    outline:none; margin-bottom:14px;
   }
   .auth-input::placeholder{ color:var(--text-faint); }
-  .auth-error{ width:100%; max-width:300px; color:var(--danger); font-size:11.5px; min-height:16px; margin-bottom:4px; }
+  .auth-input:focus{ border-color:var(--amber-dim); }
+  .auth-error{ width:100%; color:var(--danger); font-size:11.5px; min-height:14px; margin:-6px 0 4px; }
   .auth-submit{
-    width:100%; max-width:300px; background:var(--amber); border:none; border-radius:12px;
-    padding:14px; color:var(--bg); font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700;
-    margin-top:6px;
+    width:100%; background:var(--teal); border:none; border-radius:14px;
+    padding:15px; color:#0A0908; font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700;
+    margin-top:2px;
   }
-  .auth-terms{ max-width:280px; text-align:center; font-size:10.5px; color:var(--text-faint); line-height:1.6; margin-top:18px; }
+  .auth-switch{ text-align:center; font-size:12.5px; color:var(--text-dim); margin-top:22px; }
+  .auth-switch b{ color:var(--teal); font-weight:600; }
+  .auth-terms{ text-align:center; font-size:10.5px; color:var(--text-faint); line-height:1.6; margin-top:18px; }
   .auth-setup-note{
-    display:none; max-width:300px; margin-top:20px; padding:12px 14px; border-radius:12px;
+    display:none; margin-top:20px; padding:12px 14px; border-radius:12px;
     background:var(--surface); border:1px solid var(--border); font-size:11px; color:var(--text-dim); line-height:1.6;
   }
   .auth-setup-note b{ color:var(--amber); }
@@ -817,43 +823,51 @@
     <!-- ============ AUTH ============ -->
     <div class="screen active" id="screen-auth" style="padding-bottom:30px;">
       <div class="auth-wrap">
-        <div class="auth-brand">
-          <div class="vu on auth-vu"><span></span><span></span><span></span><span></span></div>
-          <h1>Sound Board</h1>
-          <p>Discover and book studios near you.</p>
-        </div>
-
-        <div id="google-official-wrap">
-          <div id="g_id_onload"
-            data-client_id="152399337619-oiovu7ruhtgt7m43jhk7310lmtmp2rua.apps.googleusercontent.com"
-            data-callback="handleGoogleSignIn"
-            data-auto_prompt="false">
+        <div class="auth-card">
+          <div class="auth-brand-row">
+            <div class="vu on auth-vu"><span></span><span></span><span></span><span></span></div>
+            <span class="brand-name">Sound Board</span>
           </div>
-          <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_black" data-size="large" data-width="300" data-text="continue_with"></div>
-        </div>
 
-        <button class="google-fallback-btn" id="google-fallback-btn" onclick="showSetupNote()" style="display:none;">
-          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.9 14-5.1l-6.5-5.4C29.6 35.5 26.9 36.5 24 36.5c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.5 5.4C40.4 36.6 44 30.9 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
-          Continue with Google
-        </button>
+          <h1 id="auth-title">Welcome back</h1>
+          <p class="auth-sub" id="auth-subtitle">Sign in to book your next session.</p>
 
-        <div class="auth-divider"><span>or</span></div>
+          <div class="auth-tabs">
+            <div class="auth-tab active" data-mode="signin" onclick="setAuthMode('signin')">Sign In</div>
+            <div class="auth-tab" data-mode="signup" onclick="setAuthMode('signup')">Sign Up</div>
+          </div>
 
-        <div class="auth-tabs">
-          <div class="auth-tab active" data-mode="email" onclick="setAuthMode('email')">Email</div>
-          <div class="auth-tab" data-mode="phone" onclick="setAuthMode('phone')">Phone</div>
-        </div>
+          <div id="google-official-wrap">
+            <div id="g_id_onload"
+              data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+              data-callback="handleGoogleSignIn"
+              data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_black" data-size="large" data-width="300" data-text="continue_with"></div>
+          </div>
 
-        <input id="auth-email" class="auth-input" type="email" placeholder="you@example.com">
-        <input id="auth-phone" class="auth-input" type="tel" placeholder="+91 98765 43210" style="display:none;">
-        <div class="auth-error" id="auth-error"></div>
+          <button class="google-fallback-btn" id="google-fallback-btn" onclick="showSetupNote()" style="display:none;">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.9 14-5.1l-6.5-5.4C29.6 35.5 26.9 36.5 24 36.5c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.5 5.4C40.4 36.6 44 30.9 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+            Continue with Google
+          </button>
 
-        <button class="auth-submit" onclick="emailSignIn()">Continue</button>
+          <div class="auth-divider"><span>or continue with email</span></div>
 
-        <p class="auth-terms">By continuing, you agree to Sound Board's Terms & Privacy Policy.</p>
+          <input id="auth-email" class="auth-input" type="email" placeholder="Email">
+          <input id="auth-password" class="auth-input" type="password" placeholder="Password">
+          <div class="auth-error" id="auth-error"></div>
 
-        <div class="auth-setup-note" id="auth-setup-note">
-          <b>Google Sign-In needs setup first.</b> Open this file through a local server (not by double-clicking it) and add your own Google Client ID in the code — see the chat for exact steps. Until then, use Email or Phone above to try the app.
+          <button class="auth-submit" id="auth-submit-btn" onclick="emailSignIn()">Sign In</button>
+
+          <div class="auth-switch" id="auth-switch-line">
+            New to Sound Board? <b onclick="setAuthMode('signup')">Create an account</b>
+          </div>
+
+          <p class="auth-terms">By continuing you agree to Sound Board's Terms of Service and Privacy Policy.</p>
+
+          <div class="auth-setup-note" id="auth-setup-note">
+            <b>Google Sign-In needs setup first.</b> Open this file through a local server (not by double-clicking it) and add your own Google Client ID in the code — see the chat for exact steps. Until then, use Email above to try the app.
+          </div>
         </div>
       </div>
     </div>
@@ -1751,30 +1765,38 @@
   // ---- AUTH ----
   function setAuthMode(mode){
     document.querySelectorAll('.auth-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
-    document.getElementById('auth-email').style.display = mode === 'email' ? 'block' : 'none';
-    document.getElementById('auth-phone').style.display = mode === 'phone' ? 'block' : 'none';
     document.getElementById('auth-error').textContent = '';
+    if(mode === 'signup'){
+      document.getElementById('auth-title').textContent = 'Create your account';
+      document.getElementById('auth-subtitle').textContent = 'Join Sound Board to start booking studios.';
+      document.getElementById('auth-submit-btn').textContent = 'Sign Up';
+      document.getElementById('auth-switch-line').innerHTML = 'Already have an account? <b onclick="setAuthMode(\'signin\')">Sign in</b>';
+    } else {
+      document.getElementById('auth-title').textContent = 'Welcome back';
+      document.getElementById('auth-subtitle').textContent = 'Sign in to book your next session.';
+      document.getElementById('auth-submit-btn').textContent = 'Sign In';
+      document.getElementById('auth-switch-line').innerHTML = 'New to Sound Board? <b onclick="setAuthMode(\'signup\')">Create an account</b>';
+    }
   }
 
   function emailSignIn(){
-    const mode = document.querySelector('.auth-tab.active').dataset.mode;
-    const field = document.getElementById(mode === 'email' ? 'auth-email' : 'auth-phone');
-    const val = field.value.trim();
+    const emailVal = document.getElementById('auth-email').value.trim();
+    const passwordVal = document.getElementById('auth-password').value.trim();
     const errorEl = document.getElementById('auth-error');
-    if(!val){
-      errorEl.textContent = mode === 'email' ? 'Enter an email to continue.' : 'Enter a phone number to continue.';
+    if(!emailVal || !emailVal.includes('@')){
+      errorEl.textContent = 'Enter a valid email to continue.';
       return;
     }
-    if(mode === 'email' && !val.includes('@')){
-      errorEl.textContent = 'That doesn\'t look like a valid email.';
+    if(!passwordVal){
+      errorEl.textContent = 'Enter a password to continue.';
       return;
     }
     errorEl.textContent = '';
     const demoInfo = {
-      name: mode === 'email' ? val.split('@')[0] : 'Musician',
-      email: mode === 'email' ? val : '',
+      name: emailVal.split('@')[0],
+      email: emailVal,
       picture: '',
-      givenName: mode === 'email' ? val.split('@')[0].split(/[._]/)[0] : 'there'
+      givenName: emailVal.split('@')[0].split(/[._]/)[0]
     };
     signInWithInfo(demoInfo, 'demo');
   }
