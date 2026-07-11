@@ -960,36 +960,50 @@
 
     .auth-wrap{ justify-content:center; }
   }
+
+  /* ---- Skip link ----
+     Off-screen until it receives keyboard focus (the very first Tab stop
+     on the page), so keyboard/screen-reader users can jump past the nav
+     without it being visible or in the way for anyone else. */
+  .skip-link{
+    position:absolute; top:-100px; left:12px; z-index:1000;
+    background:var(--amber); color:#14120F; font-weight:700; font-size:13px;
+    padding:10px 16px; border-radius:var(--radius-sm); text-decoration:none;
+    transition:top .15s ease;
+  }
+  .skip-link:focus{ top:12px; }
 </style>
 </head>
 <body>
 
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
 <div class="app pre-auth" id="app-root">
 
   <!-- ============ SIDEBAR (desktop nav) ============ -->
-  <nav class="sidebar">
+  <nav class="sidebar" aria-label="Primary">
     <div class="sidebar-brand">
       <div class="vu on"><span></span><span></span><span></span><span></span></div>
       <span class="brand-name">Sound Board</span>
     </div>
     <div class="sidebar-nav">
       <div class="nav-item active" data-screen="home" onclick="nav('home')" role="link" tabindex="0" aria-current="page">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
         <div class="label">Home</div>
         <div class="nav-indicator"></div>
       </div>
       <div class="nav-item" data-screen="studios" onclick="nav('studios')" role="link" tabindex="0">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="3"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="3"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
         <div class="label">Studios</div>
         <div class="nav-indicator"></div>
       </div>
       <div class="nav-item" data-screen="profile" onclick="nav('profile')" role="link" tabindex="0">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
         <div class="label">Profile</div>
         <div class="nav-indicator"></div>
       </div>
       <div class="nav-item" data-screen="settings" onclick="nav('settings')" role="link" tabindex="0">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1h.1a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1h.1a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
         <div class="label">Settings</div>
         <div class="nav-indicator"></div>
       </div>
@@ -998,19 +1012,19 @@
 
   <div class="app-main">
   <div class="topbar">
-    <div class="topbar-search" onclick="nav('studios')" style="cursor:pointer;">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <div class="topbar-search" onclick="nav('studios')" style="cursor:pointer;" role="button" tabindex="0" aria-label="Go to search">
+      <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       <span>Search studios, areas, gear...</span>
     </div>
     <div class="topbar-actions">
-      <div class="topbar-icon-btn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+      <div class="topbar-icon-btn" aria-hidden="true">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
       </div>
-      <div class="avatar" id="topbar-avatar" onclick="nav('profile')">A</div>
+      <div class="avatar" id="topbar-avatar" onclick="nav('profile')" role="button" tabindex="0" aria-label="Go to profile">A</div>
     </div>
   </div>
 
-  <div class="screens">
+  <div class="screens" id="main-content" role="main">
 
     <!-- ============ AUTH ============ -->
     <div class="screen active" id="screen-auth" style="padding-bottom:30px;">
@@ -1027,7 +1041,7 @@
 
           <div id="google-official-wrap">
             <div id="g_id_onload"
-              data-client_id="152399337619-oiovu7ruhtgt7m43jhk7310lmtmp2rua.apps.googleusercontent.com"
+              data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
               data-callback="handleGoogleSignIn"
               data-auto_prompt="false">
             </div>
@@ -1035,7 +1049,7 @@
           </div>
 
           <button class="google-fallback-btn" id="google-fallback-btn" onclick="addRipple(this,event); showSetupNote()" style="display:none;">
-            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.9 14-5.1l-6.5-5.4C29.6 35.5 26.9 36.5 24 36.5c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.5 5.4C40.4 36.6 44 30.9 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.9 14-5.1l-6.5-5.4C29.6 35.5 26.9 36.5 24 36.5c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.5 5.4C40.4 36.6 44 30.9 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
             Continue with Google
           </button>
 
@@ -1057,7 +1071,7 @@
         <!-- ---- Email/password form view: reached from Welcome ---- -->
         <div class="auth-card" id="auth-form-view" style="display:none;">
           <div class="auth-back-row" onclick="showAuthWelcome()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             <span>Back</span>
           </div>
 
@@ -1113,12 +1127,12 @@
 
       <div class="section" id="continue-browsing-section" style="display:none; margin-top:14px;">
         <div class="continue-card" id="continue-browsing-card" onclick="" role="button" tabindex="0" aria-label="Continue browsing">
-          <div class="continue-thumb" id="continue-thumb"><div class="swatch"></div></div>
+          <div class="continue-thumb" id="continue-thumb"><div class="swatch" aria-hidden="true"></div></div>
           <div>
             <div class="continue-label">Continue browsing</div>
             <div class="continue-name" id="continue-name">—</div>
           </div>
-          <svg class="continue-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          <svg aria-hidden="true" class="continue-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
         </div>
       </div>
 
@@ -1190,13 +1204,13 @@
       </div>
       <div class="search-row">
         <div class="search-bar">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
           <input id="search-input" type="text" placeholder="Search studios, areas, gear..." oninput="filterStudios(this.value)" onfocus="showSearchSuggestions()" onblur="setTimeout(hideSearchSuggestions, 150)" onkeydown="if(event.key==='Enter') commitSearchHistory(this.value)">
           <div class="mic-btn" id="mic-btn" style="display:none;" onclick="startVoiceSearch()" role="button" tabindex="0" aria-label="Search by voice">🎤</div>
           <div class="search-clear-btn" id="search-clear-btn" style="display:none;" onclick="clearSearchOnly()">✕</div>
         </div>
         <div class="filter-btn" onclick="openFilterModal()" id="filter-btn" role="button" tabindex="0" aria-label="Filter studios" aria-haspopup="dialog">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F0A63C" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F0A63C" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
           <div class="filter-dot" id="filter-dot"></div>
         </div>
         <div class="search-suggest-panel" id="search-suggest-panel"></div>
@@ -1235,10 +1249,10 @@
     <div class="screen" id="screen-detail">
      <div class="content">
       <div class="back-btn" onclick="nav('studios')" role="button" tabindex="0" aria-label="Back to studios">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
       </div>
       <div class="detail-hero">
-        <div class="swatch" id="detail-swatch" style="background:linear-gradient(135deg,#3A2818,#1A2624); position:absolute; inset:0;"></div>
+        <div class="swatch" aria-hidden="true" id="detail-swatch" style="background:linear-gradient(135deg,#3A2818,#1A2624); position:absolute; inset:0;"></div>
         <div class="detail-fav-btn" id="detail-fav-btn" onclick="toggleFavorite(currentDetailId, event)" role="button" tabindex="0" aria-pressed="false" aria-label="Save to favorites">♡</div>
         <div class="detail-hero-body">
           <h1 id="detail-name">Basement 9 Studios</h1>
@@ -1432,24 +1446,24 @@
   </div>
 
   <!-- ============ BOTTOM NAV ============ -->
-  <div class="bottom-nav">
+  <div class="bottom-nav" role="navigation" aria-label="Primary">
     <div class="nav-item active" data-screen="home" onclick="nav('home')" role="link" tabindex="0" aria-current="page">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
       <div class="label">Home</div>
       <div class="nav-indicator"></div>
     </div>
     <div class="nav-item" data-screen="studios" onclick="nav('studios')" role="link" tabindex="0">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="3"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="3"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
       <div class="label">Studios</div>
       <div class="nav-indicator"></div>
     </div>
     <div class="nav-item" data-screen="profile" onclick="nav('profile')" role="link" tabindex="0">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
       <div class="label">Profile</div>
       <div class="nav-indicator"></div>
     </div>
     <div class="nav-item" data-screen="settings" onclick="nav('settings')" role="link" tabindex="0">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1h.1a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1h.1a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
       <div class="label">Settings</div>
       <div class="nav-indicator"></div>
     </div>
@@ -1462,7 +1476,7 @@
       <div class="sheet-header">
         <h2>Filters</h2>
         <div class="sheet-close" onclick="closeFilterModal()" role="button" tabindex="0" aria-label="Close">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </div>
       </div>
 
@@ -1544,7 +1558,7 @@
       <div class="sheet-header">
         <h2 id="onboarding-title">Choose a username</h2>
         <div class="sheet-close" id="onboarding-close" onclick="closeOnboarding()" style="display:none;" role="button" tabindex="0" aria-label="Close">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </div>
       </div>
 
@@ -1619,7 +1633,7 @@
       <div class="sheet-header">
         <h2>Switch account</h2>
         <div class="sheet-close" onclick="closeSwitchAccount()" role="button" tabindex="0" aria-label="Close">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </div>
       </div>
       <div class="sheet-body" id="switch-account-body"></div>
@@ -1633,14 +1647,14 @@
       <div class="sheet-header">
         <h2 id="info-modal-title">Title</h2>
         <div class="sheet-close" onclick="closeInfoModal()" role="button" tabindex="0" aria-label="Close">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </div>
       </div>
       <div class="sheet-body" id="info-modal-body"></div>
     </div>
   </div>
 
-  <div class="toast" id="toast"><span class="toast-icon" id="toast-icon">✓</span><span id="toast-text"></span></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="toast-icon" id="toast-icon">✓</span><span id="toast-text"></span></div>
 
   </div>
 </div>
@@ -1681,15 +1695,35 @@
     return (provider || 'demo') + ':' + (email || 'local').trim().toLowerCase();
   }
 
+  // Reads always come from this in-memory mirror once it's been primed,
+  // so nothing ever reads a "stale" value even though the actual disk
+  // write below is debounced — the cache and localStorage never
+  // disagree from the app's own point of view, only in *when* the
+  // browser's storage actually gets touched.
+  let accountsCache = null;
+  let accountsWriteTimer = null;
   function loadAccounts(){
+    if(accountsCache) return accountsCache;
     try{
       const raw = localStorage.getItem(ACCOUNTS_KEY);
-      return raw ? JSON.parse(raw) : {};
-    }catch(e){ return {}; }
+      accountsCache = raw ? JSON.parse(raw) : {};
+    }catch(e){ accountsCache = {}; }
+    return accountsCache;
   }
   function saveAccounts(accounts){
-    try{ localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts)); }catch(e){}
+    accountsCache = accounts;
+    clearTimeout(accountsWriteTimer);
+    accountsWriteTimer = setTimeout(flushAccounts, 250);
   }
+  function flushAccounts(){
+    clearTimeout(accountsWriteTimer);
+    accountsWriteTimer = null;
+    if(!accountsCache) return;
+    try{ localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accountsCache)); }catch(e){}
+  }
+  // Guarantee a debounced-but-not-yet-flushed write still lands if the
+  // person closes the tab a moment after their last action.
+  window.addEventListener('beforeunload', flushAccounts);
   function getActiveAccountKey(){
     try{ return localStorage.getItem(ACTIVE_KEY); }catch(e){ return null; }
   }
@@ -1901,7 +1935,7 @@
     const gradient = 'linear-gradient(135deg,'+s.swatch[0]+','+s.swatch[1]+')';
     const html = '<div class="studio-card" style="position:relative;" role="button" tabindex="0" aria-label="View '+s.name+', '+s.rating.toFixed(1)+' stars, ₹'+s.price+' per hour" onclick="openDetail(\''+s.id+'\')">'
       + '<div class="fav-btn '+(isFav?'on':'')+'" role="button" tabindex="0" aria-pressed="'+isFav+'" aria-label="'+(isFav?'Remove '+s.name+' from favorites':'Save '+s.name+' to favorites')+'" onclick="toggleFavorite(\''+s.id+'\', event)">'+(isFav?'♥':'♡')+'</div>'
-      + '<div class="studio-thumb">' + newBadgeHtml(s) + '<div class="swatch" style="background:'+gradient+'"></div></div>'
+      + '<div class="studio-thumb">' + newBadgeHtml(s) + '<div class="swatch" aria-hidden="true" style="background:'+gradient+'"></div></div>'
       + '<div class="studio-info"><div>'
       + '<div class="studio-name">'+s.name+(s.verified ? ' <span style="color:var(--teal); font-size:11px;">✓</span>' : '')+'</div>'
       + '<div class="studio-tags">'+s.services.join(' · ')+'</div>'
@@ -1941,7 +1975,7 @@
     if(homeCardCache.has(s.id)) return homeCardCache.get(s.id);
     const gradient = 'linear-gradient(135deg,'+s.swatch[0]+','+s.swatch[1]+')';
     const html = '<div class="recent-card" role="button" tabindex="0" aria-label="View '+s.name+'" onclick="openDetail(\''+s.id+'\')">'
-      + '<div class="recent-thumb">' + newBadgeHtml(s) + '<div class="swatch" style="background:'+gradient+'"></div></div>'
+      + '<div class="recent-thumb">' + newBadgeHtml(s) + '<div class="swatch" aria-hidden="true" style="background:'+gradient+'"></div></div>'
       + '<div class="recent-name">' + s.name + '</div><div class="recent-meta">' + s.loc + '</div>'
       + '</div>';
     homeCardCache.set(s.id, html);
@@ -1949,7 +1983,15 @@
   }
 
 
+  let lastFilterSignature = null;
+  let lastFilterResult = null;
   function getFiltered(){
+    const signature = JSON.stringify([
+      state.search, [...state.services].sort(), [...state.genres].sort(),
+      state.minRating, state.maxPrice, state.maxDistance, state.verifiedOnly, state.sort
+    ]);
+    if(signature === lastFilterSignature) return lastFilterResult;
+
     const q = state.search.trim().toLowerCase();
     let list = studios.filter(s => {
       if(q && !studioMatchesQuery(s, q)) return false;
@@ -1968,6 +2010,8 @@
       case 'newest': list.sort((a,b) => a.daysAgo - b.daysAgo); break;
       default: list.sort((a,b) => (b.rating - b.daysAgo/100) - (a.rating - a.daysAgo/100)); // recommended: rating-led, slight freshness boost
     }
+    lastFilterSignature = signature;
+    lastFilterResult = list;
     return list;
   }
 
@@ -2647,6 +2691,22 @@
     el.appendChild(span);
     span.addEventListener('animationend', () => span.remove());
   }
+
+  // "/" jumps straight to the search box, wherever you are in the app —
+  // a common convention (Gmail, GitHub, Slack) for power users who'd
+  // rather not reach for the mouse. Ignored while already typing so it
+  // doesn't hijack a literal "/" in a text field.
+  document.addEventListener('keydown', function(e){
+    if(e.key !== '/') return;
+    const tag = e.target.tagName;
+    if(tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+    const input = document.getElementById('search-input');
+    if(!input) return;
+    e.preventDefault();
+    if(document.getElementById('app-root').classList.contains('pre-auth')) return;
+    nav('studios');
+    input.focus();
+  });
 
   // Esc closes whichever overlay/modal is currently open (checks all of
   // them since only one is ever meaningfully open at a time in this app).
