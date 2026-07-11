@@ -593,7 +593,7 @@
   .auth-vu span{ width:3px; }
   .auth-card h1{ font-family:'Space Grotesk',sans-serif; font-size:24px; font-weight:700; margin-bottom:6px; text-align:center; }
   .auth-card p.auth-sub{ font-size:13px; color:var(--text-dim); text-align:center; margin-bottom:26px; }
-  #-official-wrap{ display:flex; justify-content:center; min-height:44px; margin-bottom:2px; }
+  #google-official-wrap{ display:flex; justify-content:center; min-height:44px; margin-bottom:2px; }
   .google-fallback-btn{
     width:100%; display:flex; align-items:center; justify-content:center; gap:10px;
     background:#F3EFE7; border:none; border-radius:14px; padding:14px;
@@ -839,7 +839,7 @@
 
           <div id="google-official-wrap">
             <div id="g_id_onload"
-              data-client_id="152399337619-oiovu7ruhtgt7m43jhk7310lmtmp2rua.apps.googleusercontent.com"
+              data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
               data-callback="handleGoogleSignIn"
               data-auto_prompt="false">
             </div>
@@ -1932,7 +1932,7 @@
     const displayName = profile.username || profile.name || 'Musician';
     const initials = displayName.trim().charAt(0).toUpperCase() || 'U';
     const avatarHtml = profile.picture
-      ? '<img src="' + profile.picture + '" alt="" style="width:100%; height:100%; border-radius:inherit; object-fit:cover;">'
+      ? '<img src="' + profile.picture + '" alt="" style="width:100%; height:100%; border-radius:inherit; object-fit:cover; cursor:pointer;">'
       : initials;
 
     const homeAvatar = document.getElementById('home-avatar');
@@ -1976,18 +1976,27 @@
     // Keep the stored permission in sync with the browser's actual current
     // permission (it can change any time in browser site settings, outside
     // our control), then reflect that in the toggle + message.
-    if(typeof Notification !== 'undefined' && Notification.permission){
+    const supportsNotifications = typeof Notification !== 'undefined';
+    if(supportsNotifications && Notification.permission){
       profile.settings.notificationPermission = Notification.permission;
       if(Notification.permission === 'denied'){
         profile.settings.remindersEnabled = false;
       }
     }
 
-    document.getElementById('reminders-toggle').classList.toggle('on', profile.settings.remindersEnabled);
+    // The toggle should only ever show "on" once the browser has actually
+    // granted permission (or on browsers with no Notification API at all,
+    // where reminders are just an in-app preference). This is what makes
+    // the very first click actually trigger the real permission prompt,
+    // instead of reading as "turn an already-on toggle off".
+    const remindersEffectivelyOn = profile.settings.remindersEnabled
+      && (!supportsNotifications || Notification.permission === 'granted');
+
+    document.getElementById('reminders-toggle').classList.toggle('on', remindersEffectivelyOn);
     document.getElementById('offers-toggle').classList.toggle('on', profile.settings.offersEnabled);
     document.getElementById('updates-toggle').classList.toggle('on', profile.settings.updatesEnabled);
     document.getElementById('reminder-hours-slider').value = profile.settings.reminderHours;
-    document.getElementById('reminder-slider-row').classList.toggle('show', profile.settings.remindersEnabled);
+    document.getElementById('reminder-slider-row').classList.toggle('show', remindersEffectivelyOn);
     const hrs = profile.settings.reminderHours;
     document.getElementById('reminder-sub').textContent = hrs + (hrs === 1 ? ' hour' : ' hours') + ' before your session';
 
