@@ -29,7 +29,7 @@
   }
   /* ---- Daylight theme: overrides cascade through every var()-based
      rule in the file, so the whole UI reskins without per-rule edits ---- */
-  .phone.theme-light{
+  .app.theme-light{
     --bg:#F7F3EC;
     --surface:#FFFFFF;
     --surface-2:#F1EBDD;
@@ -64,7 +64,7 @@
      later, more specific "pointer" rule for interactive elements wins. */
   *{ -webkit-tap-highlight-color:transparent; }
 
-  .phone, .phone *{
+  .app, .app *{
     cursor:default;
     user-select:none;
     -webkit-user-select:none;
@@ -106,27 +106,66 @@
   }
 
   /* Smooth, GPU-friendly theme + interaction transitions */
-  .phone, .phone *{
+  .app, .app *{
     transition:background-color .18s ease, border-color .18s ease, color .18s ease;
   }
   .screen{ will-change:opacity, transform; }
   .modal-overlay .filter-sheet{ will-change:transform; }
 
-  /* ---- Phone frame ---- */
-  .phone{
-    width:390px;
-    height:820px;
-    max-height:92vh;
-    background:var(--bg);
-    color:var(--text);
-    border-radius:44px;
-    border:10px solid #050403;
-    box-shadow:0 30px 80px -20px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.03);
-    position:relative;
-    overflow:hidden;
-    display:flex;
-    flex-direction:column;
+  html, body{ height:100%; }
+  body{
+    display:block;
+    padding:0;
   }
+
+  /* ---- App shell (replaces simulated phone frame) ----
+     No max-width cap: the shell fills the entire browser
+     viewport so there's no letterboxing on wide monitors. */
+  .app{
+    width:100%; height:100vh; height:100dvh;
+    background:var(--bg); color:var(--text);
+    position:relative; overflow:hidden;
+    display:flex;
+  }
+  .app.pre-auth .sidebar, .app.pre-auth .topbar, .app.pre-auth .bottom-nav{ display:none; }
+
+  /* ---- Sidebar (desktop navigation) ---- */
+  .sidebar{
+    display:none; width:248px; flex-shrink:0; height:100%;
+    flex-direction:column; background:var(--surface); border-right:1px solid var(--border);
+    padding:26px 0;
+  }
+  .sidebar-brand{ display:flex; align-items:center; gap:10px; padding:0 24px; margin-bottom:34px; }
+  .sidebar-brand .brand-name{ font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:700; }
+  .sidebar-nav{ display:flex; flex-direction:column; gap:2px; padding:0 14px; }
+  .sidebar-nav .nav-item{
+    flex-direction:row; align-items:center; justify-content:flex-start;
+    gap:13px; padding:11px 14px; border-radius:var(--radius-sm);
+  }
+  .sidebar-nav .nav-item.active{ background:var(--surface-2); }
+  .sidebar-nav .nav-item .label{ font-size:13.5px; }
+  .sidebar-nav .nav-item .nav-indicator{ display:none; }
+
+  .app-main{ flex:1; min-width:0; height:100%; position:relative; display:flex; flex-direction:column; }
+
+  /* ---- Topbar (desktop only) ---- */
+  .topbar{
+    display:none; height:64px; flex-shrink:0;
+    align-items:center; justify-content:space-between;
+    padding:0 32px; border-bottom:1px solid var(--border); background:var(--bg);
+  }
+  .topbar-search{
+    flex:0 1 360px; display:flex; align-items:center; gap:10px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius-md); padding:10px 14px; color:var(--text-faint); font-size:13px;
+  }
+  .topbar-actions{ display:flex; align-items:center; gap:16px; }
+  .topbar-icon-btn{
+    width:36px; height:36px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-dim); background:var(--surface); border:1px solid var(--border);
+  }
+  .content{ position:relative; }
   .screens{ flex:1; position:relative; overflow:hidden; }
   .screen{
     position:absolute; inset:0;
@@ -543,7 +582,6 @@
   }
 
   /* ---- AUTH ---- */
-  .phone.pre-auth .bottom-nav{ display:none; }
   .auth-wrap{
     min-height:100%; padding:50px 28px 10px; display:flex; flex-direction:column; align-items:center;
   }
@@ -654,11 +692,125 @@
     display:none;
   }
   .reminder-slider-row.show{ display:block; }
+
+  /* ==========================================================
+     DESKTOP RESPONSIVE LAYER
+     Tablets and phones keep the original mobile app experience.
+     From 1024px up, the shell fills the full browser width (no
+     letterboxing) and reshapes into real desktop-website
+     patterns: persistent topbar + sidebar, content grids instead
+     of horizontal scroll strips, and a two-column detail page.
+  ========================================================== */
+  @media (min-width:1024px){
+    .sidebar{ display:flex; }
+    .bottom-nav{ display:none; }
+    .topbar{ display:flex; }
+    .app.pre-auth .topbar{ display:none; }
+
+    .screen{ padding-bottom:48px; }
+    .content{ max-width:1160px; margin:0 auto; padding-top:8px; }
+    .home-header .avatar{ display:none; }
+
+    .offer-row, .recent-row{ display:grid; gap:16px; overflow:visible; padding:0 20px; }
+    .offer-row{ grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); }
+    .recent-row{ grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); }
+    .offer-card, .recent-card{ width:auto; }
+    .recent-thumb{ width:100%; height:150px; }
+
+    .search-row{ max-width:480px; }
+    .cat-row{ flex-wrap:wrap; overflow:visible; }
+    .studio-list{
+      display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:18px;
+    }
+    .studio-card{ flex-direction:column; padding:0; overflow:hidden; }
+    .studio-thumb{ width:100%; height:170px; border-radius:0; }
+    .studio-info{ padding:12px 14px 16px; }
+
+    .modal-overlay{ align-items:center; justify-content:center; padding:24px; }
+    .filter-sheet{
+      width:440px; max-width:100%; max-height:82vh;
+      border:1px solid var(--border); border-radius:var(--radius-lg);
+      transform:translateY(12px) scale(.98); opacity:0;
+      transition:transform .22s ease, opacity .22s ease;
+    }
+    .modal-overlay.open .filter-sheet{ transform:translateY(0) scale(1); opacity:1; }
+
+    .back-btn{ display:none; }
+    .book-bar{ display:none; }
+    #screen-detail .content{
+      display:grid; grid-template-columns:1fr 320px; column-gap:32px; align-items:start;
+    }
+    #screen-detail .detail-hero{ grid-column:1 / -1; border-radius:var(--radius-lg); overflow:hidden; }
+    #screen-detail .detail-body{ grid-column:1; padding-left:0; }
+    .booking-card{
+      display:block; grid-column:2; position:sticky; top:24px;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius-md); padding:20px;
+    }
+    .equip-grid{ grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); }
+
+    .profile-top{ flex-direction:row; align-items:center; text-align:left; gap:24px; padding:8px 20px 28px; }
+    .profile-top p{ max-width:420px; }
+    .genre-row{ justify-content:flex-start; margin-top:10px; }
+
+    .theme-row{ max-width:460px; }
+
+    .list-item, .setting-row{ border-radius:var(--radius-md); }
+    .list-item:not(.disabled){ cursor:pointer; }
+    .booking-row, .fav-row{ border-radius:var(--radius-sm); padding:13px 12px; }
+    .booking-row:hover, .fav-row:hover{ background:var(--surface-2); }
+
+    .auth-wrap{ justify-content:center; }
+  }
 </style>
 </head>
 <body>
 
-<div class="phone pre-auth" id="phone-root">
+<div class="app pre-auth" id="app-root">
+
+  <!-- ============ SIDEBAR (desktop nav) ============ -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <div class="vu on"><span></span><span></span><span></span><span></span></div>
+      <span class="brand-name">Sound Board</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" data-screen="home" onclick="nav('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        <div class="label">Home</div>
+        <div class="nav-indicator"></div>
+      </div>
+      <div class="nav-item" data-screen="studios" onclick="nav('studios')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="3"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+        <div class="label">Studios</div>
+        <div class="nav-indicator"></div>
+      </div>
+      <div class="nav-item" data-screen="profile" onclick="nav('profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+        <div class="label">Profile</div>
+        <div class="nav-indicator"></div>
+      </div>
+      <div class="nav-item" data-screen="settings" onclick="nav('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1h.1a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+        <div class="label">Settings</div>
+        <div class="nav-indicator"></div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app-main">
+  <div class="topbar">
+    <div class="topbar-search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <span>Search studios, areas, gear...</span>
+    </div>
+    <div class="topbar-actions">
+      <div class="topbar-icon-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+      </div>
+      <div class="avatar" id="topbar-avatar">A</div>
+    </div>
+  </div>
 
   <div class="screens">
 
@@ -668,12 +820,12 @@
         <div class="auth-brand">
           <div class="vu on auth-vu"><span></span><span></span><span></span><span></span></div>
           <h1>Sound Board</h1>
-          <p>Discover and book studios across Bengaluru.</p>
+          <p>Discover and book studios near you.</p>
         </div>
 
         <div id="google-official-wrap">
           <div id="g_id_onload"
-            data-client_id="152399337619-oiovu7ruhtgt7m43jhk7310lmtmp2rua.apps.googleusercontent.com"
+            data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
             data-callback="handleGoogleSignIn"
             data-auto_prompt="false">
           </div>
@@ -708,6 +860,7 @@
 
     <!-- ============ HOME ============ -->
     <div class="screen" id="screen-home">
+     <div class="content">
       <div class="home-header">
         <div>
           <div class="greet-label" id="greet-time">Good Evening</div>
@@ -767,13 +920,15 @@
       <div class="section">
         <div class="update-strip">
           <div class="update-dot"></div>
-          <p><b>Sound Board 1.0 is live.</b> Discover and book studios across Bengaluru.</p>
+          <p><b>Sound Board 1.0 is live.</b> New studios are added every week — check back often.</p>
         </div>
       </div>
+     </div>
     </div>
 
     <!-- ============ STUDIOS LIST ============ -->
     <div class="screen" id="screen-studios">
+     <div class="content">
       <div class="studios-head">
         <div class="page-title">Studios</div>
       </div>
@@ -815,16 +970,18 @@
       </div>
 
       <div class="studio-list" id="studio-list"></div>
+     </div>
     </div>
 
     <!-- ============ STUDIO DETAILS ============ -->
     <div class="screen" id="screen-detail">
+     <div class="content">
       <div class="back-btn" onclick="nav('studios')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
       </div>
-      <div class="detail-fav-btn" id="detail-fav-btn" onclick="toggleFavorite(currentDetailId, event)">♡</div>
       <div class="detail-hero">
         <div class="swatch" id="detail-swatch" style="background:linear-gradient(135deg,#3A2818,#1A2624); position:absolute; inset:0;"></div>
+        <div class="detail-fav-btn" id="detail-fav-btn" onclick="toggleFavorite(currentDetailId, event)">♡</div>
         <div class="detail-hero-body">
           <h1 id="detail-name">Basement 9 Studios</h1>
           <div class="detail-meta"><span class="rating">⭐ 4.9</span><span>·</span><span id="detail-loc">Koramangala, 2.3 km</span></div>
@@ -871,6 +1028,14 @@
         </div>
       </div>
 
+      <div class="booking-card">
+        <div class="eyebrow">Book this room</div>
+        <div class="amt mono" id="detail-price-2">₹600/hr</div>
+        <div class="lbl">Today, 1:00 PM</div>
+        <button class="book-btn" style="width:100%; margin-top:16px;" onclick="bookNow()">Book Now</button>
+      </div>
+     </div>
+
       <div class="book-bar">
         <div class="book-price">
           <div class="amt mono" id="detail-price">₹600/hr</div>
@@ -882,6 +1047,7 @@
 
     <!-- ============ PROFILE ============ -->
     <div class="screen" id="screen-profile">
+     <div class="content">
       <div class="profile-top">
         <div class="avatar-lg" id="profile-avatar-lg">A</div>
         <h2 id="profile-name">Musician</h2>
@@ -915,10 +1081,12 @@
           </div>
         </div>
       </div>
+     </div>
     </div>
 
     <!-- ============ SETTINGS ============ -->
     <div class="screen" id="screen-settings">
+     <div class="content">
       <div class="studios-head">
         <div class="page-title">Settings</div>
       </div>
@@ -960,6 +1128,7 @@
           <div class="list-item"><div class="list-icon">↪️</div><span style="color:var(--danger);">Log out</span></div>
         </div>
       </div>
+     </div>
     </div>
 
   </div>
@@ -1121,6 +1290,8 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  </div>
 </div>
 
 <script>
@@ -1128,8 +1299,7 @@
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + screen).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const target = document.querySelector('.nav-item[data-screen="' + screen + '"]');
-    if(target) target.classList.add('active');
+    document.querySelectorAll('.nav-item[data-screen="' + screen + '"]').forEach(t => t.classList.add('active'));
     document.getElementById('screen-' + screen).scrollTop = 0;
   }
 
@@ -1207,7 +1377,7 @@
   let currentThemeMode = localStorage.getItem('soundboardTheme') || 'dark';
   function applyTheme(mode){
     currentThemeMode = mode;
-    const root = document.getElementById('phone-root');
+    const root = document.getElementById('app-root');
     root.classList.remove('theme-light');
     if(mode === 'light'){
       root.classList.add('theme-light');
@@ -1475,6 +1645,7 @@
     document.getElementById('detail-name').textContent = d.name;
     document.getElementById('detail-loc').textContent = d.loc + ', ' + d.distanceKm + ' km';
     document.getElementById('detail-price').textContent = '₹' + d.price + '/hr';
+    document.getElementById('detail-price-2').textContent = '₹' + d.price + '/hr';
     document.getElementById('detail-swatch').style.background = 'linear-gradient(135deg,'+d.swatch[0]+','+d.swatch[1]+')';
     document.getElementById('detail-about').textContent = d.about;
     document.getElementById('detail-chips').innerHTML = d.chips.map(c => '<div class="chip">'+c+'</div>').join('');
@@ -1641,7 +1812,7 @@
   }
 
   function enterApp(){
-    document.getElementById('phone-root').classList.remove('pre-auth');
+    document.getElementById('app-root').classList.remove('pre-auth');
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-home').classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -1659,7 +1830,7 @@
       }
     }catch(e){}
     profile = emptyProfile();
-    document.getElementById('phone-root').classList.add('pre-auth');
+    document.getElementById('app-root').classList.add('pre-auth');
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-auth').classList.add('active');
   }
@@ -1738,6 +1909,8 @@
     if(homeAvatar) homeAvatar.innerHTML = avatarHtml;
     const profileAvatar = document.getElementById('profile-avatar-lg');
     if(profileAvatar) profileAvatar.innerHTML = avatarHtml;
+    const topbarAvatar = document.getElementById('topbar-avatar');
+    if(topbarAvatar) topbarAvatar.innerHTML = avatarHtml;
 
     const greetName = document.getElementById('greet-name');
     if(greetName) greetName.textContent = (profile.givenName || displayName.split(' ')[0] || 'there') + ' 👋';
