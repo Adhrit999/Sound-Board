@@ -59,22 +59,51 @@
   .mono{ font-family:'JetBrains Mono',monospace; }
 
   /* ---- Interaction polish: correct cursor, no accidental text-select,
-     no mobile tap flash, no 300ms tap delay ---- */
+     no mobile tap flash, no 300ms tap delay ----
+     Order matters here: the broad "default" rule must come first so the
+     later, more specific "pointer" rule for interactive elements wins. */
   *{ -webkit-tap-highlight-color:transparent; }
-  button, .see-all, .list-item, .list-item *, .stat, .cat-chip, .chip-opt,
-  .theme-opt, .auth-tab, .sort-opt, .nav-item, .nav-item *, .studio-card,
-  .fav-btn, .detail-fav-btn, .demo-banner-close, .sheet-close, .filter-btn,
-  .slot, .star, .back-btn, .offer-card, .recent-card, [onclick]{
+
+  .phone, .phone *{
+    cursor:default;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+
+  button, .see-all, .list-item, .list-item *, .stat, .stat *, .cat-chip, .chip-opt,
+  .theme-opt, .auth-tab, .sort-opt, .nav-item, .nav-item *, .studio-card, .studio-card *,
+  .fav-btn, .detail-fav-btn, .demo-banner-close, .sheet-close, .sheet-close *, .filter-btn,
+  .filter-btn *, .slot, .star, .back-btn, .back-btn *, .offer-card, .offer-card *, .recent-card, .recent-card *,
+  .fav-row, .fav-row *, .featured-card, .featured-card *, .clear-filters-link, [onclick]{
     cursor:pointer;
     touch-action:manipulation;
   }
-  button, .see-all, .list-item, .stat, .cat-chip, .chip-opt, .theme-opt,
-  .auth-tab, .sort-opt, .nav-item, .studio-card, .fav-btn, .detail-fav-btn,
-  .demo-banner-close, .sheet-close, .filter-btn, .slot, .star, .back-btn{
-    user-select:none;
+
+  input[type="range"]{ cursor:pointer; }
+  input[type="text"], input[type="email"], input[type="tel"]{
+    cursor:text;
+    user-select:text;
+    -webkit-user-select:text;
   }
-  input[type="range"], input[type="text"], input[type="email"], input[type="tel"]{ cursor:pointer; }
-  input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus{ cursor:text; }
+
+  /* Consistent hover feedback — only on devices that actually support hover,
+     so touch screens never get a "stuck" hover state. */
+  @media (hover:hover) and (pointer:fine){
+    .studio-card:hover, .offer-card:hover, .recent-card:hover, .fav-row:hover,
+    .list-item:not(.disabled):hover, .featured-card:hover{
+      background:var(--surface-2);
+    }
+    .see-all:hover, .clear-filters-link:hover{ color:var(--amber); }
+    button:hover{ filter:brightness(1.06); }
+    .nav-item:hover{ color:var(--amber); }
+    .cat-chip:hover, .chip-opt:hover, .theme-opt:hover{ border-color:var(--amber-dim); }
+  }
+
+  /* Prevent long studio/offer names from breaking card layouts */
+  .studio-name, .offer-name, .recent-name, .b-name, .f-name, .greet-name,
+  .featured-body h3{
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
 
   /* Smooth, GPU-friendly theme + interaction transitions */
   .phone, .phone *{
@@ -89,6 +118,7 @@
     height:820px;
     max-height:92vh;
     background:var(--bg);
+    color:var(--text);
     border-radius:44px;
     border:10px solid #050403;
     box-shadow:0 30px 80px -20px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.03);
@@ -234,7 +264,13 @@
     color:var(--text); font-family:'Inter',sans-serif; font-size:13.5px;
   }
   .search-bar input::placeholder{ color:var(--text-faint); }
-  .no-results{ padding:30px 20px; text-align:center; color:var(--text-faint); font-size:13px; }
+  .search-clear-btn{
+    flex-shrink:0; width:18px; height:18px; border-radius:50%; background:var(--surface-3);
+    color:var(--text-dim); font-size:10px; display:flex; align-items:center; justify-content:center;
+  }
+  .no-results{ padding:30px 20px; text-align:center; color:var(--text-faint); font-size:13px; line-height:1.8; }
+  .clear-filters-link{ font-size:11px; font-weight:600; color:var(--teal); }
+  .no-results .clear-filters-link{ display:inline-block; margin-top:4px; }
   .filter-btn{
     width:44px; height:44px; border-radius:var(--radius-md);
     background:var(--surface); border:1px solid var(--border);
@@ -457,6 +493,7 @@
   .sheet-close{
     width:30px; height:30px; border-radius:50%; background:var(--surface);
     display:flex; align-items:center; justify-content:center; border:1px solid var(--border);
+    color:var(--text);
   }
   .sheet-body{ padding:18px 20px 4px; overflow-y:auto; flex:1; }
   .filter-block{ margin-bottom:24px; }
@@ -599,6 +636,7 @@
   .booking-row .b-name{ font-size:13px; font-weight:600; margin-bottom:3px; }
   .booking-row .b-meta{ font-size:11px; color:var(--text-faint); }
   .booking-row .b-price{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--teal); }
+  .cancel-link{ font-size:11px; font-weight:600; color:var(--danger); cursor:pointer; }
   .fav-row{
     display:flex; align-items:center; gap:12px; border-top:1px solid var(--border); padding:12px 0; cursor:pointer;
   }
@@ -635,7 +673,7 @@
 
         <div id="google-official-wrap">
           <div id="g_id_onload"
-            data-client_id="152399337619-oiovu7ruhtgt7m43jhk7310lmtmp2rua.apps.googleusercontent.com"
+            data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
             data-callback="handleGoogleSignIn"
             data-auto_prompt="false">
           </div>
@@ -685,7 +723,7 @@
 
       <div class="section" style="margin-top:20px;">
         <div class="eyebrow">On the board tonight</div>
-        <div class="featured-card">
+        <div class="featured-card" onclick="openDetail('basement9')">
           <div class="featured-tag">
             <div class="vu on"><span></span><span></span><span></span><span></span></div>
             Featured
@@ -702,9 +740,9 @@
       <div class="section" style="margin-top:0;">
         <div class="section-head"><h2>Offers near you</h2><span class="see-all" onclick="openOffersModal()">See all</span></div>
         <div class="offer-row">
-          <div class="offer-card"><div class="offer-pct">20% OFF</div><div class="offer-name">Studio 21 · Rehearsal</div></div>
-          <div class="offer-card"><div class="offer-pct">₹200 OFF</div><div class="offer-name">Cue Point · First booking</div></div>
-          <div class="offer-card"><div class="offer-pct">15% OFF</div><div class="offer-name">Analog Attic · Weekdays</div></div>
+          <div class="offer-card" onclick="openDetail('studio21')"><div class="offer-pct">20% OFF</div><div class="offer-name">Studio 21 · Rehearsal</div></div>
+          <div class="offer-card" onclick="openDetail('cuepoint')"><div class="offer-pct">₹200 OFF</div><div class="offer-name">Cue Point · First booking</div></div>
+          <div class="offer-card" onclick="openDetail('analogattic')"><div class="offer-pct">15% OFF</div><div class="offer-name">Analog Attic · Weekdays</div></div>
         </div>
       </div>
 
@@ -743,6 +781,7 @@
         <div class="search-bar">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
           <input id="search-input" type="text" placeholder="Search studios, areas, gear..." oninput="filterStudios(this.value)">
+          <div class="search-clear-btn" id="search-clear-btn" style="display:none;" onclick="clearSearchOnly()">✕</div>
         </div>
         <div class="filter-btn" onclick="openFilterModal()" id="filter-btn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F0A63C" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
@@ -758,8 +797,11 @@
         <div class="cat-chip" data-tag="Mixing">🎧 Mixing</div>
       </div>
 
-      <div class="section-head" style="padding:0 20px; margin-top:18px;">
-        <h2 id="results-count">Nearby studios</h2>
+      <div class="section-head" style="padding:0 20px; margin-top:18px; flex-wrap:wrap; row-gap:6px;">
+        <div style="display:flex; align-items:baseline; gap:10px;">
+          <h2 id="results-count">Nearby studios</h2>
+          <span class="clear-filters-link" id="clear-filters-inline" style="display:none;" onclick="clearAllFilters()">Clear filters</span>
+        </div>
         <div class="sort-wrap">
           <span class="see-all" id="sort-trigger" onclick="toggleSort()">Sort ⇅</span>
           <div class="sort-menu" id="sort-menu">
@@ -953,7 +995,7 @@
       <div class="sheet-header">
         <h2>Filters</h2>
         <div class="sheet-close" onclick="closeFilterModal()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </div>
       </div>
 
@@ -1035,7 +1077,7 @@
       <div class="sheet-header">
         <h2 id="onboarding-title">Welcome to Sound Board</h2>
         <div class="sheet-close" id="onboarding-close" onclick="closeOnboarding()" style="display:none;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </div>
       </div>
       <div class="sheet-body">
@@ -1071,7 +1113,7 @@
       <div class="sheet-header">
         <h2 id="info-modal-title">Title</h2>
         <div class="sheet-close" onclick="closeInfoModal()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </div>
       </div>
       <div class="sheet-body" id="info-modal-body"></div>
@@ -1129,9 +1171,23 @@
 
   let currentDetailId = null;
   let profile = emptyProfile();
+
+  // Defensive: a saved profile could be from an older version of the app,
+  // or hand-edited in localStorage — never let a missing field crash the app.
+  function normalizeProfile(p){
+    const base = emptyProfile();
+    const safe = Object.assign({}, base, p || {});
+    safe.genres = Array.isArray(safe.genres) ? safe.genres : [];
+    safe.bookings = Array.isArray(safe.bookings) ? safe.bookings : [];
+    safe.favorites = Array.isArray(safe.favorites) ? safe.favorites : [];
+    safe.visitedStudios = Array.isArray(safe.visitedStudios) ? safe.visitedStudios : [];
+    safe.username = safe.username || safe.name || 'Musician';
+    return safe;
+  }
+
   const _savedProfile = loadProfile();
   if(_savedProfile && _savedProfile.onboarded){
-    profile = _savedProfile;
+    profile = normalizeProfile(_savedProfile);
   }
 
   function ensureSettings(){
@@ -1264,19 +1320,51 @@
   function render(){
     const list = getFiltered();
     const container = document.getElementById('studio-list');
+    const hasActiveFilters = state.services.size || state.genres.size || state.minRating > 0 ||
+      state.maxPrice < 1000 || state.maxDistance < 10 || state.verifiedOnly || state.search.trim();
+
     container.innerHTML = list.length
       ? list.map(buildCard).join('')
-      : '<div class="no-results">No studios match your filters.<br>Try widening your search.</div>';
-    document.getElementById('results-count').textContent = list.length + (list.length === 1 ? ' studio found' : ' studios found');
+      : '<div class="no-results">No studios match your filters.<br>Try widening your search.'
+        + (hasActiveFilters ? '<br><span class="clear-filters-link" onclick="clearAllFilters()">Clear all filters</span>' : '')
+        + '</div>';
 
-    const hasActiveFilters = state.services.size || state.genres.size || state.minRating > 0 ||
-      state.maxPrice < 1000 || state.maxDistance < 10 || state.verifiedOnly;
+    document.getElementById('results-count').textContent = list.length + (list.length === 1 ? ' studio found' : ' studios found');
     document.getElementById('filter-dot').classList.toggle('show', !!hasActiveFilters);
+    document.getElementById('clear-filters-inline').style.display = hasActiveFilters ? 'inline' : 'none';
   }
 
-  function filterStudios(query){
-    state.search = query;
+  function clearAllFilters(){
+    state.search = '';
+    state.services = new Set();
+    state.genres = new Set();
+    state.minRating = 0;
+    state.maxPrice = 1000;
+    state.maxDistance = 10;
+    state.verifiedOnly = false;
+    state.sort = 'recommended';
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-clear-btn').style.display = 'none';
+    document.querySelectorAll('#cat-row .cat-chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.sort-opt').forEach(o => o.classList.toggle('active', o.dataset.sort === 'recommended'));
     render();
+  }
+
+  function clearSearchOnly(){
+    state.search = '';
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-clear-btn').style.display = 'none';
+    render();
+  }
+
+  let _searchDebounce = null;
+  function filterStudios(query){
+    document.getElementById('search-clear-btn').style.display = query ? 'flex' : 'none';
+    clearTimeout(_searchDebounce);
+    _searchDebounce = setTimeout(() => {
+      state.search = query;
+      render();
+    }, 120);
   }
 
   document.querySelectorAll('#cat-row .cat-chip').forEach(el => {
@@ -1442,6 +1530,35 @@
     saveProfile();
     updateStats();
     showToast('Booking saved locally (demo mode).');
+    openBookingConfirmation(booking);
+  }
+
+  function openBookingConfirmation(booking){
+    const d = new Date(booking.date);
+    const dateStr = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    const body = ''
+      + '<div style="text-align:center; padding:6px 0 4px;">'
+      + '<div style="width:52px; height:52px; border-radius:50%; background:var(--teal-dim); color:var(--teal); display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 16px;">✓</div>'
+      + '<div style="font-family:\'Space Grotesk\',sans-serif; font-size:17px; font-weight:700; margin-bottom:4px;">Booking Confirmed</div>'
+      + '<div style="color:var(--text-faint); font-size:12px; margin-bottom:22px;">This is a demo booking, saved locally on this device.</div>'
+      + '</div>'
+      + '<div class="booking-row" style="border-top:1px solid var(--border); padding-top:14px;">'
+      + '<div><div class="b-name">' + booking.studioName + '</div><div class="b-meta">' + dateStr + ' · ' + booking.slot + '</div></div>'
+      + '<div class="b-price">₹' + booking.price + '/hr</div>'
+      + '</div>'
+      + '<button class="apply-btn" style="width:100%; margin-top:20px;" onclick="closeInfoModal(); openBookingHistory();">View Booking History</button>'
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="closeInfoModal()">Done</button>';
+    openInfoModal('Booking Confirmed', body);
+  }
+
+  function cancelBooking(id){
+    const idx = profile.bookings.findIndex(b => b.id === id);
+    if(idx === -1) return;
+    profile.bookings.splice(idx, 1);
+    saveProfile();
+    updateStats();
+    showToast('Booking cancelled.');
+    openBookingHistory(); // refresh the list in place
   }
 
   function showToast(msg){
@@ -1766,7 +1883,10 @@
       const dateStr = d.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
       return '<div class="booking-row">'
         + '<div><div class="b-name">' + b.studioName + '</div><div class="b-meta">' + dateStr + ' · ' + b.slot + '</div></div>'
+        + '<div style="display:flex; align-items:center; gap:12px;">'
         + '<div class="b-price">₹' + b.price + '/hr</div>'
+        + '<span class="cancel-link" onclick="cancelBooking(\'' + b.id + '\')">Cancel</span>'
+        + '</div>'
         + '</div>';
     }).join('');
     openInfoModal('Booking History', rows);
