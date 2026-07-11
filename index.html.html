@@ -27,6 +27,23 @@
     --radius-md:14px;
     --radius-sm:9px;
   }
+  /* ---- Daylight theme: overrides cascade through every var()-based
+     rule in the file, so the whole UI reskins without per-rule edits ---- */
+  .phone.theme-light{
+    --bg:#F7F3EC;
+    --surface:#FFFFFF;
+    --surface-2:#F1EBDD;
+    --surface-3:#E9E1CE;
+    --border:#E2D9C4;
+    --text:#1C1810;
+    --text-dim:#6B6153;
+    --text-faint:#9C927F;
+    --amber:#C97D1E;
+    --amber-dim:#F0D9B0;
+    --teal:#0E9884;
+    --teal-dim:#CFEDE7;
+    --danger:#C94A36;
+  }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
     background:#0A0908;
@@ -40,6 +57,31 @@
   }
   .display{ font-family:'Space Grotesk',sans-serif; }
   .mono{ font-family:'JetBrains Mono',monospace; }
+
+  /* ---- Interaction polish: correct cursor, no accidental text-select,
+     no mobile tap flash, no 300ms tap delay ---- */
+  *{ -webkit-tap-highlight-color:transparent; }
+  button, .see-all, .list-item, .list-item *, .stat, .cat-chip, .chip-opt,
+  .theme-opt, .auth-tab, .sort-opt, .nav-item, .nav-item *, .studio-card,
+  .fav-btn, .detail-fav-btn, .demo-banner-close, .sheet-close, .filter-btn,
+  .slot, .star, .back-btn, .offer-card, .recent-card, [onclick]{
+    cursor:pointer;
+    touch-action:manipulation;
+  }
+  button, .see-all, .list-item, .stat, .cat-chip, .chip-opt, .theme-opt,
+  .auth-tab, .sort-opt, .nav-item, .studio-card, .fav-btn, .detail-fav-btn,
+  .demo-banner-close, .sheet-close, .filter-btn, .slot, .star, .back-btn{
+    user-select:none;
+  }
+  input[type="range"], input[type="text"], input[type="email"], input[type="tel"]{ cursor:pointer; }
+  input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus{ cursor:text; }
+
+  /* Smooth, GPU-friendly theme + interaction transitions */
+  .phone, .phone *{
+    transition:background-color .18s ease, border-color .18s ease, color .18s ease;
+  }
+  .screen{ will-change:opacity, transform; }
+  .modal-overlay .filter-sheet{ will-change:transform; }
 
   /* ---- Phone frame ---- */
   .phone{
@@ -473,8 +515,8 @@
   .auth-vu span{ width:4px; }
   .auth-brand h1{ font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700; margin-bottom:8px; }
   .auth-brand p{ font-size:12.5px; color:var(--text-dim); }
-  #-official-wrap{ display:flex; justify-content:center; min-height:44px; }
-  .-fallback-btn{
+  #google-official-wrap{ display:flex; justify-content:center; min-height:44px; }
+  .google-fallback-btn{
     width:100%; max-width:300px; display:flex; align-items:center; justify-content:center; gap:10px;
     background:#1E1E1E; border:1px solid #3A3A3A; border-radius:22px; padding:12px;
     color:#F3EFE7; font-size:13.5px; font-weight:600; font-family:'Inter',sans-serif;
@@ -569,6 +611,11 @@
     padding:4px 9px; border-radius:10px; font-weight:600; flex-shrink:0;
   }
   .list-item.disabled{ opacity:0.6; }
+  .reminder-slider-row{
+    padding:4px 20px 16px; border-top:1px solid var(--border);
+    display:none;
+  }
+  .reminder-slider-row.show{ display:block; }
 </style>
 </head>
 <body>
@@ -586,9 +633,9 @@
           <p>Discover and book studios across Bengaluru.</p>
         </div>
 
-        <div id="-official-wrap">
+        <div id="google-official-wrap">
           <div id="g_id_onload"
-            data-client_id="152399337619-oiovu7ruhtgt7m43jhk7310lmtmp2rua.apps.googleusercontent.com"
+            data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
             data-callback="handleGoogleSignIn"
             data-auto_prompt="false">
           </div>
@@ -653,7 +700,7 @@
       <div class="meter-divider"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
 
       <div class="section" style="margin-top:0;">
-        <div class="section-head"><h2>Offers near you</h2><span class="see-all">See all</span></div>
+        <div class="section-head"><h2>Offers near you</h2><span class="see-all" onclick="openOffersModal()">See all</span></div>
         <div class="offer-row">
           <div class="offer-card"><div class="offer-pct">20% OFF</div><div class="offer-name">Studio 21 · Rehearsal</div></div>
           <div class="offer-card"><div class="offer-pct">₹200 OFF</div><div class="offer-name">Cue Point · First booking</div></div>
@@ -801,9 +848,9 @@
       </div>
 
       <div class="stat-row">
-        <div class="stat"><div class="n" id="stat-bookings">0</div><div class="l">Bookings</div></div>
-        <div class="stat"><div class="n" id="stat-studios">0</div><div class="l">Studios</div></div>
-        <div class="stat"><div class="n" id="stat-favorites">0</div><div class="l">Favorites</div></div>
+        <div class="stat" onclick="openBookingHistory()"><div class="n" id="stat-bookings">0</div><div class="l">Bookings</div></div>
+        <div class="stat" onclick="openVisitedStudios()"><div class="n" id="stat-studios">0</div><div class="l">Studios</div></div>
+        <div class="stat" onclick="openFavoriteStudios()"><div class="n" id="stat-favorites">0</div><div class="l">Favorites</div></div>
       </div>
 
       <div class="section" style="margin-top:0;">
@@ -836,25 +883,28 @@
 
       <div class="eyebrow" style="padding:0 20px;">Appearance</div>
       <div class="theme-row">
-        <div class="theme-opt active">Stage Dark</div>
-        <div class="theme-opt">Daylight</div>
-        <div class="theme-opt">Auto</div>
+        <div class="theme-opt active" data-theme="dark">Stage Dark</div>
+        <div class="theme-opt" data-theme="light">Daylight</div>
+        <div class="theme-opt" data-theme="auto">Auto</div>
       </div>
 
       <div class="section" style="margin-top:22px;">
         <div class="eyebrow">Notifications</div>
         <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-top:6px;">
           <div class="setting-row">
-            <div><div class="setting-label">Booking reminders</div><div class="setting-sub">1 hour before your session</div></div>
-            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            <div><div class="setting-label">Booking reminders</div><div class="setting-sub" id="reminder-sub">1 hour before your session</div></div>
+            <div class="toggle on" id="reminders-toggle" onclick="onToggleReminders(this)"></div>
+          </div>
+          <div class="reminder-slider-row" id="reminder-slider-row">
+            <input type="range" id="reminder-hours-slider" min="1" max="24" step="1" value="1" oninput="onReminderHoursChange(this.value)">
           </div>
           <div class="setting-row">
             <div><div class="setting-label">New offers</div><div class="setting-sub">Deals from studios you follow</div></div>
-            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            <div class="toggle on" id="offers-toggle" onclick="onToggleSetting(this, 'offersEnabled')"></div>
           </div>
           <div class="setting-row">
             <div><div class="setting-label">Product updates</div></div>
-            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+            <div class="toggle" id="updates-toggle" onclick="onToggleSetting(this, 'updatesEnabled')"></div>
           </div>
         </div>
       </div>
@@ -862,9 +912,9 @@
       <div class="section">
         <div class="eyebrow">Account</div>
         <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-top:6px;">
-          <div class="list-item"><div class="list-icon">👤</div><span>Edit profile</span><span class="chev">›</span></div>
-          <div class="list-item"><div class="list-icon">🔒</div><span>Privacy & security</span><span class="chev">›</span></div>
-          <div class="list-item"><div class="list-icon">💬</div><span>Help & support</span><span class="chev">›</span></div>
+          <div class="list-item" onclick="openEditProfile()"><div class="list-icon">👤</div><span>Edit profile</span><span class="chev">›</span></div>
+          <div class="list-item" onclick="openPrivacyPage()"><div class="list-icon">🔒</div><span>Privacy & security</span><span class="chev">›</span></div>
+          <div class="list-item" onclick="openHelpPage()"><div class="list-icon">💬</div><span>Help & support</span><span class="chev">›</span></div>
           <div class="list-item"><div class="list-icon">↪️</div><span style="color:var(--danger);">Log out</span></div>
         </div>
       </div>
@@ -1082,6 +1132,41 @@
   const _savedProfile = loadProfile();
   if(_savedProfile && _savedProfile.onboarded){
     profile = _savedProfile;
+  }
+
+  function ensureSettings(){
+    if(!profile.settings){
+      profile.settings = { remindersEnabled:true, reminderHours:1, offersEnabled:true, updatesEnabled:false };
+    }
+  }
+  ensureSettings();
+
+  const offersData = [
+    { pct:'20% OFF', name:'Studio 21 · Rehearsal' },
+    { pct:'₹200 OFF', name:'Cue Point · First booking' },
+    { pct:'15% OFF', name:'Analog Attic · Weekdays' }
+  ];
+
+  // ---- THEME (applies immediately, independent of login state) ----
+  let currentThemeMode = localStorage.getItem('soundboardTheme') || 'dark';
+  function applyTheme(mode){
+    currentThemeMode = mode;
+    const root = document.getElementById('phone-root');
+    root.classList.remove('theme-light');
+    if(mode === 'light'){
+      root.classList.add('theme-light');
+    } else if(mode === 'auto'){
+      const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      if(prefersLight) root.classList.add('theme-light');
+    }
+    try{ localStorage.setItem('soundboardTheme', mode); }catch(e){}
+    document.querySelectorAll('.theme-opt').forEach(t => t.classList.toggle('active', t.dataset.theme === mode));
+  }
+  applyTheme(currentThemeMode);
+  if(window.matchMedia){
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+      if(currentThemeMode === 'auto') applyTheme('auto');
+    });
   }
 
   const studios = [
@@ -1371,8 +1456,7 @@
 
   document.querySelectorAll('.theme-opt').forEach(el => {
     el.addEventListener('click', () => {
-      document.querySelectorAll('.theme-opt').forEach(s => s.classList.remove('active'));
-      el.classList.add('active');
+      applyTheme(el.dataset.theme);
     });
   });
 
@@ -1446,6 +1530,7 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.querySelector('.nav-item[data-screen="home"]').classList.add('active');
     renderProfileUI();
+    renderSettingsUI();
     render();
   }
 
@@ -1562,6 +1647,102 @@
     if(b) b.textContent = profile.bookings.length;
     if(s) s.textContent = profile.visitedStudios.length;
     if(f) f.textContent = profile.favorites.length;
+  }
+
+  // ---- SETTINGS ----
+  function renderSettingsUI(){
+    ensureSettings();
+    document.getElementById('reminders-toggle').classList.toggle('on', profile.settings.remindersEnabled);
+    document.getElementById('offers-toggle').classList.toggle('on', profile.settings.offersEnabled);
+    document.getElementById('updates-toggle').classList.toggle('on', profile.settings.updatesEnabled);
+    document.getElementById('reminder-hours-slider').value = profile.settings.reminderHours;
+    document.getElementById('reminder-slider-row').classList.toggle('show', profile.settings.remindersEnabled);
+    const hrs = profile.settings.reminderHours;
+    document.getElementById('reminder-sub').textContent = hrs + (hrs === 1 ? ' hour' : ' hours') + ' before your session';
+  }
+
+  function onToggleReminders(el){
+    el.classList.toggle('on');
+    ensureSettings();
+    profile.settings.remindersEnabled = el.classList.contains('on');
+    saveProfile();
+    document.getElementById('reminder-slider-row').classList.toggle('show', profile.settings.remindersEnabled);
+  }
+
+  function onReminderHoursChange(v){
+    ensureSettings();
+    const hrs = Number(v);
+    profile.settings.reminderHours = hrs;
+    saveProfile();
+    document.getElementById('reminder-sub').textContent = hrs + (hrs === 1 ? ' hour' : ' hours') + ' before your session';
+  }
+
+  function onToggleSetting(el, key){
+    el.classList.toggle('on');
+    ensureSettings();
+    profile.settings[key] = el.classList.contains('on');
+    saveProfile();
+  }
+
+  function openEditProfile(){
+    const body = ''
+      + '<div class="filter-block">'
+      + '<div class="filter-label">Username</div>'
+      + '<input id="edit-profile-username" class="auth-input" style="max-width:none; margin-bottom:0;" type="text" value="' + (profile.username || '').replace(/"/g,'&quot;') + '">'
+      + '</div>'
+      + '<div class="filter-block">'
+      + '<div class="filter-label">Email</div>'
+      + '<div style="color:var(--text-dim); font-size:13px;">' + (profile.email || 'No email on file') + '</div>'
+      + '</div>'
+      + '<button class="apply-btn" style="width:100%;" onclick="saveEditProfile()">Save Changes</button>';
+    openInfoModal('Edit Profile', body);
+  }
+
+  function saveEditProfile(){
+    const val = document.getElementById('edit-profile-username').value.trim();
+    if(val){
+      profile.username = val;
+      saveProfile();
+      renderProfileUI();
+    }
+    closeInfoModal();
+    showToast('Profile updated.');
+  }
+
+  function openPrivacyPage(){
+    openInfoModal('Privacy & Security', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
+      + 'Sound Board is currently in development. This demo build stores your profile, bookings, and favorites only in this browser\'s local storage — nothing is sent to a server or shared with studios.'
+      + '<br><br>A full privacy policy will be published before public launch.</div>');
+  }
+
+  function openHelpPage(){
+    openInfoModal('Help & Support', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
+      + 'This is a demo build, so live support isn\'t connected yet.'
+      + '<br><br>Bookings, favorites, and genres are saved locally in this browser. Logging out clears your saved session.'
+      + '<br><br>Questions about the app itself? Reach out to the team building it.</div>');
+  }
+
+  function openOffersModal(){
+    const rows = offersData.map(o =>
+      '<div class="booking-row"><div><div class="b-name">' + o.name + '</div></div><div class="b-price">' + o.pct + '</div></div>'
+    ).join('');
+    openInfoModal('All Offers', rows);
+  }
+
+  function openVisitedStudios(){
+    const visited = studios.filter(s => profile.visitedStudios.includes(s.id));
+    if(!visited.length){
+      openInfoModal('Studios Visited', '<div class="empty-note">No studios visited yet.<br>Open a studio\'s page to see it here.</div>');
+      return;
+    }
+    const rows = visited.map(s => {
+      const gradient = 'linear-gradient(135deg,' + s.swatch[0] + ',' + s.swatch[1] + ')';
+      return '<div class="fav-row" onclick="closeInfoModal(); openDetail(\'' + s.id + '\');">'
+        + '<div class="fav-row-thumb" style="background:' + gradient + '"></div>'
+        + '<div><div class="f-name">' + s.name + '</div><div class="f-meta">' + s.loc + ' · ₹' + s.price + '/hr</div></div>'
+        + '</div>';
+    }).join('');
+    openInfoModal('Studios Visited', rows);
   }
 
   // ---- INFO MODAL: booking history / favorite studios ----
