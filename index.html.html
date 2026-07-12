@@ -9,6 +9,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!--
+  env-config.js is generated at BUILD TIME (see build.js / vercel.json) from
+  the Vercel project's environment variables:
+    VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_GOOGLE_MAPS_API_KEY
+  It defines window.__ENV__ = { SUPABASE_URL, SUPABASE_ANON_KEY, GOOGLE_MAPS_API_KEY }.
+  This file is build-only — it never contains hardcoded secrets in source
+  control. If it 404s (e.g. running index.html directly), the app falls
+  back to demo/placeholder mode below — nothing breaks.
+-->
+<script src="/env-config.js" onerror="window.__ENV__ = window.__ENV__ || {};"></script>
 <style>
   :root{
     --bg:#14120F;
@@ -1203,7 +1213,7 @@
 
           <div id="google-official-wrap">
             <div id="g_id_onload"
-              data-client_id="152399337619-oiovu7ruhtgt7m43jhk7310lmtmp2rua.apps.googleusercontent.com"
+              data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
               data-callback="handleGoogleSignIn"
               data-auto_prompt="false">
             </div>
@@ -1699,6 +1709,18 @@
 
         <div class="eyebrow">Most Booked Studios</div>
         <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-studio-leaderboard"></div>
+
+        <!-- ============ USER MANAGEMENT (founder-only) ============ -->
+        <div class="eyebrow">User Management</div>
+        <div id="fd-user-mgmt-demo-note" style="display:none; font-size:11px; color:var(--text-faint); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:9px 12px; margin-bottom:12px; line-height:1.5;">
+          Connect Supabase to search and manage real user roles here.
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input type="text" id="fd-user-search" placeholder="Search users by email…" class="mono"
+            style="flex:1; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; color:var(--text); font-size:12.5px;"
+            oninput="onFounderUserSearchInput(this.value)">
+        </div>
+        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-user-list"></div>
       </div>
      </div>
     </div>
@@ -1982,25 +2004,132 @@
   // ============================================================
   // BACKEND (Supabase) — config & client
   // ============================================================
-  // Drop your real project URL and anon key in here. Until you do, every
-  // BACKEND_ENABLED check below is false and the app behaves exactly as it
-  // does today — localStorage only, nothing breaks, nothing silently fails
-  // against a placeholder URL. This is the ONLY place these two values are
-  // read from, so wiring up the real backend later is a two-line change.
+  // Values come from window.__ENV__, which env-config.js populates at BUILD
+  // TIME on Vercel from real environment variables (VITE_SUPABASE_URL,
+  // VITE_SUPABASE_ANON_KEY, VITE_GOOGLE_MAPS_API_KEY — see build.js). No
+  // secret is ever hardcoded in this file. Locally (no env-config.js, or
+  // running index.html directly), __ENV__ is empty, the placeholders below
+  // are used, BACKEND_ENABLED stays false, and the app behaves exactly as
+  // it does in demo mode — nothing breaks, nothing silently fails against
+  // a placeholder URL.
+  const ENV = window.__ENV__ || {};
   const SUPABASE_CONFIG = {
-    url: 'https://jolbbqojlfbfkehvvana.supabase.co',        // e.g. 'https://xxxxxxxx.supabase.co'
-    anonKey: 'sb_publishable_-oFsaDtRqp0Q68jGre0Dyg_bzEioCB1',
+    url: ENV.SUPABASE_URL || 'YOUR_SUPABASE_URL',        // e.g. 'https://xxxxxxxx.supabase.co'
+    anonKey: ENV.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY',
   };
-  const BACKEND_ENABLED = SUPABASE_CONFIG.ur !== 'https://jolbbqojlfbfkehvvana.supabase.co'
-    && SUPABASE_CONFIG.anonKey !== 'sb_publishable_-oFsaDtRqp0Q68jGre0Dyg_bzEioCB1'
+  const BACKEND_ENABLED = SUPABASE_CONFIG.url !== 'YOUR_SUPABASE_URL'
+    && SUPABASE_CONFIG.anonKey !== 'YOUR_SUPABASE_ANON_KEY'
+    && !!SUPABASE_CONFIG.url && !!SUPABASE_CONFIG.anonKey
     && typeof supabase !== 'undefined';
 
-  // Emails allowed to see the Founder Dashboard entry point in Settings.
-  // Cosmetic only — see the note in renderSettingsUI() for why this alone
-  // isn't real security, and why that's fine here.
-  const FOUNDER_EMAILS = ['khannaadhrit@gmail.com'];
+  // NOTE: the old client-side FOUNDER_EMAILS whitelist is gone. Founder
+  // access is now a real `role` column on the `profiles` table, enforced
+  // server-side by Postgres Row Level Security (see supabase_migration.sql).
+  // The client only ever reflects whatever profile.role the database says
+  // is true for the signed-in user — see fetchOwnProfile() below.
 
   const sb = BACKEND_ENABLED ? supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey) : null;
+
+  // ---- Auth session restore + change listener ----
+  // Runs once at startup: if Supabase already has a valid session (from a
+  // previous visit — supabase-js persists it in localStorage under its own
+  // key), we resume it instead of showing the welcome/login screen. From
+  // then on, onAuthStateChange keeps `profile` in sync with the *actual*
+  // auth state (e.g. a token refresh, or a sign-out triggered elsewhere).
+  let authRestoreInFlight = null;
+  if(BACKEND_ENABLED){
+    authRestoreInFlight = sb.auth.getSession().then(({ data }) => {
+      if(data && data.session && data.session.user){
+        return resumeSupabaseSession(data.session).then(() => {
+          if(profile.onboarded && document.getElementById('app-root').classList.contains('pre-auth')){
+            enterApp();
+          }
+        });
+      }
+    }).catch(() => {});
+
+    sb.auth.onAuthStateChange((event, session) => {
+      if(event === 'SIGNED_OUT'){
+        return;
+      }
+      if((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') && session && session.user){
+        // Avoid re-running the full resume flow mid-interaction if we're
+        // already inside the app for this exact user.
+        if(profile.supabaseUserId !== session.user.id){
+          resumeSupabaseSession(session).then(() => {
+            if(profile.onboarded && document.getElementById('app-root').classList.contains('pre-auth')){
+              enterApp();
+            }
+          });
+        }
+      }
+    });
+  }
+
+  // Loads (or creates) the profiles row for a Supabase auth session, maps
+  // it onto the app's local `profile` object, and makes it the active
+  // account — this is what lets a returning signed-in user skip straight
+  // past the welcome screen, with their real role/email/name/avatar.
+  async function resumeSupabaseSession(session){
+    const user = session.user;
+    const key = accountKeyFor('google', user.email);
+    const dbProfile = await fetchOrCreateOwnProfile(user);
+
+    const saved = loadAccount(key);
+    profile = saved && saved.onboarded ? normalizeProfile(saved) : emptyProfile();
+    profile.accountKey = key;
+    profile.provider = 'google';
+    profile.supabaseUserId = user.id;
+    profile.email = (dbProfile && dbProfile.email) || user.email || profile.email;
+    profile.name = (dbProfile && dbProfile.full_name) || profile.name || (user.email || '').split('@')[0];
+    profile.givenName = profile.givenName || profile.name;
+    profile.picture = (dbProfile && dbProfile.avatar_url) || profile.picture || '';
+    profile.role = (dbProfile && dbProfile.role) || 'user';
+    profile.onboarded = true;
+    saveProfile();
+    setActiveAccountKey(key);
+    return profile;
+  }
+
+  // ---- profiles table: fetch-or-create for the signed-in user ----
+  // The row itself is actually created by a DB trigger (handle_new_user in
+  // supabase_migration.sql) the moment auth.users gets a new row, so by the
+  // time the client asks, it should already exist. We still upsert the
+  // display fields (name/avatar) here in case they changed upstream (e.g. a
+  // new Google profile photo), and this doubles as a safety net if the
+  // trigger's row hasn't landed yet on a slow first sign-in.
+  async function fetchOrCreateOwnProfile(user){
+    try{
+      const meta = user.user_metadata || {};
+      const fullName = meta.full_name || meta.name || (user.email || '').split('@')[0];
+      const avatarUrl = meta.avatar_url || meta.picture || '';
+
+      let { data, error } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      if(error) throw error;
+
+      if(!data){
+        // Trigger hasn't landed yet (rare race on first-ever sign-in) —
+        // insert directly. role is NOT set here; it defaults to 'user' at
+        // the DB level (or 'founder' via the same trigger logic if this
+        // insert races the trigger, whichever wins is still correct).
+        const insertRes = await sb.from('profiles').insert({
+          id: user.id, email: user.email, full_name: fullName, avatar_url: avatarUrl,
+        }).select('*').maybeSingle();
+        data = insertRes.data;
+      } else if(data.full_name !== fullName || data.avatar_url !== avatarUrl){
+        // Keep display fields fresh without ever touching `role` from the
+        // client — role changes only ever happen through the founder-only
+        // RLS-guarded path (setUserRole()).
+        const updateRes = await sb.from('profiles')
+          .update({ full_name: fullName, avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+          .eq('id', user.id).select('*').maybeSingle();
+        data = updateRes.data || data;
+      }
+      return data;
+    }catch(err){
+      return null;
+    }
+  }
 
   // ---- Session id (for anonymous-friendly visitor analytics) ----
   // One random id per browser session, persisted in sessionStorage so it
@@ -2147,7 +2276,7 @@
     return {
       accountKey:null, provider:null, name:'', email:'', picture:'', givenName:'', username:'',
       genres:[], bookings:[], favorites:[], favoritedAt:{}, visitedStudios:[], onboarded:false, searchHistory:[],
-      supabaseUserId:null, ownedStudioId:null
+      supabaseUserId:null, ownedStudioId:null, role:'user'
     };
   }
   // Loads one specific account's saved profile by key (or null if unknown).
@@ -2190,6 +2319,7 @@
     safe.favorites = Array.isArray(safe.favorites) ? safe.favorites : [];
     safe.visitedStudios = Array.isArray(safe.visitedStudios) ? safe.visitedStudios : [];
     safe.username = safe.username || safe.name || 'Musician';
+    safe.role = safe.role || 'user';
     return safe;
   }
 
@@ -2377,11 +2507,12 @@
   // throwing if the Maps script fails, times out, or the key is invalid.
   // ============================================================
   const MAPS_CONFIG = {
-    // Placeholder — drop in a real key from a Google Cloud project to go
-    // live. Nothing else here needs to change: load failure (bad key,
-    // network down, blocked script) already routes through
+    // Comes from window.__ENV__.GOOGLE_MAPS_API_KEY (VITE_GOOGLE_MAPS_API_KEY
+    // on Vercel — see env-config.js / build.js). Falls back to the
+    // placeholder locally. Nothing else here needs to change: load failure
+    // (bad key, network down, blocked script) already routes through
     // handleMapLoadFailure() into a clean List-view fallback.
-    apiKey: 'YOUR_GOOGLE_MAPS_API_KEY',
+    apiKey: ENV.GOOGLE_MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY',
   };
 
   // Minimal dark "night mode" map theme so the map doesn't look like a
@@ -3391,7 +3522,21 @@
         btn.textContent = btn.dataset.originalText;
       });
       noteInput.value = '';
-      showToast('Booking saved locally (demo mode).');
+
+      if(BACKEND_ENABLED && profile.supabaseUserId){
+        // Write-through to the real bookings table so studio owners /
+        // founders see it server-side. Fire-and-forget, same pattern as the
+        // rest of the app's analytics calls — a failure here shouldn't
+        // block the customer's own (local) booking history from working.
+        sb.from('bookings').insert({
+          id: booking.id, studio_id: d.id, user_id: profile.supabaseUserId,
+          booking_date: scheduledDate.toISOString().slice(0, 10), time_slot: slot,
+          status: 'confirmed', created_at: now.toISOString(),
+        }).then(() => {}, () => {});
+        showToast('Booking confirmed.');
+      } else {
+        showToast('Booking saved locally (demo mode).');
+      }
       openBookingConfirmation(booking);
     }, 500);
   }
@@ -3483,6 +3628,13 @@
     profile.bookings.splice(idx, 1);
     saveProfile();
     updateStats();
+    if(BACKEND_ENABLED && profile.supabaseUserId){
+      // RLS lets a user update only their own bookings (see migration) —
+      // this marks it cancelled server-side rather than deleting the row,
+      // so studio owners / founders still see accurate history.
+      sb.from('bookings').update({ status: 'cancelled' }).eq('id', id).eq('user_id', profile.supabaseUserId)
+        .then(() => {}, () => {});
+    }
     showToast('Booking cancelled.');
     renderBookingHistory(); // refresh the list in place, keeping search/filter state
   }
@@ -3642,6 +3794,22 @@
     const googleInfo = payload
       ? { name: payload.name, email: payload.email, picture: payload.picture, givenName: payload.given_name }
       : { name: 'Google User', email: '', picture: '', givenName: 'there' };
+
+    if(BACKEND_ENABLED){
+      // Real auth: hand the same Google ID token Google just gave us to
+      // Supabase, which verifies it and creates a real auth.users session —
+      // no redirect needed, same one-tap credential response as before.
+      // The `profiles` row (and role) then comes from the DB, not the JWT.
+      sb.auth.signInWithIdToken({ provider: 'google', token: response.credential }).then(({ data, error }) => {
+        if(error || !data || !data.session){
+          showToast('Sign-in failed — check your Supabase Google provider config.', 'error');
+          signInWithInfo(googleInfo, 'google'); // fall back to local/demo so the UI never gets stuck
+          return;
+        }
+        resumeSupabaseSession(data.session).then(() => enterApp());
+      });
+      return;
+    }
     signInWithInfo(googleInfo, 'google');
   }
 
@@ -3704,6 +3872,9 @@
         window.google.accounts.id.disableAutoSelect();
       }
     }catch(e){}
+    if(BACKEND_ENABLED){
+      sb.auth.signOut().then(() => {}, () => {}); // fire-and-forget — local state clears below regardless
+    }
     stopPresenceHeartbeat();
     setActiveAccountKey(null);
     profile = emptyProfile();
@@ -3990,7 +4161,10 @@
     // devtools gets back empty results, not real platform data.
     const founderSection = document.getElementById('founder-section');
     if(founderSection){
-      founderSection.style.display = FOUNDER_EMAILS.includes(profile.email) ? 'block' : 'none';
+      // Real role check — profile.role comes straight from the `profiles`
+      // table (see fetchOrCreateOwnProfile / resumeSupabaseSession), which
+      // only a founder can ever set (RLS-enforced, see setUserRole()).
+      founderSection.style.display = profile.role === 'founder' ? 'block' : 'none';
     }
 
     // Keep the stored permission in sync with the browser's actual current
@@ -4226,6 +4400,8 @@
   function openFounderDashboard(){
     nav('founder-dashboard');
     loadFounderDashboard();
+    document.getElementById('fd-user-search').value = '';
+    loadUserManagement('');
   }
 
   function fdSeededRandom(seedStr){
@@ -4337,6 +4513,91 @@
   }
 
   // ============================================================
+  // FOUNDER DASHBOARD — USER MANAGEMENT
+  // Search users by email, view their role, and promote/demote them.
+  // All of this is cosmetic-safe: the actual security boundary is the
+  // Postgres RLS policy on profiles.role (see supabase_migration.sql) —
+  // only a signed-in founder's requests are allowed to succeed here, no
+  // matter what the client sends.
+  // ============================================================
+  const ROLE_OPTIONS = ['user', 'studio_owner', 'founder'];
+  const ROLE_LABELS = { user:'User', studio_owner:'Studio Owner', founder:'Founder' };
+  let fdUserSearchTimer = null;
+
+  function onFounderUserSearchInput(value){
+    clearTimeout(fdUserSearchTimer);
+    fdUserSearchTimer = setTimeout(() => loadUserManagement(value.trim()), 300);
+  }
+
+  async function loadUserManagement(query){
+    const listEl = document.getElementById('fd-user-list');
+    const noteEl = document.getElementById('fd-user-mgmt-demo-note');
+
+    if(!BACKEND_ENABLED){
+      noteEl.style.display = 'block';
+      listEl.innerHTML = '<div class="empty-note">Connect Supabase to manage real users.</div>';
+      return;
+    }
+    noteEl.style.display = 'none';
+    listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+
+    try{
+      let req = sb.from('profiles').select('id,email,full_name,role,created_at').order('created_at', { ascending:false }).limit(50);
+      if(query){ req = req.ilike('email', '%' + query + '%'); }
+      const { data, error } = await req;
+      if(error) throw error;
+      renderUserList(data || []);
+    }catch(err){
+      listEl.innerHTML = '<div class="empty-note">Could not load users — check your Supabase config and that your account has the founder role.</div>';
+    }
+  }
+
+  function renderUserList(rows){
+    const listEl = document.getElementById('fd-user-list');
+    if(!rows.length){ listEl.innerHTML = '<div class="empty-note">No users found.</div>'; return; }
+    listEl.innerHTML = rows.map(u => {
+      const joined = u.created_at ? new Date(u.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '—';
+      const roleOptsHtml = ROLE_OPTIONS.map(r =>
+        '<option value="' + r + '"' + (r === u.role ? ' selected' : '') + '>' + ROLE_LABELS[r] + '</option>'
+      ).join('');
+      return '<div class="setting-row" style="align-items:flex-start; flex-direction:column; gap:8px;">'
+        + '<div style="display:flex; justify-content:space-between; width:100%; gap:10px;">'
+        + '<div style="min-width:0;">'
+        + '<div class="setting-label" style="overflow-wrap:anywhere;">' + (u.full_name || 'Musician') + '</div>'
+        + '<div class="setting-sub mono" style="overflow-wrap:anywhere;">' + u.email + '</div>'
+        + '<div class="setting-sub">Joined ' + joined + '</div>'
+        + '</div>'
+        + '<select class="mono" style="flex-shrink:0; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-size:11.5px; padding:6px 8px; height:fit-content;" '
+        + 'onchange="confirmRoleChange(\'' + u.id + '\', \'' + (u.full_name || u.email).replace(/'/g, "\\'") + '\', \'' + u.role + '\', this.value, this)">'
+        + roleOptsHtml + '</select>'
+        + '</div></div>';
+    }).join('');
+  }
+
+  function confirmRoleChange(userId, displayName, currentRole, newRole, selectEl){
+    if(newRole === currentRole){ return; }
+    const direction = ROLE_OPTIONS.indexOf(newRole) > ROLE_OPTIONS.indexOf(currentRole) ? 'Promote' : 'Change';
+    openInfoModal(direction + ' User', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
+      + 'Change <b>' + displayName + '</b>\'s role from <b>' + ROLE_LABELS[currentRole] + '</b> to <b>' + ROLE_LABELS[newRole] + '</b>?'
+      + (newRole === 'founder' ? '<br><br>Founders can view and manage every user, studio, and booking on the platform.' : '') + '</div>'
+      + '<button class="apply-btn" style="width:100%; margin-top:16px;" onclick="setUserRole(\'' + userId + '\', \'' + newRole + '\')">Confirm</button>'
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="closeInfoModal(); loadUserManagement(document.getElementById(\'fd-user-search\').value.trim());">Cancel</button>');
+  }
+
+  async function setUserRole(userId, newRole){
+    try{
+      const { error } = await sb.from('profiles').update({ role: newRole, updated_at: new Date().toISOString() }).eq('id', userId);
+      if(error) throw error;
+      closeInfoModal();
+      showToast('Role updated.');
+      loadUserManagement(document.getElementById('fd-user-search').value.trim());
+    }catch(err){
+      closeInfoModal();
+      showToast('Could not update role — only founders can change roles.', 'error');
+    }
+  }
+
+  // ============================================================
   // STUDIO DASHBOARD
   // Real the moment Supabase is configured AND the signed-in account's
   // auth.uid() actually matches a studio's owner_id — RLS enforces that
@@ -4382,7 +4643,30 @@
     return demoStudioState[studioId];
   }
 
-  function openStudioOwnerHub(){
+  async function openStudioOwnerHub(){
+    if(BACKEND_ENABLED){
+      // Real ownership: ask the database which studio (if any) this account
+      // actually owns — owner_id = auth.uid(), enforced by RLS. There is no
+      // "claim any studio" path once the backend is live; a studio's
+      // owner_id can only be set by a founder / the studio's real owner
+      // directly in Supabase.
+      if(!profile.supabaseUserId){ showToast('Sign in to manage a studio.', 'error'); return; }
+      try{
+        const { data, error } = await sb.from('studios').select('id,name,location').eq('owner_id', profile.supabaseUserId).limit(1).maybeSingle();
+        if(error) throw error;
+        if(!data){
+          openInfoModal('No Studio Yet', '<div style="font-size:11.5px; color:var(--text-faint); line-height:1.6;">This account isn\'t listed as the owner of any studio yet. Ask a Sound Board founder to set your account as the owner_id on your studio\'s row in Supabase.</div>');
+          return;
+        }
+        profile.ownedStudioId = data.id;
+        saveProfile();
+        goToStudioDashboard(data.id);
+      }catch(err){
+        showToast('Could not look up your studio — check your Supabase config.', 'error');
+      }
+      return;
+    }
+    // ---- Demo mode only ----
     if(!profile.ownedStudioId){ openStudioPicker(); return; }
     goToStudioDashboard(profile.ownedStudioId);
   }
@@ -4395,10 +4679,12 @@
         + '<div><div class="f-name">' + s.name + '</div><div class="f-meta">' + s.loc + '</div></div>'
         + '</div>';
     }).join('');
-    openInfoModal('Manage a Studio', '<div style="font-size:11.5px; color:var(--text-faint); margin-bottom:12px; line-height:1.5;">Pick the studio you manage. If Supabase is connected, you\'ll only see real bookings/revenue here for a studio your account actually owns — otherwise this previews on demo data.</div>' + rows);
+    openInfoModal('Manage a Studio (Demo)', '<div style="font-size:11.5px; color:var(--text-faint); margin-bottom:12px; line-height:1.5;">Demo mode only — pick any studio to preview the dashboard on seeded data. Once Supabase is connected, this picker is replaced by a real ownership check (owner_id = auth.uid()).</div>' + rows);
   }
 
   function claimStudio(id){
+    // Demo-mode "claim" only — never runs when BACKEND_ENABLED, since
+    // openStudioOwnerHub() short-circuits to the real ownership lookup above.
     profile.ownedStudioId = id;
     saveProfile();
     closeInfoModal();
