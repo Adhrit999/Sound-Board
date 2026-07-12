@@ -631,6 +631,18 @@
   .leaderboard-row .lb-meta{ font-size:10.5px; color:var(--text-faint); margin-top:2px; }
   .leaderboard-row .lb-value{ font-size:12.5px; font-weight:700; color:var(--teal); }
 
+  .user-row{ padding:12px 14px; border-top:1px solid var(--border); }
+  .user-row:first-child{ border-top:none; }
+  .user-row .ur-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .user-row .ur-email{ font-size:12.5px; font-weight:600; }
+  .user-row .ur-meta{ font-size:10.5px; color:var(--text-faint); margin-top:2px; }
+  .role-badge{ font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; text-transform:capitalize; flex-shrink:0; }
+  .role-badge.role-user{ background:var(--surface-2); color:var(--text-dim); }
+  .role-badge.role-studio_owner{ background:var(--amber-dim); color:var(--amber); }
+  .role-badge.role-founder{ background:var(--teal-dim); color:var(--teal); }
+  .user-row .ur-role-actions{ display:flex; gap:8px; margin-top:9px; flex-wrap:wrap; }
+  .user-row .ur-role-actions .chip-opt{ padding:6px 11px; font-size:10.5px; }
+
   .similar-strip{ display:flex; gap:12px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
   .similar-strip::-webkit-scrollbar{ display:none; }
   .similar-card{
@@ -1203,7 +1215,7 @@
 
           <div id="google-official-wrap">
             <div id="g_id_onload"
-              data-client_id="152399337619-oiovu7ruhtgt7m43jhk7310lmtmp2rua.apps.googleusercontent.com"
+              data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
               data-callback="handleGoogleSignIn"
               data-auto_prompt="false">
             </div>
@@ -1699,6 +1711,10 @@
 
         <div class="eyebrow">Most Booked Studios</div>
         <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-studio-leaderboard"></div>
+
+        <div class="eyebrow">User Management</div>
+        <input class="auth-input" id="fd-user-search" placeholder="Search by email or name..." oninput="onFounderUserSearch(this.value)" style="margin-bottom:12px;">
+        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-user-list"></div>
       </div>
      </div>
     </div>
@@ -1752,7 +1768,7 @@
         </div>
         <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:22px;" id="sd-blocked-slots"></div>
 
-        <div class="cancel-link" style="display:inline-block; margin-bottom:30px;" onclick="openStudioPicker()">Manage a different studio</div>
+        <div class="cancel-link" style="display:inline-block; margin-bottom:30px;" onclick="openStudioOwnerHub()">Manage a different studio</div>
       </div>
      </div>
     </div>
@@ -1982,23 +1998,20 @@
   // ============================================================
   // BACKEND (Supabase) — config & client
   // ============================================================
-  // Drop your real project URL and anon key in here. Until you do, every
-  // BACKEND_ENABLED check below is false and the app behaves exactly as it
-  // does today — localStorage only, nothing breaks, nothing silently fails
-  // against a placeholder URL. This is the ONLY place these two values are
-  // read from, so wiring up the real backend later is a two-line change.
+  // Drop your real project URL and anon key in here — OR, for a real Vercel
+  // deploy, leave these tokens exactly as they are. build.js substitutes
+  // them at deploy time from your Vercel Environment Variables
+  // (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY). See PHASE4_DEPLOY.md.
+  // Until real values are in, every BACKEND_ENABLED check below is false
+  // and the app behaves exactly as it does today — localStorage only,
+  // nothing breaks, nothing silently fails against a placeholder.
   const SUPABASE_CONFIG = {
-    url: 'https://jolbbqojlfbfkehvvana.supabase.co',        // e.g. 'https://xxxxxxxx.supabase.co'
-    anonKey: 'sb_publishable_-oFsaDtRqp0Q68jGre0Dyg_bzEioCB1',
+    url: '__VITE_SUPABASE_URL__',
+    anonKey: '__VITE_SUPABASE_ANON_KEY__',
   };
-  const BACKEND_ENABLED = SUPABASE_CONFIG.url !== 'https://jolbbqojlfbfkehvvana.supabase.co'
-    && SUPABASE_CONFIG.anonKey !== 'sb_publishable_-oFsaDtRqp0Q68jGre0Dyg_bzEioCB1'
+  const BACKEND_ENABLED = !SUPABASE_CONFIG.url.startsWith('__VITE_')
+    && !SUPABASE_CONFIG.anonKey.startsWith('__VITE_')
     && typeof supabase !== 'undefined';
-
-  // Emails allowed to see the Founder Dashboard entry point in Settings.
-  // Cosmetic only — see the note in renderSettingsUI() for why this alone
-  // isn't real security, and why that's fine here.
-  const FOUNDER_EMAILS = ['khannaadhrit@gmail.com'];
 
   const sb = BACKEND_ENABLED ? supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey) : null;
 
@@ -2045,6 +2058,102 @@
   function stopPresenceHeartbeat(){
     if(_heartbeatTimer){ clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
   }
+
+  // ============================================================
+  // REAL AUTH (Supabase) — only active when BACKEND_ENABLED
+  // ============================================================
+  // This layer sits ON TOP of the existing local profile system, not in
+  // place of it: signInWithInfo() still does exactly what it always did
+  // (resume vs. onboard, using localStorage), since username/genres/
+  // bookings/favorites are still an app-local concept per the current
+  // profiles table shape (id/email/full_name/avatar_url/role/updated_at
+  // only). What's new here is that the *identity* backing that local
+  // profile is now a real, server-verified Supabase session instead of a
+  // client-decoded Google JWT — and it persists across reloads for real.
+
+  // Creates/refreshes this user's row in `profiles` on every sign-in, so
+  // full_name/avatar_url stay current if they change upstream. Never sends
+  // `role` — the self-update RLS policy would reject a role change here
+  // anyway (see phase4_roles_and_auth.sql), and that's intentional.
+  async function upsertSupabaseProfile(user){
+    const meta = user.user_metadata || {};
+    try {
+      await sb.from('profiles').upsert({
+        id: user.id,
+        email: user.email,
+        full_name: meta.full_name || meta.name || '',
+        avatar_url: meta.avatar_url || meta.picture || '',
+        updated_at: new Date().toISOString(),
+      });
+    } catch(e){ /* fire-and-forget: never block sign-in on this */ }
+  }
+
+  async function loadSupabaseProfileRow(userId){
+    try {
+      const { data } = await sb.from('profiles').select('*').eq('id', userId).single();
+      return data;
+    } catch(e){ return null; }
+  }
+
+  // Runs once per real sign-in: on initial getSession() restore, and every
+  // time onAuthStateChange fires SIGNED_IN (covers the OAuth redirect
+  // return, token refresh, etc.).
+  async function handleSupabaseSession(session){
+    if(!session || !session.user) return;
+    const user = session.user;
+    await upsertSupabaseProfile(user);
+    const dbProfile = await loadSupabaseProfileRow(user.id);
+    const meta = user.user_metadata || {};
+
+    const info = {
+      name: (dbProfile && dbProfile.full_name) || meta.full_name || meta.name || user.email,
+      email: user.email,
+      picture: (dbProfile && dbProfile.avatar_url) || meta.avatar_url || meta.picture || '',
+      givenName: ((dbProfile && dbProfile.full_name) || meta.given_name || '').split(' ')[0] || user.email,
+    };
+
+    // signInWithInfo handles resume-vs-onboard and calls enterApp()/
+    // openOnboarding() itself, exactly as it does for the demo/local flow.
+    signInWithInfo(info, 'google');
+
+    profile.supabaseUserId = user.id;
+    profile.role = (dbProfile && dbProfile.role) || 'user';
+    saveProfile();
+    renderSettingsUI(); // refresh Founder Dashboard entry visibility now that role is known
+  }
+
+  // Real "Continue with Google" — a full redirect to Google and back,
+  // verified server-side by Supabase. Only wired up when BACKEND_ENABLED;
+  // demo mode keeps using the existing Google Identity Services flow
+  // untouched (see the window.load handler further down).
+  async function handleGoogleSignInClick(){
+    if(!BACKEND_ENABLED){ showSetupNote(); return; }
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + window.location.pathname }
+    });
+    if(error) showToast('Google sign-in failed to start.', 'error');
+    // No further code runs here on success — the browser navigates to
+    // Google and back, and handleSupabaseSession() picks up from there.
+  }
+
+  // Persistent session restore + live auth-state listener. Registered at
+  // script-parse time (before any redirect-return processing happens), so
+  // supabase-js's automatic OAuth callback handling is always caught.
+  async function restoreSupabaseSession(){
+    if(!BACKEND_ENABLED) return;
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if(session) await handleSupabaseSession(session);
+    } catch(e){ /* no session yet, or restore failed — demo/local state stands */ }
+
+    sb.auth.onAuthStateChange((event, session) => {
+      if(event === 'SIGNED_IN' && session) handleSupabaseSession(session);
+      // SIGNED_OUT is already handled locally by logout() itself — no
+      // extra work needed here to avoid double-processing.
+    });
+  }
+  restoreSupabaseSession();
 
   function nav(screen){
     document.getElementById('app-root').classList.remove('showing-detail');
@@ -2147,7 +2256,7 @@
     return {
       accountKey:null, provider:null, name:'', email:'', picture:'', givenName:'', username:'',
       genres:[], bookings:[], favorites:[], favoritedAt:{}, visitedStudios:[], onboarded:false, searchHistory:[],
-      supabaseUserId:null, ownedStudioId:null
+      supabaseUserId:null, ownedStudioId:null, role:'user'
     };
   }
   // Loads one specific account's saved profile by key (or null if unknown).
@@ -2377,11 +2486,11 @@
   // throwing if the Maps script fails, times out, or the key is invalid.
   // ============================================================
   const MAPS_CONFIG = {
-    // Placeholder — drop in a real key from a Google Cloud project to go
-    // live. Nothing else here needs to change: load failure (bad key,
-    // network down, blocked script) already routes through
-    // handleMapLoadFailure() into a clean List-view fallback.
-    apiKey: 'YOUR_GOOGLE_MAPS_API_KEY',
+    // build.js substitutes this from VITE_GOOGLE_MAPS_API_KEY at deploy
+    // time. Load failure (bad key, network down, blocked script) already
+    // routes through handleMapLoadFailure() into a clean List-view fallback
+    // regardless of whether this ends up being a real key or not.
+    apiKey: '__VITE_GOOGLE_MAPS_API_KEY__',
   };
 
   // Minimal dark "night mode" map theme so the map doesn't look like a
@@ -3704,6 +3813,9 @@
         window.google.accounts.id.disableAutoSelect();
       }
     }catch(e){}
+    if(BACKEND_ENABLED){
+      sb.auth.signOut().catch(() => {}); // real session end; local state below is cleared regardless
+    }
     stopPresenceHeartbeat();
     setActiveAccountKey(null);
     profile = emptyProfile();
@@ -3781,10 +3893,22 @@
     document.getElementById('auth-setup-note').classList.add('show');
   }
 
-  // If this file was opened directly (file://) or Google's script failed to
-  // load/initialize, the real Google button can't render — show the styled
-  // fallback button instead so the screen never looks broken.
+  // If BACKEND_ENABLED, always use the styled fallback button wired to
+  // real Supabase OAuth — Google Identity Services' one-tap/JWT flow is
+  // fine for a backend-less demo, but it's a client-decoded identity, not
+  // a server-verified session, so it's not what a real deploy should use.
+  //
+  // If backend is NOT enabled: unchanged from before — if this file was
+  // opened directly (file://) or Google's script failed to load/init, show
+  // the styled fallback button instead so the screen never looks broken.
   window.addEventListener('load', () => {
+    if(BACKEND_ENABLED){
+      document.getElementById('google-official-wrap').style.display = 'none';
+      const fallbackBtn = document.getElementById('google-fallback-btn');
+      fallbackBtn.style.display = 'flex';
+      fallbackBtn.onclick = (e) => { addRipple(fallbackBtn, e); handleGoogleSignInClick(); };
+      return;
+    }
     setTimeout(() => {
       const usingFileProtocol = location.protocol === 'file:';
       const googleLoaded = window.google && window.google.accounts && window.google.accounts.id;
@@ -3983,14 +4107,16 @@
   function renderSettingsUI(){
     ensureSettings();
 
-    // Founder Dashboard entry is only ever shown to the configured founder
-    // email(s) — this is a UX convenience, NOT real security. The actual
-    // protection lives server-side: every admin_* RPC checks is_admin()
-    // inside Postgres itself, so even someone who forces this UI open via
-    // devtools gets back empty results, not real platform data.
+    // Founder Dashboard entry is only shown when the signed-in account's
+    // real database role is 'founder' — no more front-end email whitelist.
+    // Still just a UX convenience: the actual protection lives server-side,
+    // since every admin_* RPC checks is_admin() (role = 'founder') inside
+    // Postgres itself. In demo mode (no backend), profile.role is never
+    // set to 'founder', so this section stays hidden — which is correct,
+    // since there's no real founder identity to check in demo mode.
     const founderSection = document.getElementById('founder-section');
     if(founderSection){
-      founderSection.style.display = FOUNDER_EMAILS.includes(profile.email) ? 'block' : 'none';
+      founderSection.style.display = profile.role === 'founder' ? 'block' : 'none';
     }
 
     // Keep the stored permission in sync with the browser's actual current
@@ -4266,6 +4392,7 @@
         renderFounderVisitors(visitors.map(v => ({ label: v.month_start, count: v.unique_sessions })));
         renderFounderGrowth(growth.map(g => ({ label: g.day, count: g.signups })));
         renderFounderLeaderboard(leaderboard.map(s => ({ name: s.title, count: s.bookings_count, value: s.revenue })));
+        loadFounderUserList();
       } catch(err){
         showToast('Could not load dashboard data — check your Supabase config.', 'error');
       }
@@ -4301,6 +4428,7 @@
       value: (10 + Math.floor(rand() * 90)) * s.price
     })).sort((a, b) => b.value - a.value).slice(0, 6);
     renderFounderLeaderboard(leaderboard);
+    loadFounderUserList();
   }
 
   function renderFounderStats(s){
@@ -4334,6 +4462,99 @@
       + '<div><div class="lb-name">' + r.name + '</div><div class="lb-meta">' + r.count + ' bookings</div></div>'
       + '<div class="lb-value">₹' + Math.round(r.value).toLocaleString('en-IN') + '</div></div>'
     ).join('');
+  }
+
+  // ---- FOUNDER DASHBOARD: User Management ----
+  // Real list/search/role-change the moment Supabase is configured (calls
+  // admin_list_users / admin_search_users / admin_update_user_role, every
+  // one of which re-checks is_admin() server-side regardless of what this
+  // screen shows). Demo mode uses a small seeded roster so the whole flow
+  // — search, role badges, promote/demote with confirmation — can be
+  // reviewed before the backend is live.
+  const DEMO_USER_POOL = [
+    { id:'demo_u1', email:'ritvik.m@example.com', full_name:'Ritvik M.', role:'user', created_at:'2026-03-11' },
+    { id:'demo_u2', email:'naina.k@example.com', full_name:'Naina K.', role:'studio_owner', created_at:'2026-02-02' },
+    { id:'demo_u3', email:'farah.s@example.com', full_name:'Farah S.', role:'user', created_at:'2026-04-19' },
+    { id:'demo_u4', email:'karan.v@example.com', full_name:'Karan V.', role:'user', created_at:'2026-01-27' },
+    { id:'demo_u5', email:'devika.r@example.com', full_name:'Devika R.', role:'founder', created_at:'2025-12-08' },
+  ];
+  let _founderUserSearchDebounce = null;
+
+  function onFounderUserSearch(query){
+    clearTimeout(_founderUserSearchDebounce);
+    _founderUserSearchDebounce = setTimeout(() => loadFounderUserList(query), 200);
+  }
+
+  async function loadFounderUserList(query){
+    const q = (query || '').trim();
+
+    if(BACKEND_ENABLED){
+      try {
+        const { data } = q
+          ? await sb.rpc('admin_search_users', { p_query: q })
+          : await sb.rpc('admin_list_users', { p_limit: 50 });
+        renderFounderUserList(data || []);
+      } catch(err){
+        showToast('Could not load users — check your Supabase config.', 'error');
+      }
+      return;
+    }
+
+    // ---- Demo mode ----
+    const ql = q.toLowerCase();
+    const rows = DEMO_USER_POOL.filter(u => !ql || u.email.toLowerCase().includes(ql) || u.full_name.toLowerCase().includes(ql));
+    renderFounderUserList(rows);
+  }
+
+  function renderFounderUserList(rows){
+    const container = document.getElementById('fd-user-list');
+    if(!rows.length){ container.innerHTML = '<div class="empty-note">No users found.</div>'; return; }
+    container.innerHTML = rows.map(u => {
+      const joinDate = new Date(u.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      const roles = ['user', 'studio_owner', 'founder'];
+      const actions = roles.filter(r => r !== u.role).map(r =>
+        '<div class="chip-opt" onclick="confirmRoleChange(\'' + u.id + '\', \'' + u.email.replace(/'/g, "\\'") + '\', \'' + r + '\')">Make ' + roleLabel(r) + '</div>'
+      ).join('');
+      return '<div class="user-row">'
+        + '<div class="ur-top"><div><div class="ur-email">' + u.email + '</div>'
+        + '<div class="ur-meta">' + (u.full_name || 'No name set') + ' · Joined ' + joinDate + '</div></div>'
+        + '<span class="role-badge role-' + u.role + '">' + roleLabel(u.role) + '</span></div>'
+        + '<div class="ur-role-actions">' + actions + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function roleLabel(role){
+    return role === 'studio_owner' ? 'Studio Owner' : role.charAt(0).toUpperCase() + role.slice(1);
+  }
+
+  function confirmRoleChange(userId, email, newRole){
+    const body = ''
+      + '<div style="font-size:12.5px; color:var(--text-dim); line-height:1.6; margin-bottom:16px;">'
+      + 'Change <b>' + email + '</b>\'s role to <b>' + roleLabel(newRole) + '</b>?'
+      + (newRole === 'founder' ? '<br><br>Founders can see every user\'s data, every studio\'s revenue, and change anyone\'s role — including their own.' : '')
+      + '</div>'
+      + '<button class="apply-btn" style="width:100%;" onclick="applyRoleChange(\'' + userId + '\', \'' + newRole + '\')">Confirm</button>'
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="closeInfoModal(); loadFounderUserList(document.getElementById(\'fd-user-search\').value);">Cancel</button>';
+    openInfoModal('Change Role', body);
+  }
+
+  async function applyRoleChange(userId, newRole){
+    if(BACKEND_ENABLED){
+      try {
+        const { error } = await sb.rpc('admin_update_user_role', { p_user_id: userId, p_new_role: newRole });
+        if(error) throw error;
+      } catch(err){
+        showToast('Could not update role — check your Supabase config.', 'error');
+        return;
+      }
+    } else {
+      const u = DEMO_USER_POOL.find(x => x.id === userId);
+      if(u) u.role = newRole;
+    }
+    closeInfoModal();
+    showToast('Role updated.');
+    loadFounderUserList(document.getElementById('fd-user-search').value);
   }
 
   // ============================================================
@@ -4382,20 +4603,47 @@
     return demoStudioState[studioId];
   }
 
-  function openStudioOwnerHub(){
-    if(!profile.ownedStudioId){ openStudioPicker(); return; }
-    goToStudioDashboard(profile.ownedStudioId);
+  async function openStudioOwnerHub(){
+    if(!BACKEND_ENABLED){
+      // Demo mode — unchanged from before: claim any studio to preview the dashboard.
+      if(!profile.ownedStudioId){ openStudioPicker(); return; }
+      goToStudioDashboard(profile.ownedStudioId);
+      return;
+    }
+
+    // Real mode — only studios this account actually owns (owner_id =
+    // auth.uid()), enforced both here and by RLS server-side.
+    if(!profile.supabaseUserId){ showToast('Sign in first.', 'error'); return; }
+    let owned = [];
+    try {
+      const { data } = await sb.from('studios').select('id').eq('owner_id', profile.supabaseUserId);
+      owned = data || [];
+    } catch(e){ owned = []; }
+
+    if(!owned.length){
+      openInfoModal('Studio Dashboard', '<div class="empty-note">You don\'t manage any studios yet.<br>Contact Sound Board to get your studio listed.</div>');
+      return;
+    }
+    if(owned.length === 1){
+      goToStudioDashboard(owned[0].id);
+      return;
+    }
+    openStudioPicker(owned.map(o => o.id));
   }
 
-  function openStudioPicker(){
-    const rows = studios.map(s => {
+  function openStudioPicker(restrictToIds){
+    const list = restrictToIds ? studios.filter(s => restrictToIds.includes(s.id)) : studios;
+    const rows = list.map(s => {
       const gradient = 'linear-gradient(135deg,' + s.swatch[0] + ',' + s.swatch[1] + ')';
       return '<div class="fav-row" onclick="claimStudio(\'' + s.id + '\')">'
         + '<div class="fav-row-thumb" style="background:' + gradient + '"></div>'
         + '<div><div class="f-name">' + s.name + '</div><div class="f-meta">' + s.loc + '</div></div>'
         + '</div>';
     }).join('');
-    openInfoModal('Manage a Studio', '<div style="font-size:11.5px; color:var(--text-faint); margin-bottom:12px; line-height:1.5;">Pick the studio you manage. If Supabase is connected, you\'ll only see real bookings/revenue here for a studio your account actually owns — otherwise this previews on demo data.</div>' + rows);
+    const note = restrictToIds
+      ? 'Pick which of your studios to manage.'
+      : 'Demo mode — pick any studio below to preview its owner dashboard.';
+    openInfoModal('Manage a Studio', '<div style="font-size:11.5px; color:var(--text-faint); margin-bottom:12px; line-height:1.5;">' + note + '</div>' + rows);
   }
 
   function claimStudio(id){
