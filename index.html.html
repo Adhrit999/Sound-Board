@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
     --bg:#14120F;
@@ -74,7 +75,7 @@
   .theme-opt, .auth-tab, .sort-opt, .nav-item, .nav-item *, .studio-card, .studio-card *,
   .fav-btn, .detail-fav-btn, .demo-banner-close, .sheet-close, .sheet-close *, .filter-btn,
   .filter-btn *, .slot, .star, .back-btn, .back-btn *, .offer-card, .offer-card *, .recent-card, .recent-card *,
-  .fav-row, .fav-row *, .featured-card, .featured-card *, .clear-filters-link, [onclick],
+  .fav-row, .fav-row *, .featured-card, .featured-card *, .clear-filters-link, [onclick], [onclick] *,
   [role="button"], [role="button"] *, [role="switch"], [role="switch"] *, [role="link"], [role="link"] *,
   [role="radio"], [role="radio"] *{
     cursor:pointer;
@@ -617,6 +618,19 @@
   .info-item .info-label{ font-size:10px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
   .info-item .info-value{ font-size:12px; color:var(--text-dim); font-weight:600; line-height:1.4; }
 
+  /* ---- FOUNDER DASHBOARD: bar chart + leaderboard rows ---- */
+  .stat-bar-row{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .stat-bar-label{ width:64px; flex-shrink:0; font-size:10.5px; color:var(--text-faint); font-family:'JetBrains Mono',monospace; }
+  .stat-bar-track{ flex:1; height:8px; border-radius:4px; background:var(--surface-2); overflow:hidden; }
+  .stat-bar-fill{ height:100%; background:var(--teal); border-radius:4px; }
+  .stat-bar-count{ width:32px; text-align:right; flex-shrink:0; font-size:11px; color:var(--text-dim); font-weight:600; }
+  .leaderboard-row{ display:flex; align-items:center; justify-content:space-between; padding:11px 14px; border-top:1px solid var(--border); }
+  .leaderboard-row:first-child{ border-top:none; }
+  .leaderboard-row .lb-rank{ width:20px; flex-shrink:0; font-size:11px; color:var(--text-faint); font-weight:700; }
+  .leaderboard-row .lb-name{ font-size:12.5px; font-weight:600; flex:1; }
+  .leaderboard-row .lb-meta{ font-size:10.5px; color:var(--text-faint); margin-top:2px; }
+  .leaderboard-row .lb-value{ font-size:12.5px; font-weight:700; color:var(--teal); }
+
   .similar-strip{ display:flex; gap:12px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
   .similar-strip::-webkit-scrollbar{ display:none; }
   .similar-card{
@@ -690,6 +704,10 @@
     padding:15px; font-size:14px; font-weight:700; font-family:'Space Grotesk',sans-serif;
     letter-spacing:0.02em;
   }
+  /* Desktop-only sidebar panel — without this, mobile renders it as a
+     plain unstyled block in the page flow, creating a second "Book Now"
+     button on top of the sticky one in .book-bar. */
+  .booking-card{ display:none; }
   button:disabled, button[disabled]{ opacity:0.55; cursor:not-allowed; pointer-events:none; }
 
   /* ---- PROFILE ---- */
@@ -1185,7 +1203,7 @@
 
           <div id="google-official-wrap">
             <div id="g_id_onload"
-              data-client_id="152399337619-oiovu7ruhtgt7m43jhk7310lmtmp2rua.apps.googleusercontent.com"
+              data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
               data-callback="handleGoogleSignIn"
               data-auto_prompt="false">
             </div>
@@ -1617,6 +1635,20 @@
       </div>
 
       <div class="section">
+        <div class="eyebrow">For Studio Owners</div>
+        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-top:6px;">
+          <div class="list-item" onclick="openStudioOwnerHub()"><div class="list-icon">🏢</div><span>Studio Dashboard</span><span class="chev">›</span></div>
+        </div>
+      </div>
+
+      <div class="section" id="founder-section" style="display:none;">
+        <div class="eyebrow">Founder</div>
+        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-top:6px;">
+          <div class="list-item" onclick="openFounderDashboard()"><div class="list-icon">📊</div><span>Founder Dashboard</span><span class="chev">›</span></div>
+        </div>
+      </div>
+
+      <div class="section">
         <div class="eyebrow">About</div>
         <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-top:6px;">
           <div class="list-item" onclick="openAboutPage()"><div class="list-icon">🎚️</div><span>About Sound Board</span><span class="chev">›</span></div>
@@ -1627,6 +1659,100 @@
           <div class="list-item" onclick="openReportBug()"><div class="list-icon">🐞</div><span>Report a bug</span><span class="chev">›</span></div>
           <div class="list-item" onclick="openRateApp()"><div class="list-icon">⭐</div><span>Rate the app</span><span class="chev">›</span></div>
         </div>
+      </div>
+     </div>
+    </div>
+
+    <!-- ============ FOUNDER DASHBOARD (admin only) ============ -->
+    <div class="screen" id="screen-founder-dashboard">
+     <div class="content">
+      <div class="back-btn" onclick="nav('settings')" role="button" tabindex="0" aria-label="Back to settings">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+
+      <div style="padding:54px 20px 0;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+          <div style="font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700;">Founder Dashboard</div>
+          <div class="reset-btn" onclick="loadFounderDashboard()" role="button" tabindex="0" aria-label="Refresh">⟳ Refresh</div>
+        </div>
+        <div id="founder-demo-banner" style="display:none; font-size:11px; color:var(--text-faint); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:9px 12px; margin-bottom:16px; line-height:1.5;">
+          Demo data — connect Supabase to see real platform numbers here.
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">🟢 Online Now</div><div class="info-value" id="fd-online-now" style="font-size:16px;">—</div></div>
+          <div class="info-item"><div class="info-label">Total Users</div><div class="info-value" id="fd-total-users" style="font-size:16px;">—</div></div>
+          <div class="info-item"><div class="info-label">Active (30d)</div><div class="info-value" id="fd-active-users" style="font-size:16px;">—</div></div>
+          <div class="info-item"><div class="info-label">Pending Bookings</div><div class="info-value" id="fd-pending-bookings" style="font-size:16px;">—</div></div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">Lifetime GMV</div><div class="info-value" id="fd-gmv-lifetime" style="font-size:16px;">—</div></div>
+          <div class="info-item"><div class="info-label">GMV (30d)</div><div class="info-value" id="fd-gmv-30d" style="font-size:16px;">—</div></div>
+        </div>
+
+        <div class="eyebrow">Monthly Visitors</div>
+        <div id="fd-monthly-visitors" style="margin-bottom:22px;"></div>
+
+        <div class="eyebrow">Signups (Last 14 Days)</div>
+        <div id="fd-signup-growth" style="margin-bottom:22px;"></div>
+
+        <div class="eyebrow">Most Booked Studios</div>
+        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-studio-leaderboard"></div>
+      </div>
+     </div>
+    </div>
+
+    <!-- ============ STUDIO DASHBOARD ============ -->
+    <div class="screen" id="screen-studio-dashboard">
+     <div class="content">
+      <div class="back-btn" onclick="nav('settings')" role="button" tabindex="0" aria-label="Back to settings">
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+
+      <div style="padding:54px 20px 0;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+          <div class="swatch" id="sd-swatch" style="width:48px; height:48px; border-radius:12px; flex-shrink:0; background:linear-gradient(135deg,#3A2818,#1A2624);"></div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:700;" id="sd-studio-name">Studio</div>
+            <div style="font-size:11.5px; color:var(--text-faint);" id="sd-studio-loc">—</div>
+          </div>
+          <button class="reset-btn" onclick="openEditStudioListing()">Edit Listing</button>
+        </div>
+        <div id="sd-demo-banner" style="display:none; font-size:11px; color:var(--text-faint); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:9px 12px; margin-bottom:16px; line-height:1.5;">
+          Demo mode — connect Supabase and claim a studio you actually own to see and manage real data here.
+        </div>
+
+        <div id="sd-pending-section" style="display:none;">
+          <div class="eyebrow">Pending Requests</div>
+          <div id="sd-pending-list" style="margin-bottom:22px;"></div>
+        </div>
+
+        <div class="chip-select" id="sd-period-tabs" style="margin-bottom:16px;">
+          <div class="chip-opt" data-period="30d" onclick="setStudioDashboardPeriod('30d')">30 days</div>
+          <div class="chip-opt" data-period="90d" onclick="setStudioDashboardPeriod('90d')">90 days</div>
+          <div class="chip-opt" data-period="365d" onclick="setStudioDashboardPeriod('365d')">365 days</div>
+          <div class="chip-opt" data-period="lifetime" onclick="setStudioDashboardPeriod('lifetime')">Lifetime</div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item"><div class="info-label">Revenue</div><div class="info-value" id="sd-revenue" style="font-size:16px;">₹0</div></div>
+          <div class="info-item"><div class="info-label">Bookings</div><div class="info-value" id="sd-booking-count" style="font-size:16px;">0</div></div>
+        </div>
+
+        <div class="eyebrow">Peak Hours</div>
+        <div id="sd-peak-hours" style="margin-bottom:22px;"></div>
+
+        <div class="eyebrow">Top Customers</div>
+        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:22px;" id="sd-top-customers"></div>
+
+        <div class="eyebrow" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Blocked Dates</span>
+          <span class="cancel-link" style="color:var(--teal);" onclick="openBlockDateForm()">+ Block a date</span>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:22px;" id="sd-blocked-slots"></div>
+
+        <div class="cancel-link" style="display:inline-block; margin-bottom:30px;" onclick="openStudioPicker()">Manage a different studio</div>
       </div>
      </div>
     </div>
@@ -1853,6 +1979,73 @@
 </div>
 
 <script>
+  // ============================================================
+  // BACKEND (Supabase) — config & client
+  // ============================================================
+  // Drop your real project URL and anon key in here. Until you do, every
+  // BACKEND_ENABLED check below is false and the app behaves exactly as it
+  // does today — localStorage only, nothing breaks, nothing silently fails
+  // against a placeholder URL. This is the ONLY place these two values are
+  // read from, so wiring up the real backend later is a two-line change.
+  const SUPABASE_CONFIG = {
+    url: 'YOUR_SUPABASE_URL',        // e.g. 'https://xxxxxxxx.supabase.co'
+    anonKey: 'YOUR_SUPABASE_ANON_KEY',
+  };
+  const BACKEND_ENABLED = SUPABASE_CONFIG.url !== 'YOUR_SUPABASE_URL'
+    && SUPABASE_CONFIG.anonKey !== 'YOUR_SUPABASE_ANON_KEY'
+    && typeof supabase !== 'undefined';
+
+  // Emails allowed to see the Founder Dashboard entry point in Settings.
+  // Cosmetic only — see the note in renderSettingsUI() for why this alone
+  // isn't real security, and why that's fine here.
+  const FOUNDER_EMAILS = ['YOUR_FOUNDER_EMAIL@gmail.com'];
+
+  const sb = BACKEND_ENABLED ? supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey) : null;
+
+  // ---- Session id (for anonymous-friendly visitor analytics) ----
+  // One random id per browser session, persisted in sessionStorage so it
+  // survives navigation but resets when the tab/browser actually closes —
+  // this is what "unique sessions" in the Founder's Dashboard counts.
+  function getSessionId(){
+    let id = sessionStorage.getItem('sb_session_id');
+    if(!id){
+      id = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+      sessionStorage.setItem('sb_session_id', id);
+    }
+    return id;
+  }
+
+  // ---- Page-view logging ----
+  // Fire-and-forget: analytics should never block or break navigation, so
+  // failures here are swallowed silently rather than surfaced to the user.
+  function logPageView(path){
+    if(!BACKEND_ENABLED) return;
+    sb.from('page_views').insert({
+      user_id: (typeof profile !== 'undefined' && profile.supabaseUserId) || null,
+      session_id: getSessionId(),
+      path: path,
+    }).then(() => {}, () => {});
+  }
+
+  // ---- Presence heartbeat ("online right now") ----
+  // Updates the signed-in user's last_active_at every 45s while the tab is
+  // open. The Founder's Dashboard treats anyone active in the last few
+  // minutes as "online" — no separate presence table needed.
+  let _heartbeatTimer = null;
+  function startPresenceHeartbeat(){
+    if(!BACKEND_ENABLED || _heartbeatTimer) return;
+    const beat = () => {
+      if(typeof profile === 'undefined' || !profile.supabaseUserId) return;
+      sb.from('profiles').update({ last_active_at: new Date().toISOString() })
+        .eq('id', profile.supabaseUserId).then(() => {}, () => {});
+    };
+    beat();
+    _heartbeatTimer = setInterval(beat, 45000);
+  }
+  function stopPresenceHeartbeat(){
+    if(_heartbeatTimer){ clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
+  }
+
   function nav(screen){
     document.getElementById('app-root').classList.remove('showing-detail');
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1860,6 +2053,7 @@
     document.querySelectorAll('.nav-item').forEach(n => { n.classList.remove('active'); n.removeAttribute('aria-current'); });
     document.querySelectorAll('.nav-item[data-screen="' + screen + '"]').forEach(t => { t.classList.add('active'); t.setAttribute('aria-current', 'page'); });
     document.getElementById('screen-' + screen).scrollTop = 0;
+    logPageView(screen);
   }
 
   // Delegated listener: #slot-row's contents get replaced per-studio in
@@ -1952,7 +2146,8 @@
   function emptyProfile(){
     return {
       accountKey:null, provider:null, name:'', email:'', picture:'', givenName:'', username:'',
-      genres:[], bookings:[], favorites:[], favoritedAt:{}, visitedStudios:[], onboarded:false, searchHistory:[]
+      genres:[], bookings:[], favorites:[], favoritedAt:{}, visitedStudios:[], onboarded:false, searchHistory:[],
+      supabaseUserId:null, ownedStudioId:null
     };
   }
   // Loads one specific account's saved profile by key (or null if unknown).
@@ -3495,6 +3690,7 @@
     renderSettingsUI();
     showSkeletons();
     setTimeout(() => { render(); renderHome(); }, 380);
+    startPresenceHeartbeat();
   }
 
   function logout(){
@@ -3508,6 +3704,7 @@
         window.google.accounts.id.disableAutoSelect();
       }
     }catch(e){}
+    stopPresenceHeartbeat();
     setActiveAccountKey(null);
     profile = emptyProfile();
     document.getElementById('app-root').classList.add('pre-auth');
@@ -3786,6 +3983,16 @@
   function renderSettingsUI(){
     ensureSettings();
 
+    // Founder Dashboard entry is only ever shown to the configured founder
+    // email(s) — this is a UX convenience, NOT real security. The actual
+    // protection lives server-side: every admin_* RPC checks is_admin()
+    // inside Postgres itself, so even someone who forces this UI open via
+    // devtools gets back empty results, not real platform data.
+    const founderSection = document.getElementById('founder-section');
+    if(founderSection){
+      founderSection.style.display = FOUNDER_EMAILS.includes(profile.email) ? 'block' : 'none';
+    }
+
     // Keep the stored permission in sync with the browser's actual current
     // permission (it can change any time in browser site settings, outside
     // our control), then reflect that in the toggle + message.
@@ -4005,6 +4212,521 @@
     saveProfile();
     closeInfoModal();
     showToast('Onboarding reset. It\'ll show next time you sign in.');
+  }
+
+  // ============================================================
+  // FOUNDER DASHBOARD (admin only)
+  // Real numbers the moment Supabase is configured (calls the admin_* RPCs
+  // from phase2_analytics_and_management.sql, every one of which enforces
+  // is_admin() server-side). Falls back to clearly-labeled demo data
+  // otherwise, generated from a seeded RNG so it's stable across reloads
+  // rather than jumping around every time you open the screen.
+  // ============================================================
+
+  function openFounderDashboard(){
+    nav('founder-dashboard');
+    loadFounderDashboard();
+  }
+
+  function fdSeededRandom(seedStr){
+    let h = 0;
+    for(let i = 0; i < seedStr.length; i++){ h = (Math.imul(31, h) + seedStr.charCodeAt(i)) | 0; }
+    let state = h || 1;
+    return function(){
+      state |= 0; state = (state + 0x6D2B79F5) | 0;
+      let t = Math.imul(state ^ (state >>> 15), 1 | state);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  async function loadFounderDashboard(){
+    const banner = document.getElementById('founder-demo-banner');
+
+    if(BACKEND_ENABLED){
+      banner.style.display = 'none';
+      try {
+        const [stats, visitors, growth, pending, leaderboard] = await Promise.all([
+          sb.rpc('admin_platform_stats').then(r => r.data && r.data[0]),
+          sb.rpc('admin_monthly_visitors', { p_months: 6 }).then(r => r.data || []),
+          sb.rpc('admin_signup_growth', { p_days: 14 }).then(r => r.data || []),
+          sb.rpc('admin_pending_bookings_count').then(r => r.data),
+          sb.rpc('admin_studio_leaderboard', { p_limit: 6 }).then(r => r.data || []),
+        ]);
+        const onlineNow = await sb.rpc('admin_online_now', { p_minutes: 3 }).then(r => r.data);
+
+        renderFounderStats({
+          onlineNow: onlineNow || 0,
+          totalUsers: (stats && stats.total_users) || 0,
+          activeUsers: (stats && stats.active_users_30d) || 0,
+          pendingBookings: pending || 0,
+          gmvLifetime: (stats && stats.gmv_lifetime) || 0,
+          gmv30d: (stats && stats.gmv_30d) || 0,
+        });
+        renderFounderVisitors(visitors.map(v => ({ label: v.month_start, count: v.unique_sessions })));
+        renderFounderGrowth(growth.map(g => ({ label: g.day, count: g.signups })));
+        renderFounderLeaderboard(leaderboard.map(s => ({ name: s.title, count: s.bookings_count, value: s.revenue })));
+      } catch(err){
+        showToast('Could not load dashboard data — check your Supabase config.', 'error');
+      }
+      return;
+    }
+
+    // ---- Demo mode ----
+    banner.style.display = 'block';
+    const rand = fdSeededRandom('founder-dashboard-demo');
+    renderFounderStats({
+      onlineNow: 3 + Math.floor(rand() * 9),
+      totalUsers: 400 + Math.floor(rand() * 300),
+      activeUsers: 120 + Math.floor(rand() * 150),
+      pendingBookings: Math.floor(rand() * 6),
+      gmvLifetime: 180000 + Math.floor(rand() * 90000),
+      gmv30d: 22000 + Math.floor(rand() * 12000),
+    });
+
+    const months = ['Feb','Mar','Apr','May','Jun','Jul'];
+    renderFounderVisitors(months.map(m => ({ label: m, count: 300 + Math.floor(rand() * 900) })));
+
+    const days = [];
+    const today = new Date();
+    for(let i = 13; i >= 0; i--){
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      days.push({ label: d.toLocaleDateString('en-IN', { day:'numeric', month:'short' }), count: Math.floor(rand() * 14) });
+    }
+    renderFounderGrowth(days);
+
+    const leaderboard = studios.map(s => ({
+      name: s.name,
+      count: 10 + Math.floor(rand() * 90),
+      value: (10 + Math.floor(rand() * 90)) * s.price
+    })).sort((a, b) => b.value - a.value).slice(0, 6);
+    renderFounderLeaderboard(leaderboard);
+  }
+
+  function renderFounderStats(s){
+    document.getElementById('fd-online-now').textContent = s.onlineNow;
+    document.getElementById('fd-total-users').textContent = s.totalUsers.toLocaleString('en-IN');
+    document.getElementById('fd-active-users').textContent = s.activeUsers.toLocaleString('en-IN');
+    document.getElementById('fd-pending-bookings').textContent = s.pendingBookings;
+    document.getElementById('fd-gmv-lifetime').textContent = '₹' + Math.round(s.gmvLifetime).toLocaleString('en-IN');
+    document.getElementById('fd-gmv-30d').textContent = '₹' + Math.round(s.gmv30d).toLocaleString('en-IN');
+  }
+
+  function renderFounderBarList(containerId, rows){
+    const container = document.getElementById(containerId);
+    if(!rows.length){ container.innerHTML = '<div class="empty-note">No data yet.</div>'; return; }
+    const maxCount = Math.max(1, ...rows.map(r => r.count));
+    container.innerHTML = rows.map(r => {
+      const pct = Math.round((r.count / maxCount) * 100);
+      return '<div class="stat-bar-row"><div class="stat-bar-label">' + r.label + '</div>'
+        + '<div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + pct + '%;"></div></div>'
+        + '<div class="stat-bar-count">' + r.count + '</div></div>';
+    }).join('');
+  }
+  function renderFounderVisitors(rows){ renderFounderBarList('fd-monthly-visitors', rows); }
+  function renderFounderGrowth(rows){ renderFounderBarList('fd-signup-growth', rows); }
+
+  function renderFounderLeaderboard(rows){
+    const container = document.getElementById('fd-studio-leaderboard');
+    if(!rows.length){ container.innerHTML = '<div class="empty-note">No bookings yet.</div>'; return; }
+    container.innerHTML = rows.map((r, i) =>
+      '<div class="leaderboard-row"><div class="lb-rank">#' + (i + 1) + '</div>'
+      + '<div><div class="lb-name">' + r.name + '</div><div class="lb-meta">' + r.count + ' bookings</div></div>'
+      + '<div class="lb-value">₹' + Math.round(r.value).toLocaleString('en-IN') + '</div></div>'
+    ).join('');
+  }
+
+  // ============================================================
+  // STUDIO DASHBOARD
+  // Real the moment Supabase is configured AND the signed-in account's
+  // auth.uid() actually matches a studio's owner_id — RLS enforces that
+  // server-side, so "claiming" a studio you don't really own just gets you
+  // an empty dashboard, not someone else's real data. In demo mode
+  // everything here is fully interactive against local/seeded data so the
+  // whole flow can be reviewed before the backend is live.
+  // ============================================================
+  let studioDashboardPeriod = '30d';
+  const demoStudioState = {}; // studioId -> { pending:[...], blocked:[...] } — demo-mode only
+
+  function sdSeededRandom(seedStr){
+    let h = 0;
+    for(let i = 0; i < seedStr.length; i++){ h = (Math.imul(31, h) + seedStr.charCodeAt(i)) | 0; }
+    let state = h || 1;
+    return function(){
+      state |= 0; state = (state + 0x6D2B79F5) | 0;
+      let t = Math.imul(state ^ (state >>> 15), 1 | state);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  const OWNER_CUSTOMER_POOL = ['Ritvik M.','Naina K.','Farah S.','Karan V.','Devika R.','Aman J.','Priya T.','Rohan D.','Meera L.','Vikram S.'];
+
+  function seedDemoStudioState(studioId){
+    if(demoStudioState[studioId]) return demoStudioState[studioId];
+    const rand = sdSeededRandom(studioId + ':demo');
+    const s = studios.find(x => x.id === studioId);
+    const pendingCount = Math.floor(rand() * 3);
+    const pending = [];
+    for(let i = 0; i < pendingCount; i++){
+      const d = new Date(); d.setDate(d.getDate() + 1 + Math.floor(rand() * 6));
+      pending.push({
+        id: 'demo_pending_' + studioId + '_' + i,
+        customer: OWNER_CUSTOMER_POOL[Math.floor(rand() * OWNER_CUSTOMER_POOL.length)],
+        date: d.toISOString(),
+        slot: s.slots[Math.floor(rand() * s.slots.length)],
+        price: s.price,
+      });
+    }
+    demoStudioState[studioId] = { pending, blocked: [] };
+    return demoStudioState[studioId];
+  }
+
+  function openStudioOwnerHub(){
+    if(!profile.ownedStudioId){ openStudioPicker(); return; }
+    goToStudioDashboard(profile.ownedStudioId);
+  }
+
+  function openStudioPicker(){
+    const rows = studios.map(s => {
+      const gradient = 'linear-gradient(135deg,' + s.swatch[0] + ',' + s.swatch[1] + ')';
+      return '<div class="fav-row" onclick="claimStudio(\'' + s.id + '\')">'
+        + '<div class="fav-row-thumb" style="background:' + gradient + '"></div>'
+        + '<div><div class="f-name">' + s.name + '</div><div class="f-meta">' + s.loc + '</div></div>'
+        + '</div>';
+    }).join('');
+    openInfoModal('Manage a Studio', '<div style="font-size:11.5px; color:var(--text-faint); margin-bottom:12px; line-height:1.5;">Pick the studio you manage. If Supabase is connected, you\'ll only see real bookings/revenue here for a studio your account actually owns — otherwise this previews on demo data.</div>' + rows);
+  }
+
+  function claimStudio(id){
+    profile.ownedStudioId = id;
+    saveProfile();
+    closeInfoModal();
+    goToStudioDashboard(id);
+  }
+
+  function goToStudioDashboard(id){
+    studioDashboardPeriod = '30d';
+    nav('studio-dashboard');
+    loadStudioDashboard();
+  }
+
+  function setStudioDashboardPeriod(period){
+    studioDashboardPeriod = period;
+    document.querySelectorAll('#sd-period-tabs .chip-opt').forEach(el => {
+      el.classList.toggle('on', el.dataset.period === period);
+    });
+    loadStudioStats();
+  }
+
+  async function loadStudioDashboard(){
+    const s = studios.find(x => x.id === profile.ownedStudioId);
+    if(!s) return;
+    document.getElementById('sd-swatch').style.background = 'linear-gradient(135deg,' + s.swatch[0] + ',' + s.swatch[1] + ')';
+    document.getElementById('sd-studio-name').textContent = s.name;
+    document.getElementById('sd-studio-loc').textContent = s.loc;
+    document.querySelectorAll('#sd-period-tabs .chip-opt').forEach(el => {
+      el.classList.toggle('on', el.dataset.period === studioDashboardPeriod);
+    });
+    document.getElementById('sd-demo-banner').style.display = BACKEND_ENABLED ? 'none' : 'block';
+
+    await loadStudioStats();
+    await loadPendingRequests();
+    await loadBlockedSlots();
+  }
+
+  async function loadStudioStats(){
+    const s = studios.find(x => x.id === profile.ownedStudioId);
+    if(!s) return;
+
+    if(BACKEND_ENABLED){
+      try {
+        const [revenue, count, peaks, customers] = await Promise.all([
+          sb.rpc('studio_revenue', { p_studio_id: s.id, p_period: studioDashboardPeriod }).then(r => r.data || 0),
+          sb.rpc('studio_booking_count', { p_studio_id: s.id, p_period: studioDashboardPeriod }).then(r => r.data || 0),
+          sb.rpc('studio_peak_hours', { p_studio_id: s.id }).then(r => r.data || []),
+          sb.rpc('studio_top_customers', { p_studio_id: s.id, p_limit: 5 }).then(r => r.data || []),
+        ]);
+        document.getElementById('sd-revenue').textContent = '₹' + Math.round(revenue).toLocaleString('en-IN');
+        document.getElementById('sd-booking-count').textContent = count;
+        renderPeakHours(peaks.map(p => ({ label: formatHourLabel(p.hour_of_day), count: p.bookings_count })));
+        renderTopCustomers(customers.map(c => ({ name: c.full_name || 'Musician', count: c.bookings_count, value: c.total_spent })));
+      } catch(err){
+        showToast('Could not load studio stats — check your Supabase config.', 'error');
+      }
+      return;
+    }
+
+    // ---- Demo mode ----
+    const rand = sdSeededRandom(s.id + ':' + studioDashboardPeriod);
+    const periodMultiplier = { '30d':1, '90d':2.8, '365d':9.5, 'lifetime':14 }[studioDashboardPeriod] || 1;
+    const baseBookings = 6 + Math.floor(rand() * 10);
+    const bookingCount = Math.round(baseBookings * periodMultiplier);
+    const revenue = bookingCount * s.price * (0.9 + rand() * 0.2);
+    document.getElementById('sd-revenue').textContent = '₹' + Math.round(revenue).toLocaleString('en-IN');
+    document.getElementById('sd-booking-count').textContent = bookingCount;
+
+    const peaks = s.slots.map(slot => ({ label: slot, count: 2 + Math.floor(rand() * 14) })).sort((a, b) => a.label.localeCompare(b.label));
+    renderPeakHours(peaks);
+
+    const customers = [];
+    const custCount = 3 + Math.floor(rand() * 3);
+    for(let i = 0; i < custCount; i++){
+      const count = 1 + Math.floor(rand() * 6);
+      customers.push({ name: OWNER_CUSTOMER_POOL[i % OWNER_CUSTOMER_POOL.length], count, value: count * s.price });
+    }
+    renderTopCustomers(customers.sort((a, b) => b.value - a.value));
+  }
+
+  function formatHourLabel(hour){
+    return (hour % 12 || 12) + (hour < 12 ? ' AM' : ' PM');
+  }
+
+  function renderPeakHours(rows){
+    const container = document.getElementById('sd-peak-hours');
+    if(!rows.length){ container.innerHTML = '<div class="empty-note">No booking data yet.</div>'; return; }
+    const maxCount = Math.max(1, ...rows.map(r => r.count));
+    container.innerHTML = rows.map(r => {
+      const pct = Math.round((r.count / maxCount) * 100);
+      return '<div class="stat-bar-row"><div class="stat-bar-label">' + r.label + '</div>'
+        + '<div class="stat-bar-track"><div class="stat-bar-fill" style="width:' + pct + '%;"></div></div>'
+        + '<div class="stat-bar-count">' + r.count + '</div></div>';
+    }).join('');
+  }
+
+  function renderTopCustomers(rows){
+    const container = document.getElementById('sd-top-customers');
+    if(!rows.length){ container.innerHTML = '<div class="empty-note">No customers yet.</div>'; return; }
+    container.innerHTML = rows.map((c, i) =>
+      '<div class="leaderboard-row"><div class="lb-rank">#' + (i + 1) + '</div>'
+      + '<div><div class="lb-name">' + c.name + '</div><div class="lb-meta">' + c.count + ' booking' + (c.count === 1 ? '' : 's') + '</div></div>'
+      + '<div class="lb-value">₹' + Math.round(c.value).toLocaleString('en-IN') + '</div></div>'
+    ).join('');
+  }
+
+  // ---- Pending booking requests (accept/decline) ----
+  async function loadPendingRequests(){
+    const s = studios.find(x => x.id === profile.ownedStudioId);
+    if(!s) return;
+    const section = document.getElementById('sd-pending-section');
+    const list = document.getElementById('sd-pending-list');
+
+    let requests = [];
+    if(BACKEND_ENABLED){
+      try {
+        const { data } = await sb.rpc('studio_pending_bookings', { p_studio_id: s.id });
+        requests = (data || []).map(r => ({ id: r.id, customer: r.customer_name || 'Musician', date: r.booking_date, slot: r.start_time, price: r.price }));
+      } catch(err){ requests = []; }
+    } else {
+      requests = seedDemoStudioState(s.id).pending;
+    }
+
+    section.style.display = requests.length ? 'block' : 'none';
+    list.innerHTML = requests.map(r => {
+      const dateStr = new Date(r.date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+      return '<div class="booking-row" style="flex-direction:column; align-items:stretch; gap:8px;">'
+        + '<div style="display:flex; justify-content:space-between;">'
+        + '<div><div class="b-name">' + r.customer + '</div><div class="b-meta">' + dateStr + ' · ' + r.slot + '</div></div>'
+        + '<div class="b-price">₹' + r.price + '</div>'
+        + '</div>'
+        + '<div style="display:flex; gap:14px;">'
+        + '<span class="cancel-link" style="color:var(--teal);" onclick="respondToBookingRequest(\'' + r.id + '\', \'confirmed\')">Accept</span>'
+        + '<span class="cancel-link" onclick="respondToBookingRequest(\'' + r.id + '\', \'cancelled\')">Decline</span>'
+        + '</div></div>';
+    }).join('');
+  }
+
+  async function respondToBookingRequest(id, newStatus){
+    const s = studios.find(x => x.id === profile.ownedStudioId);
+    if(!s) return;
+
+    if(BACKEND_ENABLED){
+      try {
+        await sb.from('bookings').update({ status: newStatus }).eq('id', id);
+      } catch(err){
+        showToast('Could not update the booking — check your Supabase config.', 'error');
+        return;
+      }
+    } else {
+      const state = seedDemoStudioState(s.id);
+      state.pending = state.pending.filter(p => p.id !== id);
+    }
+    showToast(newStatus === 'confirmed' ? 'Booking accepted.' : 'Booking declined.');
+    loadPendingRequests();
+  }
+
+  // ---- Blocked dates (studio availability) ----
+  async function loadBlockedSlots(){
+    const s = studios.find(x => x.id === profile.ownedStudioId);
+    if(!s) return;
+    const container = document.getElementById('sd-blocked-slots');
+
+    let blocked = [];
+    if(BACKEND_ENABLED){
+      try {
+        const { data } = await sb.from('studio_blocked_slots').select('*').eq('studio_id', s.id).order('blocked_date');
+        blocked = data || [];
+      } catch(err){ blocked = []; }
+    } else {
+      blocked = seedDemoStudioState(s.id).blocked;
+    }
+
+    if(!blocked.length){ container.innerHTML = '<div class="empty-note">No blocked dates.</div>'; return; }
+    container.innerHTML = blocked.map(b => {
+      const dateStr = new Date(b.blocked_date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      const timeRange = b.start_time ? (b.start_time + '–' + b.end_time) : 'Full day';
+      return '<div class="leaderboard-row"><div style="flex:1;"><div class="lb-name">' + dateStr + '</div>'
+        + '<div class="lb-meta">' + timeRange + (b.reason ? ' · ' + b.reason : '') + '</div></div>'
+        + '<span class="cancel-link" onclick="removeBlockedSlot(\'' + b.id + '\')">Remove</span></div>';
+    }).join('');
+  }
+
+  function openBlockDateForm(){
+    const body = ''
+      + '<div class="filter-block"><div class="filter-label">Date</div><input id="block-date-input" type="date" class="auth-input" style="max-width:none; margin-bottom:0;"></div>'
+      + '<div class="filter-block"><div class="filter-label">Reason (optional)</div><input id="block-reason-input" class="auth-input" style="max-width:none; margin-bottom:0;" placeholder="e.g. Maintenance, holiday"></div>'
+      + '<button class="apply-btn" style="width:100%;" onclick="saveBlockedDate()">Block This Date</button>';
+    openInfoModal('Block a Date', body);
+  }
+
+  async function saveBlockedDate(){
+    const s = studios.find(x => x.id === profile.ownedStudioId);
+    if(!s) return;
+    const dateVal = document.getElementById('block-date-input').value;
+    if(!dateVal){ showToast('Pick a date first.', 'error'); return; }
+    const reason = document.getElementById('block-reason-input').value.trim();
+
+    if(BACKEND_ENABLED){
+      try {
+        await sb.from('studio_blocked_slots').insert({ studio_id: s.id, blocked_date: dateVal, reason: reason || null });
+      } catch(err){
+        showToast('Could not save — check your Supabase config.', 'error');
+        return;
+      }
+    } else {
+      const state = seedDemoStudioState(s.id);
+      state.blocked.push({ id: 'demo_block_' + Date.now(), blocked_date: dateVal, start_time: null, end_time: null, reason });
+    }
+    closeInfoModal();
+    showToast('Date blocked.');
+    loadBlockedSlots();
+  }
+
+  async function removeBlockedSlot(id){
+    const s = studios.find(x => x.id === profile.ownedStudioId);
+    if(!s) return;
+    if(BACKEND_ENABLED){
+      try { await sb.from('studio_blocked_slots').delete().eq('id', id); }
+      catch(err){ showToast('Could not remove — check your Supabase config.', 'error'); return; }
+    } else {
+      const state = seedDemoStudioState(s.id);
+      state.blocked = state.blocked.filter(b => b.id !== id);
+    }
+    showToast('Blocked date removed.');
+    loadBlockedSlots();
+  }
+
+  // ---- Listing editor (title/description/price/etc + photos) ----
+  const STUDIO_SERVICE_OPTIONS = ['Rehearsal','Recording','Mixing','Drum Rooms','Piano Rooms'];
+  const STUDIO_GENRE_OPTIONS = ['Rock','Metal','Indie Rock','Jazz','Lo-fi','Hip-Hop','Electronic','Classical','Pop'];
+
+  function openEditStudioListing(){
+    const s = studios.find(x => x.id === profile.ownedStudioId);
+    if(!s) return;
+    const serviceChips = STUDIO_SERVICE_OPTIONS.map(v =>
+      '<div class="chip-opt' + (s.services.includes(v) ? ' on' : '') + '" data-val="' + v + '" onclick="this.classList.toggle(\'on\')">' + v + '</div>'
+    ).join('');
+    const genreChips = STUDIO_GENRE_OPTIONS.map(v =>
+      '<div class="chip-opt' + (s.genres.includes(v) ? ' on' : '') + '" data-val="' + v + '" onclick="this.classList.toggle(\'on\')">' + v + '</div>'
+    ).join('');
+
+    const body = ''
+      + '<div class="filter-block"><div class="filter-label">Photos</div>'
+      + '<input type="file" id="owner-photo-input" accept="image/*" style="font-size:11.5px; color:var(--text-dim); margin-bottom:8px;">'
+      + '<div id="owner-photo-preview" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:4px;"></div>'
+      + '<div style="font-size:10.5px; color:var(--text-faint); line-height:1.5;">' + (BACKEND_ENABLED ? 'Uploads save to Supabase Storage immediately.' : 'Connect Supabase to actually persist photos — this previews locally only.') + '</div>'
+      + '</div>'
+      + '<div class="filter-block"><div class="filter-label">Title</div><input id="owner-edit-title" class="auth-input" style="max-width:none; margin-bottom:0;" value="' + s.name.replace(/"/g, '&quot;') + '"></div>'
+      + '<div class="filter-block"><div class="filter-label">Description</div><textarea id="owner-edit-about" class="auth-input" style="max-width:none; margin-bottom:0; min-height:70px; resize:vertical; font-family:\'Inter\',sans-serif;">' + s.about.replace(/</g, '&lt;') + '</textarea></div>'
+      + '<div class="filter-block"><div class="filter-label">Price per hour (₹)</div><input id="owner-edit-price" type="number" class="auth-input" style="max-width:none; margin-bottom:0;" value="' + s.price + '"></div>'
+      + '<div class="filter-block"><div class="filter-label">Address</div><input id="owner-edit-address" class="auth-input" style="max-width:none; margin-bottom:0;" value="' + (s.address || '').replace(/"/g, '&quot;') + '"></div>'
+      + '<div class="filter-block"><div class="filter-label">Phone</div><input id="owner-edit-phone" class="auth-input" style="max-width:none; margin-bottom:0;" value="' + (s.phone || '').replace(/"/g, '&quot;') + '"></div>'
+      + '<div class="filter-block"><div class="filter-label">Hours</div><input id="owner-edit-hours" class="auth-input" style="max-width:none; margin-bottom:0;" value="' + (s.hours || '').replace(/"/g, '&quot;') + '"></div>'
+      + '<div class="filter-block"><div class="filter-label">Capacity</div><input id="owner-edit-capacity" class="auth-input" style="max-width:none; margin-bottom:0;" value="' + (s.capacity || '').replace(/"/g, '&quot;') + '"></div>'
+      + '<div class="filter-block"><div class="filter-label">Services</div><div class="chip-select" id="owner-edit-services">' + serviceChips + '</div></div>'
+      + '<div class="filter-block"><div class="filter-label">Genres</div><div class="chip-select" id="owner-edit-genres">' + genreChips + '</div></div>'
+      + '<button class="apply-btn" style="width:100%;" onclick="saveStudioListing()">Save Listing</button>';
+
+    openInfoModal('Edit Listing', body);
+    document.getElementById('owner-photo-input').addEventListener('change', onStudioPhotoSelected);
+  }
+
+  function onStudioPhotoSelected(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const previewUrl = URL.createObjectURL(file);
+    const preview = document.getElementById('owner-photo-preview');
+    const thumb = document.createElement('div');
+    thumb.style.cssText = 'width:56px; height:56px; border-radius:10px; background-size:cover; background-position:center; border:1px solid var(--border);';
+    thumb.style.backgroundImage = 'url(' + previewUrl + ')';
+    preview.appendChild(thumb);
+    uploadStudioPhoto(file);
+  }
+
+  async function uploadStudioPhoto(file){
+    const s = studios.find(x => x.id === profile.ownedStudioId);
+    if(!s) return;
+    if(!BACKEND_ENABLED){
+      showToast('Photo preview only — connect Supabase to actually save it.');
+      return;
+    }
+    try {
+      const path = s.id + '/' + Date.now() + '_' + file.name;
+      const { error: uploadErr } = await sb.storage.from('studio-photos').upload(path, file);
+      if(uploadErr) throw uploadErr;
+      const { data: urlData } = sb.storage.from('studio-photos').getPublicUrl(path);
+      await sb.from('studio_photos').insert({ studio_id: s.id, url: urlData.publicUrl });
+      showToast('Photo uploaded.');
+    } catch(err){
+      showToast('Photo upload failed — check your Supabase Storage config.', 'error');
+    }
+  }
+
+  async function saveStudioListing(){
+    const s = studios.find(x => x.id === profile.ownedStudioId);
+    if(!s) return;
+    const patch = {
+      name: document.getElementById('owner-edit-title').value.trim() || s.name,
+      about: document.getElementById('owner-edit-about').value.trim() || s.about,
+      price: parseInt(document.getElementById('owner-edit-price').value, 10) || s.price,
+      address: document.getElementById('owner-edit-address').value.trim(),
+      phone: document.getElementById('owner-edit-phone').value.trim(),
+      hours: document.getElementById('owner-edit-hours').value.trim(),
+      capacity: document.getElementById('owner-edit-capacity').value.trim(),
+      services: [...document.querySelectorAll('#owner-edit-services .chip-opt.on')].map(c => c.dataset.val),
+      genres: [...document.querySelectorAll('#owner-edit-genres .chip-opt.on')].map(c => c.dataset.val)
+    };
+
+    Object.assign(s, patch); // reflect immediately across the app (search, cards, detail)
+
+    if(BACKEND_ENABLED){
+      try {
+        await sb.from('studios').update({
+          title: patch.name, description: patch.about, price_per_hour: patch.price,
+          address: patch.address, services: patch.services, genres: patch.genres,
+        }).eq('id', s.id);
+      } catch(err){
+        showToast('Saved locally, but the backend update failed — check your Supabase config.', 'error');
+        closeInfoModal();
+        render();
+        return;
+      }
+    }
+
+    closeInfoModal();
+    render();
+    loadStudioDashboard();
+    showToast('Listing updated.');
   }
 
   function openOffersModal(){
