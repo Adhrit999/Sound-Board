@@ -70,17 +70,20 @@
     -webkit-user-select:none;
   }
 
-  button, .see-all, .list-item, .list-item *, .stat, .stat *, .cat-chip, .chip-opt,
+  button, .see-all, .list-item:not(.disabled), .stat, .stat *, .cat-chip, .chip-opt,
   .theme-opt, .auth-tab, .sort-opt, .nav-item, .nav-item *, .studio-card, .studio-card *,
   .fav-btn, .detail-fav-btn, .demo-banner-close, .sheet-close, .sheet-close *, .filter-btn,
   .filter-btn *, .slot, .star, .back-btn, .back-btn *, .offer-card, .offer-card *, .recent-card, .recent-card *,
-  .fav-row, .fav-row *, .featured-card, .featured-card *, .clear-filters-link, [onclick]{
+  .fav-row, .fav-row *, .featured-card, .featured-card *, .clear-filters-link, [onclick],
+  [role="button"], [role="button"] *, [role="switch"], [role="switch"] *, [role="link"], [role="link"] *,
+  [role="radio"], [role="radio"] *{
     cursor:pointer;
     touch-action:manipulation;
   }
+  .list-item.disabled{ cursor:not-allowed; }
 
   input[type="range"]{ cursor:pointer; }
-  input[type="text"], input[type="email"], input[type="tel"]{
+  input[type="text"], input[type="email"], input[type="tel"], textarea{
     cursor:text;
     user-select:text;
     -webkit-user-select:text;
@@ -445,6 +448,107 @@
   }
   .cat-chip.active{ background:var(--amber); color:#14120F; border-color:var(--amber); }
 
+  /* ---- Phase 3: Map view ---- */
+  .view-toggle-row{ padding:2px 20px 0; }
+  .view-toggle{
+    display:inline-flex; background:var(--surface); border:1px solid var(--border);
+    border-radius:20px; padding:3px; gap:2px;
+  }
+  .view-toggle-opt{
+    padding:7px 14px; border-radius:16px; font-size:12px; font-weight:600;
+    color:var(--text-dim); transition:background-color .15s ease, color .15s ease;
+  }
+  .view-toggle-opt.active{ background:var(--teal); color:#0A0908; }
+
+  .studios-body-row{ display:contents; } /* mobile: no layout effect, toggled via display on children */
+
+  .map-view-container{
+    position:relative; margin:4px 20px 0; height:min(70vh, 560px);
+    border-radius:var(--radius-md); overflow:hidden; border:1px solid var(--border);
+    background:var(--surface-2);
+  }
+  .map-canvas{ position:absolute; inset:0; }
+
+  .map-fallback{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:8px; text-align:center; padding:24px;
+    background:var(--surface-2); color:var(--text-dim); font-size:13px;
+  }
+  .map-fallback-icon{ font-size:32px; opacity:0.6; }
+
+  .map-floating-controls{
+    position:absolute; right:12px; bottom:16px; display:flex; flex-direction:column; gap:8px; z-index:5;
+  }
+  .map-ctrl-btn{
+    width:38px; height:38px; border-radius:50%; background:var(--surface);
+    border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
+    font-size:16px; box-shadow:0 4px 12px -4px rgba(0,0,0,0.5);
+  }
+
+  .map-search-area-btn{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:5;
+    background:var(--amber); color:#14120F; font-size:12px; font-weight:700;
+    padding:9px 16px; border-radius:20px; box-shadow:0 4px 14px -4px rgba(0,0,0,0.6);
+  }
+
+  .map-mobile-toggle{ display:none; position:absolute; top:14px; left:14px; z-index:5; }
+
+  /* Mobile "fullscreen map" mode — only ever applied below the desktop
+     breakpoint (see switchStudioView), so no desktop override is needed. */
+  #screen-studios.map-fullscreen .studios-head,
+  #screen-studios.map-fullscreen .search-row,
+  #screen-studios.map-fullscreen .cat-row,
+  #screen-studios.map-fullscreen .view-toggle-row,
+  #screen-studios.map-fullscreen .section-head{
+    display:none;
+  }
+  #screen-studios.map-fullscreen .map-view-container{
+    margin:0; border-radius:0; border:none; height:calc(100vh - 132px);
+  }
+  #screen-studios.map-fullscreen .map-mobile-toggle{ display:flex; }
+
+  .map-preview-card{
+    position:absolute; left:12px; right:12px; bottom:14px; z-index:6;
+    display:none; gap:12px; background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius-md); padding:12px; box-shadow:0 10px 28px -10px rgba(0,0,0,0.6);
+    animation:mapPreviewIn .18s ease;
+  }
+  .map-preview-card.show{ display:flex; }
+  @keyframes mapPreviewIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+  .map-preview-thumb{ width:64px; height:64px; border-radius:10px; flex-shrink:0; position:relative; overflow:hidden; background:var(--surface-2); }
+  .map-preview-thumb .swatch{ position:absolute; inset:0; opacity:0.85; }
+  .map-preview-info{ flex:1; min-width:0; display:flex; flex-direction:column; justify-content:space-between; }
+  .map-preview-name{ font-size:13.5px; font-weight:700; }
+  .map-preview-meta{ font-size:11px; color:var(--text-faint); margin-top:2px; }
+  .map-preview-btn{
+    align-self:flex-start; margin-top:6px; padding:6px 12px; border-radius:14px;
+    background:var(--teal); color:#0A0908; font-size:11px; font-weight:700;
+  }
+  .map-preview-close{
+    position:absolute; top:8px; right:8px; width:22px; height:22px; border-radius:50%;
+    background:var(--surface-2); display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:var(--text-faint);
+  }
+
+  /* Custom marker pin — built as a DOM overlay (see MAP RENDERING module)
+     rather than a default Google Maps pin, so it matches the app's own
+     color language instead of introducing a foreign visual element. */
+  .map-marker-pin{
+    width:30px; height:30px; border-radius:50% 50% 50% 0; background:var(--amber);
+    border:2px solid #14120F; transform:rotate(-45deg); box-shadow:0 2px 6px rgba(0,0,0,0.4);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .map-marker-pin span{ transform:rotate(45deg); font-size:13px; }
+  .map-marker-pin.user-location{
+    width:16px; height:16px; border-radius:50%; background:var(--teal); transform:none;
+    border:3px solid #14120F; box-shadow:0 0 0 4px rgba(51,199,176,0.3);
+  }
+  .map-marker-cluster{
+    width:40px; height:40px; border-radius:50%; background:var(--teal); color:#0A0908;
+    border:2px solid #14120F; display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:800; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.4);
+  }
+
   .studio-list{ padding:4px 20px 0; display:flex; flex-direction:column; gap:14px; }
   .studio-card{
     display:flex; gap:12px; background:var(--surface);
@@ -539,6 +643,32 @@
     font-family:'JetBrains Mono',monospace;
   }
   .slot.selected{ background:var(--teal); color:#0A0908; border-color:var(--teal); }
+
+  /* ---- CALENDAR / DATE PICKER ---- */
+  .cal-widget{
+    border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface);
+    padding:14px; margin-bottom:18px;
+  }
+  .cal-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .cal-title{ font-family:'Space Grotesk',sans-serif; font-size:13.5px; font-weight:700; }
+  .cal-nav{ display:flex; gap:6px; }
+  .cal-nav-btn{
+    width:26px; height:26px; border-radius:50%; background:var(--surface-2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text-dim);
+  }
+  .cal-nav-btn.disabled{ opacity:0.35; pointer-events:none; }
+  .cal-weekdays{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; margin-bottom:4px; }
+  .cal-weekdays span{ font-size:10px; color:var(--text-faint); font-weight:600; text-transform:uppercase; }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .cal-day{
+    aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:12px;
+    border-radius:9px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; cursor:pointer;
+  }
+  .cal-day.empty{ pointer-events:none; }
+  .cal-day.past{ color:var(--text-faint); opacity:0.3; pointer-events:none; }
+  .cal-day.today:not(.selected){ border:1px solid var(--teal-dim); color:var(--teal); }
+  .cal-day.selected{ background:var(--teal); color:#0A0908; font-weight:700; }
+  .cal-day:hover:not(.past):not(.selected):not(.empty){ background:var(--surface-2); }
 
   .review-item{ border-top:1px solid var(--border); padding:14px 0; }
   .review-item:first-child{ border-top:none; padding-top:0; }
@@ -924,6 +1054,20 @@
     .studio-thumb{ width:100%; height:170px; border-radius:0; }
     .studio-info{ padding:12px 14px 16px; }
 
+    /* Map beside list on desktop — both stay mounted; the toggle just
+       decides whether the map column is present, not a full takeover
+       like on mobile. */
+    .studios-body-row{ display:block; }
+    .studios-body-row.map-active{
+      display:grid; grid-template-columns:minmax(320px, 1fr) minmax(360px, 480px);
+      gap:20px; align-items:start;
+    }
+    .studios-body-row.map-active .studio-list{
+      grid-template-columns:1fr; max-height:calc(100vh - 260px); overflow-y:auto;
+    }
+    .map-view-container{ margin:4px 0 0; height:calc(100vh - 240px); position:sticky; top:24px; }
+    .map-mobile-toggle{ display:none !important; }
+
     .modal-overlay{ align-items:center; justify-content:center; padding:24px; }
     .filter-sheet{
       width:440px; max-width:100%; max-height:82vh;
@@ -1041,7 +1185,7 @@
 
           <div id="google-official-wrap">
             <div id="g_id_onload"
-              data-client_id="152399337619-oiovu7ruhtgt7m43jhk7310lmtmp2rua.apps.googleusercontent.com"
+              data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
               data-callback="handleGoogleSignIn"
               data-auto_prompt="false">
             </div>
@@ -1224,6 +1368,13 @@
         <div class="cat-chip" data-tag="Mixing" role="button" tabindex="0" aria-pressed="false">🎧 Mixing</div>
       </div>
 
+      <div class="view-toggle-row" id="view-toggle-row">
+        <div class="view-toggle" id="view-toggle" role="radiogroup" aria-label="List or map view">
+          <div class="view-toggle-opt active" data-view="list" onclick="switchStudioView('list')" role="radio" tabindex="0" aria-checked="true">☰ List</div>
+          <div class="view-toggle-opt" data-view="map" onclick="switchStudioView('map')" role="radio" tabindex="0" aria-checked="false">🗺️ Map</div>
+        </div>
+      </div>
+
       <div class="section-head" style="padding:0 20px; margin-top:18px; flex-wrap:wrap; row-gap:6px;">
         <div style="display:flex; align-items:baseline; gap:10px;">
           <h2 id="results-count">Nearby studios</h2>
@@ -1241,7 +1392,33 @@
         </div>
       </div>
 
-      <div class="studio-list" id="studio-list"></div>
+      <div class="studios-body-row" id="studios-body-row">
+        <div class="studio-list" id="studio-list"></div>
+
+        <div class="map-view-container" id="map-view-container" style="display:none;">
+          <div class="map-canvas" id="map-canvas"></div>
+
+          <div class="map-fallback" id="map-fallback" style="display:none;">
+            <div class="map-fallback-icon">🗺️</div>
+            <p>Map view isn't available right now.</p>
+            <span class="see-all" onclick="switchStudioView('list')" role="button" tabindex="0">Back to list</span>
+          </div>
+
+          <div class="map-floating-controls" id="map-floating-controls">
+            <div class="map-ctrl-btn" id="map-locate-btn" onclick="goToCurrentLocation()" role="button" tabindex="0" aria-label="Go to my current location">🎯</div>
+            <div class="map-ctrl-btn" id="map-recenter-btn" onclick="recenterMap()" role="button" tabindex="0" aria-label="Recenter map to show all studios">⟲</div>
+          </div>
+
+          <div class="map-search-area-btn" id="map-search-area-btn" style="display:none;" onclick="searchThisArea()" role="button" tabindex="0">Search this area</div>
+
+          <div class="view-toggle map-mobile-toggle" id="map-mobile-toggle">
+            <div class="view-toggle-opt" data-view="list" onclick="switchStudioView('list')" role="radio" tabindex="0" aria-checked="false">☰ List</div>
+            <div class="view-toggle-opt active" data-view="map" onclick="switchStudioView('map')" role="radio" tabindex="0" aria-checked="true">🗺️ Map</div>
+          </div>
+
+          <div class="map-preview-card" id="map-preview-card"></div>
+        </div>
+      </div>
      </div>
     </div>
 
@@ -1294,7 +1471,18 @@
           <div class="equip-item"><div class="dot"></div>Shure SM58 x4</div>
         </div>
 
-        <div class="eyebrow">Available today</div>
+        <div class="eyebrow">Choose a date</div>
+        <div class="cal-widget" id="cal-widget">
+          <div class="cal-header">
+            <div class="cal-nav-btn" id="cal-prev-btn" onclick="changeCalendarMonth(-1)" role="button" tabindex="0" aria-label="Previous month">‹</div>
+            <div class="cal-title" id="cal-title">July 2026</div>
+            <div class="cal-nav-btn" onclick="changeCalendarMonth(1)" role="button" tabindex="0" aria-label="Next month">›</div>
+          </div>
+          <div class="cal-weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+          <div class="cal-grid" id="cal-grid"></div>
+        </div>
+
+        <div class="eyebrow">Available times</div>
         <div class="slot-row" id="slot-row">
           <div class="slot">10:00</div>
           <div class="slot selected">13:00</div>
@@ -1504,10 +1692,15 @@
 
         <div class="filter-block">
           <div class="filter-label-row">
-            <div class="filter-label">📍 Max Distance</div>
-            <span class="range-readout mono" id="distance-readout">10 km</span>
+            <div class="filter-label">📍 Distance</div>
           </div>
-          <input type="range" id="distance-slider" min="1" max="10" step="0.5" value="10" oninput="onDistanceChange(this.value)">
+          <div class="chip-select" id="distance-select" role="radiogroup" aria-label="Maximum distance">
+            <div class="chip-opt" data-val="2" role="radio" tabindex="0" aria-checked="false">Within 2 km</div>
+            <div class="chip-opt" data-val="5" role="radio" tabindex="0" aria-checked="false">Within 5 km</div>
+            <div class="chip-opt on" data-val="10" role="radio" tabindex="0" aria-checked="true">Within 10 km</div>
+            <div class="chip-opt" data-val="20" role="radio" tabindex="0" aria-checked="false">Within 20 km</div>
+            <div class="chip-opt" data-val="Infinity" role="radio" tabindex="0" aria-checked="false">Anywhere</div>
+          </div>
         </div>
 
         <div class="filter-block">
@@ -1860,7 +2053,7 @@
   const studios = [
     { id:'basement9', name:"Basement 9 Studios", loc:"Koramangala", distanceKm:2.3, rating:4.9, price:600,
       services:["Rehearsal","Recording"], genres:["Indie Rock","Jazz"], verified:true, daysAgo:5,
-      address:"5th Cross, Koramangala, Bengaluru", phone:"+91 98765 43210", hours:"9:00 AM – 11:00 PM, all days", capacity:"Up to 6 people",
+      address:"5th Cross, Koramangala, Bengaluru", phone:"+91 98765 43210", hours:"9:00 AM – 11:00 PM, all days", capacity:"Up to 6 people", lat:12.9352, lng:77.6245, city:"Koramangala",
       swatch:["#3A2818","#1A2624"],
       chips:["🎸 Rehearsal","🎙 Recording","🅿️ Parking","❄️ AC"],
       about:"A live room built around a vintage analog console, tuned for bands that want their rehearsal to sound like a soundcheck. Treated acoustics, in-house backline, and an engineer on call.",
@@ -1869,7 +2062,7 @@
       reviews:[{name:"Ritvik M.",rating:5.0,text:"Tightest room we've rehearsed in. The console alone is worth the price."},{name:"Naina K.",rating:4.5,text:"Great acoustics, booking was smooth. Parking gets tight on weekends."}] },
     { id:'cuepoint', name:"Cue Point", loc:"HSR Layout", distanceKm:4.1, rating:4.8, price:850,
       services:["Recording","Mixing"], genres:["Hip-Hop","Electronic"], verified:true, daysAgo:20,
-      address:"27th Main, HSR Layout, Bengaluru", phone:"+91 98450 11223", hours:"10:00 AM – 10:00 PM, Mon–Sat", capacity:"Up to 4 people",
+      address:"27th Main, HSR Layout, Bengaluru", phone:"+91 98450 11223", hours:"10:00 AM – 10:00 PM, Mon–Sat", capacity:"Up to 4 people", lat:12.9116, lng:77.6389, city:"HSR Layout",
       swatch:["#2A3428","#1E241A"],
       chips:["🎙 Recording","🎧 Mixing","☕ Lounge","🅿️ Parking"],
       about:"A boutique recording suite with a Neve-style console and a mix room built for detail work. Popular with producers finishing singles and EPs.",
@@ -1878,7 +2071,7 @@
       reviews:[{name:"Farah S.",rating:5.0,text:"Mix room translated perfectly to my car and headphones. Booking again."}] },
     { id:'drumyard', name:"The Drum Yard", loc:"Whitefield", distanceKm:6.8, rating:4.7, price:450,
       services:["Drum Rooms","Rehearsal"], genres:["Rock","Metal"], verified:false, daysAgo:2,
-      address:"ITPL Road, Whitefield, Bengaluru", phone:"+91 90080 55667", hours:"8:00 AM – 11:00 PM, all days", capacity:"Up to 3 drummers",
+      address:"ITPL Road, Whitefield, Bengaluru", phone:"+91 90080 55667", hours:"8:00 AM – 11:00 PM, all days", capacity:"Up to 3 drummers", lat:12.9698, lng:77.75, city:"Whitefield",
       swatch:["#241E2A","#2A1E22"],
       chips:["🥁 Drum Rooms","🎸 Rehearsal","🔇 Soundproofed"],
       about:"Three isolated drum rooms with a shared control booth. Built for drummers who practice loud and don't want to apologize for it.",
@@ -1887,7 +2080,7 @@
       reviews:[{name:"Karan V.",rating:4.5,text:"Isolation is real — three kits going at once and no bleed."}] },
     { id:'analogattic', name:"Analog Attic", loc:"Indiranagar", distanceKm:3.5, rating:5.0, price:700,
       services:["Recording","Piano Rooms"], genres:["Classical","Lo-fi"], verified:true, daysAgo:45,
-      address:"12th Main, Indiranagar, Bengaluru", phone:"+91 99001 22334", hours:"11:00 AM – 9:00 PM, Tue–Sun", capacity:"Up to 4 people",
+      address:"12th Main, Indiranagar, Bengaluru", phone:"+91 99001 22334", hours:"11:00 AM – 9:00 PM, Tue–Sun", capacity:"Up to 4 people", lat:12.9784, lng:77.6408, city:"Indiranagar",
       swatch:["#2A2418","#28201A"],
       chips:["🎙 Recording","🎹 Piano Rooms","🪟 Natural Light"],
       about:"A converted attic space with a 1960s upright and warm natural light. Favoured for stripped-down sessions and songwriter demos.",
@@ -1896,7 +2089,7 @@
       reviews:[{name:"Priya D.",rating:5.0,text:"The light in this room alone makes it worth booking for a demo session."}] },
     { id:'studio21', name:"Studio 21", loc:"Jayanagar", distanceKm:5.5, rating:4.4, price:350,
       services:["Rehearsal","Mixing"], genres:["Indie Rock","Electronic"], verified:false, daysAgo:1,
-      address:"4th Block, Jayanagar, Bengaluru", phone:"+91 97400 88990", hours:"9:00 AM – 9:00 PM, all days", capacity:"Up to 5 people",
+      address:"4th Block, Jayanagar, Bengaluru", phone:"+91 97400 88990", hours:"9:00 AM – 9:00 PM, all days", capacity:"Up to 5 people", lat:12.925, lng:77.5938, city:"Jayanagar",
       swatch:["#302818","#1E2A1C"],
       chips:["🎸 Rehearsal","🎧 Mixing","💸 Budget-friendly"],
       about:"A no-frills rehearsal space that keeps rates low for bands practicing on a budget. Basic backline included, BYO cymbals.",
@@ -1905,7 +2098,7 @@
       reviews:[{name:"Aman T.",rating:4.0,text:"Cheapest hourly rate in the area by a good margin. Gear is basic but works."}] },
     { id:'theloft', name:"The Loft Sessions", loc:"Malleshwaram", distanceKm:8.2, rating:4.6, price:950,
       services:["Recording","Mixing","Piano Rooms"], genres:["Jazz","Classical"], verified:true, daysAgo:60,
-      address:"Sampige Road, Malleshwaram, Bengaluru", phone:"+91 96200 33445", hours:"10:00 AM – 8:00 PM, Mon–Sat", capacity:"Up to 10 people",
+      address:"Sampige Road, Malleshwaram, Bengaluru", phone:"+91 96200 33445", hours:"10:00 AM – 8:00 PM, Mon–Sat", capacity:"Up to 10 people", lat:13.0068, lng:77.5813, city:"Malleshwaram",
       swatch:["#241C2E","#1A2222"],
       chips:["🎙 Recording","🎧 Mixing","🎹 Piano Rooms","🌇 Skyline View"],
       about:"A premium top-floor suite with a grand piano and floor-to-ceiling windows. Built for full-band live tracking and film scoring sessions.",
@@ -1913,6 +2106,360 @@
       slots:["10:00","14:00","17:00"],
       reviews:[{name:"Devika R.",rating:5.0,text:"Worth every rupee for a live band tracking session. The room sounds huge."}] },
   ];
+
+  // ============================================================
+  // LOCATION SERVICE
+  // Self-contained: everything else in the app keeps reading
+  // s.distanceKm exactly as before. This module is the only thing
+  // that writes to it — either from the browser's real geolocation
+  // (haversine against the user's coords) or, when permission is
+  // denied/unavailable, from the studio's own demo baseline. Swapping
+  // in a real backend later means changing what feeds userLocation
+  // and studios' lat/lng — nothing downstream has to change.
+  // ============================================================
+  const DEMO_MAP_CENTER = { lat:12.9716, lng:77.5946 }; // Bengaluru city center — demo fallback only
+  let userLocation = null; // {lat,lng} once the browser grants permission, else null
+  let _distanceGeneration = 0; // bumped on every refreshDistances() so caches can invalidate
+
+  studios.forEach(s => { s.baseDistanceKm = s.distanceKm; }); // preserve the original demo values
+
+  function haversineKm(lat1, lng1, lat2, lng2){
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  // Rough demo estimate only — a real integration would call the
+  // Directions/Distance Matrix API instead of guessing from distance.
+  function estimateTravelMin(km){
+    return Math.max(3, Math.round(4 + km * 4.5));
+  }
+
+  // Recomputes every studio's distanceKm (real, if we have userLocation;
+  // demo baseline otherwise) and travelTimeMin. Cheap enough at this
+  // studio count to just recompute all of them rather than memoize
+  // per-studio — the generation counter exists so *downstream* caches
+  // (like getFiltered's memo) know when to invalidate, not to skip work
+  // here.
+  function refreshDistances(){
+    studios.forEach(s => {
+      s.distanceKm = userLocation
+        ? Math.round(haversineKm(userLocation.lat, userLocation.lng, s.lat, s.lng) * 10) / 10
+        : s.baseDistanceKm;
+      s.travelTimeMin = estimateTravelMin(s.distanceKm);
+    });
+    _distanceGeneration++;
+  }
+  refreshDistances(); // seed travelTimeMin even before geolocation ever resolves
+
+  // Called from the Map view's "Current Location" control and from
+  // requestLocationOnce() below. Silent on failure/denial by design —
+  // the app already works fully on demo distances, so there's nothing
+  // to show the person beyond just... continuing to use those.
+  function requestUserLocation(onDone){
+    if(!('geolocation' in navigator)){ if(onDone) onDone(false); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        userLocation = { lat:pos.coords.latitude, lng:pos.coords.longitude };
+        refreshDistances();
+        render();
+        if(typeof refreshMapMarkers === 'function' && mapsApiState === 'ready') refreshMapMarkers();
+        if(onDone) onDone(true);
+      },
+      () => { if(onDone) onDone(false); },
+      { timeout:8000, maximumAge:60000 }
+    );
+  }
+
+  // ============================================================
+  // MAP RENDERING
+  // Google Maps JS API only lives in this block. It reads studios via
+  // getFiltered() — the exact same function the list uses — so filters
+  // always affect both without any separate map-side filtering logic.
+  // Every function here is written to degrade to List view instead of
+  // throwing if the Maps script fails, times out, or the key is invalid.
+  // ============================================================
+  const MAPS_CONFIG = {
+    // Placeholder — drop in a real key from a Google Cloud project to go
+    // live. Nothing else here needs to change: load failure (bad key,
+    // network down, blocked script) already routes through
+    // handleMapLoadFailure() into a clean List-view fallback.
+    apiKey: 'YOUR_GOOGLE_MAPS_API_KEY',
+  };
+
+  // Minimal dark "night mode" map theme so the map doesn't look like a
+  // bright rectangle dropped into an otherwise dark app.
+  const MAP_DARK_STYLE = [
+    { elementType:'geometry', stylers:[{ color:'#1E1B17' }] },
+    { elementType:'labels.text.stroke', stylers:[{ color:'#1E1B17' }] },
+    { elementType:'labels.text.fill', stylers:[{ color:'#8A8378' }] },
+    { featureType:'road', elementType:'geometry', stylers:[{ color:'#37312A' }] },
+    { featureType:'water', elementType:'geometry', stylers:[{ color:'#14120F' }] },
+    { featureType:'poi', elementType:'geometry', stylers:[{ color:'#241E19' }] },
+    { featureType:'administrative', elementType:'geometry', stylers:[{ color:'#37312A' }] },
+  ];
+
+  let mapsApiState = 'idle'; // idle | loading | ready | failed
+  let studioMap = null;
+  let mapMarkers = {};       // studio id -> { studio, marker }
+  let userLocationMarker = null;
+  let mapClusterMarkers = [];
+  let mapUserMoved = false;
+  let mapSkippedFirstIdle = false;
+
+  function ensureMapLoaded(onReady){
+    if(mapsApiState === 'ready'){ onReady(); return; }
+    if(mapsApiState === 'failed'){ handleMapLoadFailure(); return; }
+    if(mapsApiState === 'loading'){
+      document.addEventListener('sb:mapsReady', onReady, { once:true });
+      return;
+    }
+    mapsApiState = 'loading';
+    document.addEventListener('sb:mapsReady', onReady, { once:true });
+
+    const failTimer = setTimeout(() => {
+      if(mapsApiState !== 'ready') handleMapLoadFailure();
+    }, 6000);
+
+    window.__sbOnMapsLoaded = function(){
+      clearTimeout(failTimer);
+      if(typeof google === 'undefined' || !google.maps){ handleMapLoadFailure(); return; }
+      mapsApiState = 'ready';
+      document.dispatchEvent(new Event('sb:mapsReady'));
+    };
+
+    const script = document.createElement('script');
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=' + MAPS_CONFIG.apiKey + '&callback=__sbOnMapsLoaded';
+    script.async = true;
+    script.onerror = () => { clearTimeout(failTimer); handleMapLoadFailure(); };
+    document.head.appendChild(script);
+  }
+
+  // No crash, no dead-end: disable the Map toggle so it can't be
+  // re-tapped into a broken state, show a short explanation in the map
+  // panel, and land safely back on List view.
+  function handleMapLoadFailure(){
+    mapsApiState = 'failed';
+    const fallback = document.getElementById('map-fallback');
+    if(fallback) fallback.style.display = 'flex';
+    document.querySelectorAll('.view-toggle-opt[data-view="map"]').forEach(el => {
+      el.style.opacity = '0.4'; el.style.pointerEvents = 'none'; el.setAttribute('aria-disabled', 'true');
+    });
+    switchStudioView('list', true);
+  }
+
+  function initStudioMap(){
+    const canvas = document.getElementById('map-canvas');
+    if(!canvas || studioMap) return;
+    studioMap = new google.maps.Map(canvas, {
+      center: userLocation || DEMO_MAP_CENTER, zoom:12,
+      disableDefaultUI:true, zoomControl:true, gestureHandling:'greedy',
+      styles: MAP_DARK_STYLE,
+    });
+    studioMap.addListener('idle', () => {
+      // The map fires 'idle' once right after its first paint — that's
+      // not a "the person moved the map" event, so it's ignored once.
+      if(!mapSkippedFirstIdle){ mapSkippedFirstIdle = true; applyMarkerClustering(); return; }
+      applyMarkerClustering();
+      if(mapUserMoved){
+        const btn = document.getElementById('map-search-area-btn');
+        if(btn) btn.style.display = 'block';
+      }
+    });
+    studioMap.addListener('dragstart', () => { mapUserMoved = true; });
+    studioMap.addListener('zoom_changed', () => { mapUserMoved = true; });
+    refreshMapMarkers();
+  }
+
+  function createStudioMarker(s){
+    const marker = new google.maps.Marker({
+      position:{ lat:s.lat, lng:s.lng }, map:studioMap, title:s.name,
+      icon:{ path:google.maps.SymbolPath.CIRCLE, scale:10, fillColor:'#F0A63C', fillOpacity:1, strokeColor:'#14120F', strokeWeight:2 },
+    });
+    marker.addListener('click', () => showMarkerPreview(s));
+    return marker;
+  }
+
+  // Diffs the filtered list against the markers already on the map:
+  // stale ones are removed, new ones are created, and anything already
+  // present is left completely untouched — so panning/zooming or a
+  // no-op filter change never tears down and rebuilds markers that
+  // didn't actually change.
+  function refreshMapMarkers(){
+    if(!studioMap) return;
+    const list = getFiltered();
+    const nextIds = new Set(list.map(s => s.id));
+
+    Object.keys(mapMarkers).forEach(id => {
+      if(!nextIds.has(id)){
+        mapMarkers[id].marker.setMap(null);
+        delete mapMarkers[id];
+      }
+    });
+    list.forEach(s => {
+      if(mapMarkers[s.id]) return;
+      mapMarkers[s.id] = { studio:s, marker:createStudioMarker(s) };
+    });
+
+    renderUserLocationMarker();
+    applyMarkerClustering();
+    if(!mapUserMoved) fitMapToMarkers(list);
+
+    document.getElementById('results-count').textContent = list.length + (list.length === 1 ? ' studio found' : ' studios found');
+  }
+
+  function renderUserLocationMarker(){
+    if(!studioMap || !userLocation) return;
+    if(userLocationMarker){ userLocationMarker.setPosition(userLocation); return; }
+    userLocationMarker = new google.maps.Marker({
+      position:userLocation, map:studioMap, title:'Your location', zIndex:999,
+      icon:{ path:google.maps.SymbolPath.CIRCLE, scale:7, fillColor:'#33C7B0', fillOpacity:1, strokeColor:'#14120F', strokeWeight:3 },
+    });
+  }
+
+  function fitMapToMarkers(list){
+    if(!studioMap || !list.length) return;
+    const bounds = new google.maps.LatLngBounds();
+    list.forEach(s => bounds.extend({ lat:s.lat, lng:s.lng }));
+    if(userLocation) bounds.extend(userLocation);
+    studioMap.fitBounds(bounds, 56);
+  }
+
+  // ---- Marker clustering ----
+  // Groups markers by on-screen pixel proximity at the current zoom
+  // level (not by raw lat/lng, so the same two studios cluster when
+  // zoomed out and split apart when zoomed in). Self-contained on
+  // purpose: swapping this for a real marker-clustering library later
+  // only means replacing this one function's internals — every caller
+  // just calls applyMarkerClustering() and doesn't know how it works.
+  const CLUSTER_PIXEL_RADIUS = 46;
+  function applyMarkerClustering(){
+    if(!studioMap) return;
+    const projection = studioMap.getProjection();
+    if(!projection){ setTimeout(applyMarkerClustering, 150); return; }
+
+    mapClusterMarkers.forEach(m => m.setMap(null));
+    mapClusterMarkers = [];
+
+    const scale = Math.pow(2, studioMap.getZoom());
+    const groups = [];
+    Object.values(mapMarkers).forEach(entry => {
+      const point = projection.fromLatLngToPoint(entry.marker.getPosition());
+      const pixel = { x:point.x * scale, y:point.y * scale };
+      const group = groups.find(g => Math.hypot(g.pixel.x - pixel.x, g.pixel.y - pixel.y) < CLUSTER_PIXEL_RADIUS);
+      if(group) group.members.push(entry); else groups.push({ pixel, members:[entry] });
+    });
+
+    groups.forEach(g => {
+      if(g.members.length === 1){ g.members[0].marker.setMap(studioMap); return; }
+      g.members.forEach(m => m.marker.setMap(null));
+      const lat = g.members.reduce((sum, m) => sum + m.studio.lat, 0) / g.members.length;
+      const lng = g.members.reduce((sum, m) => sum + m.studio.lng, 0) / g.members.length;
+      const cluster = new google.maps.Marker({
+        position:{ lat, lng }, map:studioMap, zIndex:998,
+        icon:{ path:google.maps.SymbolPath.CIRCLE, scale:18, fillColor:'#33C7B0', fillOpacity:1, strokeColor:'#14120F', strokeWeight:2 },
+        label:{ text:String(g.members.length), color:'#0A0908', fontWeight:'800', fontSize:'13px' },
+      });
+      cluster.addListener('click', () => {
+        studioMap.panTo(cluster.getPosition());
+        studioMap.setZoom(Math.min(studioMap.getZoom() + 3, 18));
+      });
+      mapClusterMarkers.push(cluster);
+    });
+  }
+
+  // ---- Marker preview card ----
+  // A custom bottom card instead of Google's default InfoWindow, so it
+  // can reuse the app's own card styling exactly rather than fighting
+  // Maps' built-in bubble chrome.
+  function showMarkerPreview(s){
+    const card = document.getElementById('map-preview-card');
+    if(!card) return;
+    const gradient = 'linear-gradient(135deg,'+s.swatch[0]+','+s.swatch[1]+')';
+    card.innerHTML =
+      '<div class="map-preview-close" role="button" tabindex="0" aria-label="Close preview" onclick="hideMarkerPreview()">✕</div>'
+      + '<div class="map-preview-thumb"><div class="swatch" style="background:'+gradient+'" aria-hidden="true"></div></div>'
+      + '<div class="map-preview-info">'
+      + '<div class="map-preview-name">'+s.name+'</div>'
+      + '<div class="map-preview-meta">⭐ '+s.rating.toFixed(1)+' · ₹'+s.price+'/hr · 📍 '+s.distanceKm+' km</div>'
+      + '<div class="map-preview-btn" role="button" tabindex="0" onclick="openDetail(\''+s.id+'\')">Open Studio</div>'
+      + '</div>';
+    card.classList.add('show');
+  }
+  function hideMarkerPreview(){
+    const card = document.getElementById('map-preview-card');
+    if(card) card.classList.remove('show');
+  }
+
+  // ---- Map controls ----
+  function goToCurrentLocation(){
+    if(userLocation){
+      if(studioMap){ studioMap.panTo(userLocation); studioMap.setZoom(14); }
+      return;
+    }
+    requestUserLocation(granted => {
+      if(granted && studioMap){ studioMap.panTo(userLocation); studioMap.setZoom(14); }
+      else if(!granted) showToast("Couldn't access your location — using demo distances instead.");
+    });
+  }
+  function recenterMap(){
+    if(!studioMap) return;
+    mapUserMoved = false;
+    const btn = document.getElementById('map-search-area-btn');
+    if(btn) btn.style.display = 'none';
+    fitMapToMarkers(getFiltered());
+  }
+  // Re-syncs markers against the current filters for the map's new
+  // position. With a live backend this is also where a bounds-scoped
+  // query would go (map.getBounds() → fetch studios within that box) —
+  // the surrounding call sites (the button's onclick) never change.
+  function searchThisArea(){
+    if(!studioMap) return;
+    mapUserMoved = false;
+    const btn = document.getElementById('map-search-area-btn');
+    if(btn) btn.style.display = 'none';
+    refreshMapMarkers();
+  }
+
+  function switchStudioView(view, isFallback){
+    if(view === 'map' && mapsApiState === 'failed' && !isFallback) return;
+    const listEl = document.getElementById('studio-list');
+    const mapEl = document.getElementById('map-view-container');
+    const bodyRow = document.getElementById('studios-body-row');
+    const screenEl = document.getElementById('screen-studios');
+    const isDesktop = window.matchMedia('(min-width:1024px)').matches;
+
+    document.querySelectorAll('.view-toggle-opt').forEach(el => {
+      const active = el.dataset.view === view;
+      el.classList.toggle('active', active);
+      el.setAttribute('aria-checked', active);
+    });
+
+    if(view === 'map'){
+      bodyRow.classList.add('map-active');
+      mapEl.style.display = 'block';
+      if(!isDesktop){
+        listEl.style.display = 'none';
+        screenEl.classList.add('map-fullscreen');
+      }
+      ensureMapLoaded(() => {
+        initStudioMap();
+        // The container may have just become visible after being
+        // display:none — Maps can cache a stale 0×0 size from that, so
+        // nudge it to recompute before we fit bounds.
+        google.maps.event.trigger(studioMap, 'resize');
+        refreshMapMarkers();
+      });
+    } else {
+      bodyRow.classList.remove('map-active');
+      mapEl.style.display = 'none';
+      listEl.style.display = '';
+      screenEl.classList.remove('map-fullscreen');
+      hideMarkerPreview();
+    }
+  }
 
   const state = { search:'', services:new Set(), genres:new Set(), minRating:0, maxPrice:1000, maxDistance:10, verifiedOnly:false, sort:'recommended' };
   let pending = null;
@@ -1988,7 +2535,7 @@
   function getFiltered(){
     const signature = JSON.stringify([
       state.search, [...state.services].sort(), [...state.genres].sort(),
-      state.minRating, state.maxPrice, state.maxDistance, state.verifiedOnly, state.sort
+      state.minRating, state.maxPrice, state.maxDistance, state.verifiedOnly, state.sort, _distanceGeneration
     ]);
     if(signature === lastFilterSignature) return lastFilterResult;
 
@@ -2031,7 +2578,7 @@
     const list = getFiltered();
     const container = document.getElementById('studio-list');
     const hasActiveFilters = state.services.size || state.genres.size || state.minRating > 0 ||
-      state.maxPrice < 1000 || state.maxDistance < 10 || state.verifiedOnly || state.search.trim();
+      state.maxPrice < 1000 || state.maxDistance !== 10 || state.verifiedOnly || state.search.trim();
 
     container.innerHTML = list.length
       ? list.map(buildCard).join('')
@@ -2042,6 +2589,8 @@
     document.getElementById('results-count').textContent = list.length + (list.length === 1 ? ' studio found' : ' studios found');
     document.getElementById('filter-dot').classList.toggle('show', !!hasActiveFilters);
     document.getElementById('clear-filters-inline').style.display = hasActiveFilters ? 'inline' : 'none';
+
+    if(mapsApiState === 'ready' && studioMap) refreshMapMarkers();
   }
 
   // ---- HOME: dynamic sections ----
@@ -2279,8 +2828,11 @@
     document.getElementById('rating-readout').textContent = pending.minRating > 0 ? pending.minRating + '+ stars' : 'Any';
     document.getElementById('price-slider').value = pending.maxPrice;
     document.getElementById('price-readout').textContent = '₹' + pending.maxPrice + '/hr';
-    document.getElementById('distance-slider').value = pending.maxDistance;
-    document.getElementById('distance-readout').textContent = pending.maxDistance + ' km';
+    document.querySelectorAll('#distance-select .chip-opt').forEach(c => {
+      const isActive = Number(c.dataset.val) === pending.maxDistance || (c.dataset.val === 'Infinity' && pending.maxDistance === Infinity);
+      c.classList.toggle('on', isActive);
+      c.setAttribute('aria-checked', isActive);
+    });
     document.querySelectorAll('#services-select .chip-opt').forEach(c => c.classList.toggle('on', pending.services.has(c.dataset.val)));
     document.querySelectorAll('#genres-select .chip-opt').forEach(c => c.classList.toggle('on', pending.genres.has(c.dataset.val)));
     document.getElementById('verified-toggle').classList.toggle('on', pending.verifiedOnly);
@@ -2293,7 +2845,12 @@
     });
   });
   function onPriceChange(v){ pending.maxPrice = Number(v); document.getElementById('price-readout').textContent = '₹' + v + '/hr'; }
-  function onDistanceChange(v){ pending.maxDistance = Number(v); document.getElementById('distance-readout').textContent = v + ' km'; }
+  document.querySelectorAll('#distance-select .chip-opt').forEach(c => {
+    c.addEventListener('click', () => {
+      pending.maxDistance = c.dataset.val === 'Infinity' ? Infinity : Number(c.dataset.val);
+      syncModalUI();
+    });
+  });
   document.querySelectorAll('#services-select .chip-opt').forEach(c => {
     c.addEventListener('click', () => {
       const v = c.dataset.val;
@@ -2367,6 +2924,7 @@
     document.getElementById('slot-row').innerHTML = d.slots.map((t, i) =>
       '<div class="slot' + (i === 0 ? ' selected' : '') + '">' + t + '</div>'
     ).join('');
+    resetCalendarToToday();
     setSlotLabel(d.slots[0]);
 
     // Same for reviews — each studio has different ones in the data.
@@ -2398,8 +2956,92 @@
     document.getElementById('app-root').classList.add('showing-detail');
   }
 
+  // ---- CALENDAR / DATE PICKER ----
+  // Real month-view date picker, replacing the old "today only" slot list.
+  // Booking a date more than a few weeks out is still just picking from
+  // the same fixed slot times per studio — real per-day availability is a
+  // backend concern (a studio owner blocking specific dates), noted for
+  // when Supabase lands.
+  let calendarState = { year:0, month:0, selectedDate:null };
+  const CAL_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function todayMidnight(){
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t;
+  }
+
+  function resetCalendarToToday(){
+    const today = todayMidnight();
+    calendarState = { year: today.getFullYear(), month: today.getMonth(), selectedDate: today };
+    renderCalendar();
+  }
+
+  function renderCalendar(){
+    const { year, month, selectedDate } = calendarState;
+    const today = todayMidnight();
+    document.getElementById('cal-title').textContent = CAL_MONTH_NAMES[month] + ' ' + year;
+
+    // Can't book in the past, so "previous month" disables once we're
+    // already on the current month.
+    const isCurrentMonth = (year === today.getFullYear() && month === today.getMonth());
+    document.getElementById('cal-prev-btn').classList.toggle('disabled', isCurrentMonth);
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    let cellsHtml = '';
+    for(let i = 0; i < firstDay; i++) cellsHtml += '<div class="cal-day empty"></div>';
+    for(let day = 1; day <= daysInMonth; day++){
+      const cellDate = new Date(year, month, day);
+      const isPast = cellDate < today;
+      const isToday = cellDate.getTime() === today.getTime();
+      const isSelected = selectedDate && cellDate.getTime() === selectedDate.getTime();
+      const classes = ['cal-day'];
+      if(isPast) classes.push('past');
+      if(isToday) classes.push('today');
+      if(isSelected) classes.push('selected');
+      cellsHtml += '<div class="' + classes.join(' ') + '" onclick="selectCalendarDate(' + year + ',' + month + ',' + day + ')"'
+        + ' role="button" tabindex="' + (isPast ? '-1' : '0') + '" aria-label="' + CAL_MONTH_NAMES[month] + ' ' + day + (isSelected ? ', selected' : '') + '">'
+        + day + '</div>';
+    }
+    document.getElementById('cal-grid').innerHTML = cellsHtml;
+  }
+
+  function changeCalendarMonth(delta){
+    const today = todayMidnight();
+    let newMonth = calendarState.month + delta;
+    let newYear = calendarState.year;
+    if(newMonth < 0){ newMonth = 11; newYear--; }
+    if(newMonth > 11){ newMonth = 0; newYear++; }
+    if(newYear < today.getFullYear() || (newYear === today.getFullYear() && newMonth < today.getMonth())) return;
+    calendarState.year = newYear;
+    calendarState.month = newMonth;
+    renderCalendar();
+  }
+
+  function selectCalendarDate(year, month, day){
+    const picked = new Date(year, month, day);
+    if(picked < todayMidnight()) return; // safety net; past cells aren't reachable normally
+    calendarState.selectedDate = picked;
+    renderCalendar();
+    refreshSlotLabel();
+  }
+
+  function formatSelectedDateLabel(){
+    const today = todayMidnight();
+    const selected = calendarState.selectedDate || today;
+    if(selected.getTime() === today.getTime()) return 'Today';
+    return selected.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' });
+  }
+
+  function refreshSlotLabel(){
+    const selectedSlotEl = document.querySelector('#slot-row .slot.selected');
+    setSlotLabel(selectedSlotEl ? selectedSlotEl.textContent : '');
+  }
+
   function setSlotLabel(time){
-    const label = 'Today, ' + time;
+    const label = formatSelectedDateLabel() + ', ' + time;
     document.getElementById('detail-slot-label').textContent = label;
     document.getElementById('detail-slot-label-2').textContent = label;
   }
@@ -2458,6 +3100,15 @@
   function openStudioInMaps(){
     const d = studios.find(s => s.id === currentDetailId);
     if(!d) return;
+    if(d.lat != null && d.lng != null){
+      const destination = d.lat + ',' + d.lng;
+      let url = 'https://www.google.com/maps/dir/?api=1&destination=' + destination + '&destination_place_id=&travelmode=driving';
+      if(userLocation) url += '&origin=' + userLocation.lat + ',' + userLocation.lng;
+      window.open(url, '_blank');
+      return;
+    }
+    // Fallback for any studio missing coordinates — keeps this working
+    // exactly as before rather than failing silently.
     const query = encodeURIComponent(d.address || d.name + ', ' + d.loc);
     window.open('https://www.google.com/maps/search/?api=1&query=' + query, '_blank');
   }
@@ -2498,14 +3149,15 @@
     if(!d) return;
     const selectedSlotEl = document.querySelector('#screen-detail .slot.selected');
     const slot = selectedSlotEl ? selectedSlotEl.textContent : d.slots[0];
+    const scheduledDate = calendarState.selectedDate || todayMidnight();
 
-    // Prevent duplicate bookings — same studio, same time slot, same day.
-    const today = new Date().toDateString();
+    // Prevent duplicate bookings — same studio, same time slot, same
+    // calendar day (whichever day is actually selected, not just "today").
     const isDuplicate = profile.bookings.some(b =>
-      b.studioId === d.id && b.slot === slot && new Date(b.date).toDateString() === today
+      b.studioId === d.id && b.slot === slot && new Date(b.date).toDateString() === scheduledDate.toDateString()
     );
     if(isDuplicate){
-      showToast('You already have a booking for this studio at ' + slot + ' today.', 'error');
+      showToast('You already have a booking for this studio at ' + slot + ' on ' + formatSelectedDateLabel() + '.', 'error');
       return;
     }
 
@@ -2528,7 +3180,8 @@
         studioName: d.name,
         slot: slot,
         price: d.price,
-        date: now.toISOString(),
+        date: scheduledDate.toISOString(),
+        bookedAt: now.toISOString(),
         note: noteVal,
         timeline: [
           { label: 'Booking requested', at: now.toISOString() },
