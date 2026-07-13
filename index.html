@@ -643,6 +643,28 @@
   .user-row .ur-role-actions{ display:flex; gap:8px; margin-top:9px; flex-wrap:wrap; }
   .user-row .ur-role-actions .chip-opt{ padding:6px 11px; font-size:10.5px; }
 
+  /* ---- DASHBOARD SHELL (Founder + Studio) ---- */
+  .dash-header{
+    padding:54px 20px 0; background:linear-gradient(180deg, var(--surface) 0%, transparent 100%);
+    border-bottom:1px solid var(--border); margin-bottom:18px;
+  }
+  .dash-header-top{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .dash-icon{
+    width:42px; height:42px; border-radius:12px; flex-shrink:0; display:flex; align-items:center;
+    justify-content:center; font-size:19px; background:linear-gradient(135deg, var(--amber), var(--teal));
+  }
+  .dash-title{ font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; }
+  .dash-subtitle{ font-size:11.5px; color:var(--text-faint); margin-top:2px; }
+  .dash-tabs{ display:flex; gap:4px; }
+  .dash-tab{
+    padding:10px 4px 12px; font-size:12.5px; font-weight:600; color:var(--text-faint);
+    border-bottom:2px solid transparent; margin-right:18px; cursor:pointer;
+  }
+  .dash-tab.on{ color:var(--text); border-bottom-color:var(--teal); }
+  .dash-body{ padding:0 20px; }
+  .dash-panel{ display:none; }
+  .dash-panel.on{ display:block; }
+
   .similar-strip{ display:flex; gap:12px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
   .similar-strip::-webkit-scrollbar{ display:none; }
   .similar-card{
@@ -1682,39 +1704,57 @@
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
       </div>
 
-      <div style="padding:54px 20px 0;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-          <div style="font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700;">Founder Dashboard</div>
+      <div class="dash-header">
+        <div class="dash-header-top">
+          <div class="dash-icon">📊</div>
+          <div style="flex:1; min-width:0;">
+            <div class="dash-title">Founder Dashboard</div>
+            <div class="dash-subtitle">Platform performance, growth, and user management</div>
+          </div>
           <div class="reset-btn" onclick="loadFounderDashboard()" role="button" tabindex="0" aria-label="Refresh">⟳ Refresh</div>
         </div>
         <div id="founder-demo-banner" style="display:none; font-size:11px; color:var(--text-faint); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:9px 12px; margin-bottom:16px; line-height:1.5;">
           Demo data — connect Supabase to see real platform numbers here.
         </div>
+        <div class="dash-tabs">
+          <div class="dash-tab on" data-tab="overview" onclick="setFounderTab('overview')">Overview</div>
+          <div class="dash-tab" data-tab="users" onclick="setFounderTab('users')">Users</div>
+          <div class="dash-tab" data-tab="studios" onclick="setFounderTab('studios')">Studios</div>
+        </div>
+      </div>
 
-        <div class="info-grid">
-          <div class="info-item"><div class="info-label">🟢 Online Now</div><div class="info-value" id="fd-online-now" style="font-size:16px;">—</div></div>
-          <div class="info-item"><div class="info-label">Total Users</div><div class="info-value" id="fd-total-users" style="font-size:16px;">—</div></div>
-          <div class="info-item"><div class="info-label">Active (30d)</div><div class="info-value" id="fd-active-users" style="font-size:16px;">—</div></div>
-          <div class="info-item"><div class="info-label">Pending Bookings</div><div class="info-value" id="fd-pending-bookings" style="font-size:16px;">—</div></div>
+      <div class="dash-body">
+        <div class="dash-panel on" id="fd-panel-overview">
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label">🟢 Online Now</div><div class="info-value" id="fd-online-now" style="font-size:16px;">—</div></div>
+            <div class="info-item"><div class="info-label">Total Users</div><div class="info-value" id="fd-total-users" style="font-size:16px;">—</div></div>
+            <div class="info-item"><div class="info-label">Active (30d)</div><div class="info-value" id="fd-active-users" style="font-size:16px;">—</div></div>
+            <div class="info-item"><div class="info-label">Pending Bookings</div><div class="info-value" id="fd-pending-bookings" style="font-size:16px;">—</div></div>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label">Lifetime GMV</div><div class="info-value" id="fd-gmv-lifetime" style="font-size:16px;">—</div></div>
+            <div class="info-item"><div class="info-label">GMV (30d)</div><div class="info-value" id="fd-gmv-30d" style="font-size:16px;">—</div></div>
+            <div class="info-item"><div class="info-label">Avg. Booking Value</div><div class="info-value" id="fd-avg-booking" style="font-size:16px;">—</div></div>
+            <div class="info-item"><div class="info-label">Studios (Live / Total)</div><div class="info-value" id="fd-studio-counts" style="font-size:16px;">—</div></div>
+          </div>
+
+          <div class="eyebrow">Monthly Visitors</div>
+          <div id="fd-monthly-visitors" style="margin-bottom:22px;"></div>
+
+          <div class="eyebrow">Signups (Last 14 Days)</div>
+          <div id="fd-signup-growth" style="margin-bottom:30px;"></div>
         </div>
 
-        <div class="info-grid">
-          <div class="info-item"><div class="info-label">Lifetime GMV</div><div class="info-value" id="fd-gmv-lifetime" style="font-size:16px;">—</div></div>
-          <div class="info-item"><div class="info-label">GMV (30d)</div><div class="info-value" id="fd-gmv-30d" style="font-size:16px;">—</div></div>
+        <div class="dash-panel" id="fd-panel-users">
+          <input class="auth-input" id="fd-user-search" placeholder="Search by email or name..." oninput="onFounderUserSearch(this.value)" style="margin-bottom:12px;">
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-user-list"></div>
         </div>
 
-        <div class="eyebrow">Monthly Visitors</div>
-        <div id="fd-monthly-visitors" style="margin-bottom:22px;"></div>
-
-        <div class="eyebrow">Signups (Last 14 Days)</div>
-        <div id="fd-signup-growth" style="margin-bottom:22px;"></div>
-
-        <div class="eyebrow">Most Booked Studios</div>
-        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-studio-leaderboard"></div>
-
-        <div class="eyebrow">User Management</div>
-        <input class="auth-input" id="fd-user-search" placeholder="Search by email or name..." oninput="onFounderUserSearch(this.value)" style="margin-bottom:12px;">
-        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-user-list"></div>
+        <div class="dash-panel" id="fd-panel-studios">
+          <div class="eyebrow">Most Booked Studios</div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-studio-leaderboard"></div>
+        </div>
       </div>
      </div>
     </div>
@@ -1726,49 +1766,60 @@
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
       </div>
 
-      <div style="padding:54px 20px 0;">
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-          <div class="swatch" id="sd-swatch" style="width:48px; height:48px; border-radius:12px; flex-shrink:0; background:linear-gradient(135deg,#3A2818,#1A2624);"></div>
+      <div class="dash-header">
+        <div class="dash-header-top">
+          <div class="swatch" id="sd-swatch" style="width:42px; height:42px; border-radius:12px; flex-shrink:0; background:linear-gradient(135deg,#3A2818,#1A2624);"></div>
           <div style="flex:1; min-width:0;">
-            <div style="font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:700;" id="sd-studio-name">Studio</div>
-            <div style="font-size:11.5px; color:var(--text-faint);" id="sd-studio-loc">—</div>
+            <div class="dash-title" id="sd-studio-name">Studio</div>
+            <div class="dash-subtitle" id="sd-studio-loc">—</div>
           </div>
           <button class="reset-btn" onclick="openEditStudioListing()">Edit Listing</button>
         </div>
         <div id="sd-demo-banner" style="display:none; font-size:11px; color:var(--text-faint); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:9px 12px; margin-bottom:16px; line-height:1.5;">
           Demo mode — connect Supabase and claim a studio you actually own to see and manage real data here.
         </div>
+        <div class="dash-tabs">
+          <div class="dash-tab on" data-tab="overview" onclick="setStudioTab('overview')">Overview</div>
+          <div class="dash-tab" data-tab="requests" onclick="setStudioTab('requests')">Requests<span id="sd-requests-badge"></span></div>
+          <div class="dash-tab" data-tab="availability" onclick="setStudioTab('availability')">Availability</div>
+        </div>
+      </div>
 
-        <div id="sd-pending-section" style="display:none;">
-          <div class="eyebrow">Pending Requests</div>
+      <div class="dash-body">
+        <div class="dash-panel on" id="sd-panel-overview">
+          <div class="chip-select" id="sd-period-tabs" style="margin-bottom:16px;">
+            <div class="chip-opt" data-period="30d" onclick="setStudioDashboardPeriod('30d')">30 days</div>
+            <div class="chip-opt" data-period="90d" onclick="setStudioDashboardPeriod('90d')">90 days</div>
+            <div class="chip-opt" data-period="365d" onclick="setStudioDashboardPeriod('365d')">365 days</div>
+            <div class="chip-opt" data-period="lifetime" onclick="setStudioDashboardPeriod('lifetime')">Lifetime</div>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label">Revenue</div><div class="info-value" id="sd-revenue" style="font-size:16px;">₹0</div></div>
+            <div class="info-item"><div class="info-label">Bookings</div><div class="info-value" id="sd-booking-count" style="font-size:16px;">0</div></div>
+            <div class="info-item"><div class="info-label">Avg. per Booking</div><div class="info-value" id="sd-avg-booking" style="font-size:16px;">₹0</div></div>
+            <div class="info-item"><div class="info-label">Rating</div><div class="info-value" id="sd-rating" style="font-size:16px;">—</div></div>
+          </div>
+
+          <div class="eyebrow">Peak Hours</div>
+          <div id="sd-peak-hours" style="margin-bottom:22px;"></div>
+
+          <div class="eyebrow">Top Customers</div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="sd-top-customers"></div>
+        </div>
+
+        <div class="dash-panel" id="sd-panel-requests">
           <div id="sd-pending-list" style="margin-bottom:22px;"></div>
         </div>
 
-        <div class="chip-select" id="sd-period-tabs" style="margin-bottom:16px;">
-          <div class="chip-opt" data-period="30d" onclick="setStudioDashboardPeriod('30d')">30 days</div>
-          <div class="chip-opt" data-period="90d" onclick="setStudioDashboardPeriod('90d')">90 days</div>
-          <div class="chip-opt" data-period="365d" onclick="setStudioDashboardPeriod('365d')">365 days</div>
-          <div class="chip-opt" data-period="lifetime" onclick="setStudioDashboardPeriod('lifetime')">Lifetime</div>
+        <div class="dash-panel" id="sd-panel-availability">
+          <div class="eyebrow" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Blocked Dates</span>
+            <span class="cancel-link" style="color:var(--teal);" onclick="openBlockDateForm()">+ Block a date</span>
+          </div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:22px;" id="sd-blocked-slots"></div>
+          <div class="cancel-link" style="display:inline-block; margin-bottom:30px;" onclick="openStudioOwnerHub()">Manage a different studio</div>
         </div>
-
-        <div class="info-grid">
-          <div class="info-item"><div class="info-label">Revenue</div><div class="info-value" id="sd-revenue" style="font-size:16px;">₹0</div></div>
-          <div class="info-item"><div class="info-label">Bookings</div><div class="info-value" id="sd-booking-count" style="font-size:16px;">0</div></div>
-        </div>
-
-        <div class="eyebrow">Peak Hours</div>
-        <div id="sd-peak-hours" style="margin-bottom:22px;"></div>
-
-        <div class="eyebrow">Top Customers</div>
-        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:22px;" id="sd-top-customers"></div>
-
-        <div class="eyebrow" style="display:flex; justify-content:space-between; align-items:center;">
-          <span>Blocked Dates</span>
-          <span class="cancel-link" style="color:var(--teal);" onclick="openBlockDateForm()">+ Block a date</span>
-        </div>
-        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:22px;" id="sd-blocked-slots"></div>
-
-        <div class="cancel-link" style="display:inline-block; margin-bottom:30px;" onclick="openStudioOwnerHub()">Manage a different studio</div>
       </div>
      </div>
     </div>
@@ -2097,10 +2148,22 @@
 
   // Runs once per real sign-in: on initial getSession() restore, and every
   // time onAuthStateChange fires SIGNED_IN (covers the OAuth redirect
-  // return, token refresh, etc.).
+  // return). Guarded against a real Supabase gotcha: onAuthStateChange
+  // re-fires SIGNED_IN on tab refocus / background token refresh, not just
+  // on an actual new sign-in — without this guard, switching tabs and
+  // coming back would silently re-run the whole bootstrap below, including
+  // signInWithInfo() → enterApp(), which resets to the Home screen. That
+  // was the real cause of "always jumps back to Home on Alt+Tab".
+  let _lastHandledSupabaseUserId = null;
   async function handleSupabaseSession(session){
     if(!session || !session.user) return;
     const user = session.user;
+    const alreadyInApp = !document.getElementById('app-root').classList.contains('pre-auth');
+    if(_lastHandledSupabaseUserId === user.id && alreadyInApp){
+      return; // same user, already signed in — this is a refresh re-fire, not a new sign-in
+    }
+    _lastHandledSupabaseUserId = user.id;
+
     await upsertSupabaseProfile(user);
     const dbProfile = await loadSupabaseProfileRow(user.id);
     const meta = user.user_metadata || {};
@@ -2155,6 +2218,39 @@
   }
   restoreSupabaseSession();
 
+  // ---- ACTIVE SCREEN PERSISTENCE ----
+  // Survives Alt+Tab / tab switches and page reloads within the same
+  // browser tab session. sessionStorage (not localStorage) is deliberate —
+  // it should remember where you were during this visit, not forever.
+  const ACTIVE_SCREEN_KEY = 'soundboardActiveScreen';
+  function saveActiveScreen(screen){
+    try { sessionStorage.setItem(ACTIVE_SCREEN_KEY, screen); } catch(e){}
+  }
+  function getSavedActiveScreen(){
+    try { return sessionStorage.getItem(ACTIVE_SCREEN_KEY); } catch(e){ return null; }
+  }
+  function clearSavedActiveScreen(){
+    try { sessionStorage.removeItem(ACTIVE_SCREEN_KEY); } catch(e){}
+  }
+  // Called on visibilitychange/focus — a safety net alongside the
+  // onAuthStateChange re-fire guard above, so the active screen holds even
+  // if something else ever triggers a re-render on tab refocus.
+  function restoreActiveScreenIfNeeded(){
+    if(document.getElementById('app-root').classList.contains('pre-auth')) return;
+    if(document.getElementById('app-root').classList.contains('showing-detail')) return; // mid-detail-view — leave it alone
+    const saved = getSavedActiveScreen();
+    if(!saved) return;
+    const targetEl = document.getElementById('screen-' + saved);
+    if(!targetEl) return;
+    const current = document.querySelector('.screen.active');
+    if(current && current.id === 'screen-' + saved) return; // already there, nothing to do
+    nav(saved);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible') restoreActiveScreenIfNeeded();
+  });
+  window.addEventListener('focus', restoreActiveScreenIfNeeded);
+
   function nav(screen){
     document.getElementById('app-root').classList.remove('showing-detail');
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -2163,6 +2259,7 @@
     document.querySelectorAll('.nav-item[data-screen="' + screen + '"]').forEach(t => { t.classList.add('active'); t.setAttribute('aria-current', 'page'); });
     document.getElementById('screen-' + screen).scrollTop = 0;
     logPageView(screen);
+    saveActiveScreen(screen);
   }
 
   // Delegated listener: #slot-row's contents get replaced per-studio in
@@ -3800,6 +3897,16 @@
     showSkeletons();
     setTimeout(() => { render(); renderHome(); }, 380);
     startPresenceHeartbeat();
+
+    // If this is a page reload (or remembered-session restore) and we had
+    // a screen saved from before, go back there instead of sitting on
+    // Home — this is what makes a refresh mid-Settings actually land back
+    // on Settings. A genuinely fresh sign-in has nothing saved yet for
+    // this tab session, so it correctly falls through to Home above.
+    const saved = getSavedActiveScreen();
+    if(saved && saved !== 'home' && document.getElementById('screen-' + saved)){
+      nav(saved);
+    }
   }
 
   function logout(){
@@ -3817,6 +3924,7 @@
       sb.auth.signOut().catch(() => {}); // real session end; local state below is cleared regardless
     }
     stopPresenceHeartbeat();
+    clearSavedActiveScreen(); // so the next real sign-in starts fresh on Home, not wherever this session left off
     setActiveAccountKey(null);
     profile = emptyProfile();
     document.getElementById('app-root').classList.add('pre-auth');
@@ -4351,7 +4459,13 @@
 
   function openFounderDashboard(){
     nav('founder-dashboard');
+    setFounderTab('overview');
     loadFounderDashboard();
+  }
+
+  function setFounderTab(tab){
+    document.querySelectorAll('#screen-founder-dashboard .dash-tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
+    document.querySelectorAll('#screen-founder-dashboard .dash-panel').forEach(p => p.classList.toggle('on', p.id === 'fd-panel-' + tab));
   }
 
   function fdSeededRandom(seedStr){
@@ -4388,6 +4502,9 @@
           pendingBookings: pending || 0,
           gmvLifetime: (stats && stats.gmv_lifetime) || 0,
           gmv30d: (stats && stats.gmv_30d) || 0,
+          totalBookings: (stats && stats.total_bookings) || 0,
+          totalStudios: (stats && stats.total_studios) || 0,
+          publishedStudios: (stats && stats.published_studios) || 0,
         });
         renderFounderVisitors(visitors.map(v => ({ label: v.month_start, count: v.unique_sessions })));
         renderFounderGrowth(growth.map(g => ({ label: g.day, count: g.signups })));
@@ -4409,6 +4526,9 @@
       pendingBookings: Math.floor(rand() * 6),
       gmvLifetime: 180000 + Math.floor(rand() * 90000),
       gmv30d: 22000 + Math.floor(rand() * 12000),
+      totalBookings: 260 + Math.floor(rand() * 140),
+      totalStudios: studios.length,
+      publishedStudios: studios.length,
     });
 
     const months = ['Feb','Mar','Apr','May','Jun','Jul'];
@@ -4438,6 +4558,9 @@
     document.getElementById('fd-pending-bookings').textContent = s.pendingBookings;
     document.getElementById('fd-gmv-lifetime').textContent = '₹' + Math.round(s.gmvLifetime).toLocaleString('en-IN');
     document.getElementById('fd-gmv-30d').textContent = '₹' + Math.round(s.gmv30d).toLocaleString('en-IN');
+    const avgBooking = s.totalBookings ? s.gmvLifetime / s.totalBookings : 0;
+    document.getElementById('fd-avg-booking').textContent = '₹' + Math.round(avgBooking).toLocaleString('en-IN');
+    document.getElementById('fd-studio-counts').textContent = (s.publishedStudios || 0) + ' / ' + (s.totalStudios || 0);
   }
 
   function renderFounderBarList(containerId, rows){
@@ -4656,7 +4779,13 @@
   function goToStudioDashboard(id){
     studioDashboardPeriod = '30d';
     nav('studio-dashboard');
+    setStudioTab('overview');
     loadStudioDashboard();
+  }
+
+  function setStudioTab(tab){
+    document.querySelectorAll('#screen-studio-dashboard .dash-tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
+    document.querySelectorAll('#screen-studio-dashboard .dash-panel').forEach(p => p.classList.toggle('on', p.id === 'sd-panel-' + tab));
   }
 
   function setStudioDashboardPeriod(period){
@@ -4697,6 +4826,8 @@
         ]);
         document.getElementById('sd-revenue').textContent = '₹' + Math.round(revenue).toLocaleString('en-IN');
         document.getElementById('sd-booking-count').textContent = count;
+        document.getElementById('sd-avg-booking').textContent = '₹' + Math.round(count ? revenue / count : 0).toLocaleString('en-IN');
+        document.getElementById('sd-rating').textContent = '⭐ ' + s.rating.toFixed(1);
         renderPeakHours(peaks.map(p => ({ label: formatHourLabel(p.hour_of_day), count: p.bookings_count })));
         renderTopCustomers(customers.map(c => ({ name: c.full_name || 'Musician', count: c.bookings_count, value: c.total_spent })));
       } catch(err){
@@ -4713,6 +4844,8 @@
     const revenue = bookingCount * s.price * (0.9 + rand() * 0.2);
     document.getElementById('sd-revenue').textContent = '₹' + Math.round(revenue).toLocaleString('en-IN');
     document.getElementById('sd-booking-count').textContent = bookingCount;
+    document.getElementById('sd-avg-booking').textContent = '₹' + Math.round(bookingCount ? revenue / bookingCount : 0).toLocaleString('en-IN');
+    document.getElementById('sd-rating').textContent = '⭐ ' + s.rating.toFixed(1);
 
     const peaks = s.slots.map(slot => ({ label: slot, count: 2 + Math.floor(rand() * 14) })).sort((a, b) => a.label.localeCompare(b.label));
     renderPeakHours(peaks);
@@ -4756,21 +4889,21 @@
   async function loadPendingRequests(){
     const s = studios.find(x => x.id === profile.ownedStudioId);
     if(!s) return;
-    const section = document.getElementById('sd-pending-section');
+    const badge = document.getElementById('sd-requests-badge');
     const list = document.getElementById('sd-pending-list');
 
     let requests = [];
     if(BACKEND_ENABLED){
       try {
         const { data } = await sb.rpc('studio_pending_bookings', { p_studio_id: s.id });
-        requests = (data || []).map(r => ({ id: r.id, customer: r.customer_name || 'Musician', date: r.booking_date, slot: r.start_time, price: r.price }));
+        requests = (data || []).map(r => ({ id: r.id, customer: r.customer_name || 'Musician', date: r.booking_date, slot: r.time_slot, price: r.price }));
       } catch(err){ requests = []; }
     } else {
       requests = seedDemoStudioState(s.id).pending;
     }
 
-    section.style.display = requests.length ? 'block' : 'none';
-    list.innerHTML = requests.map(r => {
+    badge.textContent = requests.length ? ' (' + requests.length + ')' : '';
+    list.innerHTML = requests.length ? requests.map(r => {
       const dateStr = new Date(r.date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
       return '<div class="booking-row" style="flex-direction:column; align-items:stretch; gap:8px;">'
         + '<div style="display:flex; justify-content:space-between;">'
@@ -4781,7 +4914,7 @@
         + '<span class="cancel-link" style="color:var(--teal);" onclick="respondToBookingRequest(\'' + r.id + '\', \'confirmed\')">Accept</span>'
         + '<span class="cancel-link" onclick="respondToBookingRequest(\'' + r.id + '\', \'cancelled\')">Decline</span>'
         + '</div></div>';
-    }).join('');
+    }).join('') : '<div class="empty-note">No pending requests.</div>';
   }
 
   async function respondToBookingRequest(id, newStatus){
