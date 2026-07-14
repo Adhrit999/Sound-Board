@@ -1361,7 +1361,7 @@
 
       <div class="section" style="margin-top:20px;">
         <div class="eyebrow">On the board tonight</div>
-        <div class="featured-card" onclick="openDetail('basement9')" role="button" tabindex="0" aria-label="View featured studio, Basement 9 Studios">
+        <div class="featured-card" onclick="openDetail('a1000000-0000-4000-8000-000000000001')" role="button" tabindex="0" aria-label="View featured studio, Basement 9 Studios">
           <div class="featured-tag">
             <div class="vu on"><span></span><span></span><span></span><span></span></div>
             Featured
@@ -1388,9 +1388,9 @@
       <div class="section" style="margin-top:0;">
         <div class="section-head"><h2>Offers near you</h2><span class="see-all" onclick="openOffersModal()" role="button" tabindex="0">See all</span></div>
         <div class="offer-row">
-          <div class="offer-card" onclick="openDetail('studio21')" role="button" tabindex="0" aria-label="20% off Studio 21, Rehearsal"><div class="offer-pct">20% OFF</div><div class="offer-name">Studio 21 · Rehearsal</div></div>
-          <div class="offer-card" onclick="openDetail('cuepoint')" role="button" tabindex="0" aria-label="₹200 off Cue Point, first booking"><div class="offer-pct">₹200 OFF</div><div class="offer-name">Cue Point · First booking</div></div>
-          <div class="offer-card" onclick="openDetail('analogattic')" role="button" tabindex="0" aria-label="15% off Analog Attic, weekdays"><div class="offer-pct">15% OFF</div><div class="offer-name">Analog Attic · Weekdays</div></div>
+          <div class="offer-card" onclick="openDetail('a1000000-0000-4000-8000-000000000005')" role="button" tabindex="0" aria-label="20% off Studio 21, Rehearsal"><div class="offer-pct">20% OFF</div><div class="offer-name">Studio 21 · Rehearsal</div></div>
+          <div class="offer-card" onclick="openDetail('a1000000-0000-4000-8000-000000000002')" role="button" tabindex="0" aria-label="₹200 off Cue Point, first booking"><div class="offer-pct">₹200 OFF</div><div class="offer-name">Cue Point · First booking</div></div>
+          <div class="offer-card" onclick="openDetail('a1000000-0000-4000-8000-000000000004')" role="button" tabindex="0" aria-label="15% off Analog Attic, weekdays"><div class="offer-pct">15% OFF</div><div class="offer-name">Analog Attic · Weekdays</div></div>
         </div>
       </div>
 
@@ -2599,9 +2599,9 @@
   ensureSettings();
 
   const offersData = [
-    { pct:'20% OFF', name:'Studio 21 · Rehearsal', studioId:'studio21' },
-    { pct:'₹200 OFF', name:'Cue Point · First booking', studioId:'cuepoint' },
-    { pct:'15% OFF', name:'Analog Attic · Weekdays', studioId:'analogattic' }
+    { pct:'20% OFF', name:'Studio 21 · Rehearsal', studioId:'a1000000-0000-4000-8000-000000000005' },
+    { pct:'₹200 OFF', name:'Cue Point · First booking', studioId:'a1000000-0000-4000-8000-000000000002' },
+    { pct:'15% OFF', name:'Analog Attic · Weekdays', studioId:'a1000000-0000-4000-8000-000000000004' }
   ];
 
   // ---- THEME (applies immediately, independent of login state) ----
@@ -2631,7 +2631,7 @@
   }
 
   const studios = [
-    { id:'basement9', name:"Basement 9 Studios", loc:"Koramangala", distanceKm:2.3, rating:4.9, price:600,
+    { id:'a1000000-0000-4000-8000-000000000001', name:"Basement 9 Studios", loc:"Koramangala", distanceKm:2.3, rating:4.9, price:600,
       services:["Rehearsal","Recording"], genres:["Indie Rock","Jazz"], verified:true, daysAgo:5,
       address:"5th Cross, Koramangala, Bengaluru", phone:"+91 98765 43210", hours:"9:00 AM – 11:00 PM, all days", capacity:"Up to 6 people", lat:12.9352, lng:77.6245, city:"Koramangala",
       swatch:["#3A2818","#1A2624"],
@@ -2640,7 +2640,7 @@
       equip:["Fender Twin Reverb","Pearl Export Kit","Ampeg SVT Bass Rig","Shure SM58 x4"],
       slots:["10:00","13:00","16:00","19:00","21:00"],
       reviews:[{name:"Ritvik M.",rating:5.0,text:"Tightest room we've rehearsed in. The console alone is worth the price."},{name:"Naina K.",rating:4.5,text:"Great acoustics, booking was smooth. Parking gets tight on weekends."}] },
-    { id:'cuepoint', name:"Cue Point", loc:"HSR Layout", distanceKm:4.1, rating:4.8, price:850,
+    { id:'a1000000-0000-4000-8000-000000000002', name:"Cue Point", loc:"HSR Layout", distanceKm:4.1, rating:4.8, price:850,
       services:["Recording","Mixing"], genres:["Hip-Hop","Electronic"], verified:true, daysAgo:20,
       address:"27th Main, HSR Layout, Bengaluru", phone:"+91 98450 11223", hours:"10:00 AM – 10:00 PM, Mon–Sat", capacity:"Up to 4 people", lat:12.9116, lng:77.6389, city:"HSR Layout",
       swatch:["#2A3428","#1E241A"],
@@ -2649,7 +2649,7 @@
       equip:["Neve-style Console","Neumann U87","Genelec Monitors","Universal Audio Rack"],
       slots:["09:00","12:00","15:00","18:00"],
       reviews:[{name:"Farah S.",rating:5.0,text:"Mix room translated perfectly to my car and headphones. Booking again."}] },
-    { id:'drumyard', name:"The Drum Yard", loc:"Whitefield", distanceKm:6.8, rating:4.7, price:450,
+    { id:'a1000000-0000-4000-8000-000000000003', name:"The Drum Yard", loc:"Whitefield", distanceKm:6.8, rating:4.7, price:450,
       services:["Drum Rooms","Rehearsal"], genres:["Rock","Metal"], verified:false, daysAgo:2,
       address:"ITPL Road, Whitefield, Bengaluru", phone:"+91 90080 55667", hours:"8:00 AM – 11:00 PM, all days", capacity:"Up to 3 drummers", lat:12.9698, lng:77.75, city:"Whitefield",
       swatch:["#241E2A","#2A1E22"],
@@ -2658,7 +2658,7 @@
       equip:["DW Collector's Kit","Pearl Reference","Roland V-Drums","In-ear Monitor Rig"],
       slots:["11:00","14:00","17:00","20:00"],
       reviews:[{name:"Karan V.",rating:4.5,text:"Isolation is real — three kits going at once and no bleed."}] },
-    { id:'analogattic', name:"Analog Attic", loc:"Indiranagar", distanceKm:3.5, rating:5.0, price:700,
+    { id:'a1000000-0000-4000-8000-000000000004', name:"Analog Attic", loc:"Indiranagar", distanceKm:3.5, rating:5.0, price:700,
       services:["Recording","Piano Rooms"], genres:["Classical","Lo-fi"], verified:true, daysAgo:45,
       address:"12th Main, Indiranagar, Bengaluru", phone:"+91 99001 22334", hours:"11:00 AM – 9:00 PM, Tue–Sun", capacity:"Up to 4 people", lat:12.9784, lng:77.6408, city:"Indiranagar",
       swatch:["#2A2418","#28201A"],
@@ -2667,7 +2667,7 @@
       equip:["Yamaha U1 Upright","Rode NT1-A Pair","Tascam Tape Deck","Vintage Fender Rhodes"],
       slots:["10:00","13:00","16:00"],
       reviews:[{name:"Priya D.",rating:5.0,text:"The light in this room alone makes it worth booking for a demo session."}] },
-    { id:'studio21', name:"Studio 21", loc:"Jayanagar", distanceKm:5.5, rating:4.4, price:350,
+    { id:'a1000000-0000-4000-8000-000000000005', name:"Studio 21", loc:"Jayanagar", distanceKm:5.5, rating:4.4, price:350,
       services:["Rehearsal","Mixing"], genres:["Indie Rock","Electronic"], verified:false, daysAgo:1,
       address:"4th Block, Jayanagar, Bengaluru", phone:"+91 97400 88990", hours:"9:00 AM – 9:00 PM, all days", capacity:"Up to 5 people", lat:12.925, lng:77.5938, city:"Jayanagar",
       swatch:["#302818","#1E2A1C"],
@@ -2676,7 +2676,7 @@
       equip:["Marshall JCM800","Fender Bassman","Basic 4-piece Kit","2x Mic Stands"],
       slots:["09:00","12:00","15:00","18:00","20:00"],
       reviews:[{name:"Aman T.",rating:4.0,text:"Cheapest hourly rate in the area by a good margin. Gear is basic but works."}] },
-    { id:'theloft', name:"The Loft Sessions", loc:"Malleshwaram", distanceKm:8.2, rating:4.6, price:950,
+    { id:'a1000000-0000-4000-8000-000000000006', name:"The Loft Sessions", loc:"Malleshwaram", distanceKm:8.2, rating:4.6, price:950,
       services:["Recording","Mixing","Piano Rooms"], genres:["Jazz","Classical"], verified:true, daysAgo:60,
       address:"Sampige Road, Malleshwaram, Bengaluru", phone:"+91 96200 33445", hours:"10:00 AM – 8:00 PM, Mon–Sat", capacity:"Up to 10 people", lat:13.0068, lng:77.5813, city:"Malleshwaram",
       swatch:["#241C2E","#1A2222"],
@@ -3733,6 +3733,9 @@
 
     // Prevent duplicate bookings — same studio, same time slot, same
     // calendar day (whichever day is actually selected, not just "today").
+    // Note: this only checks bookings already known to this browser: a
+    // true cross-device duplicate check would need a server-side check at
+    // insert time, which is a reasonable next hardening step.
     const isDuplicate = profile.bookings.some(b =>
       b.studioId === d.id && b.slot === slot && new Date(b.date).toDateString() === scheduledDate.toDateString()
     );
@@ -3741,44 +3744,102 @@
       return;
     }
 
-    // Real button-loading feedback instead of an instant silent jump —
-    // briefly disables both Book Now buttons (mobile bar + desktop panel).
-    const bookButtons = document.querySelectorAll('#screen-detail .book-btn');
-    bookButtons.forEach(btn => {
-      btn.disabled = true;
-      btn.dataset.originalText = btn.textContent;
-      btn.textContent = 'Booking...';
-    });
+    openBookingReview(d, slot, scheduledDate);
+  }
 
-    setTimeout(() => {
-      const noteInput = document.getElementById('booking-note-input');
-      const noteVal = (noteInput.value || '').trim().slice(0, 200);
-      const now = new Date();
-      const booking = {
-        id: 'bk_' + Date.now(),
-        studioId: d.id,
-        studioName: d.name,
-        slot: slot,
-        price: d.price,
-        date: scheduledDate.toISOString(),
-        bookedAt: now.toISOString(),
-        note: noteVal,
-        timeline: [
-          { label: 'Booking requested', at: now.toISOString() },
-          { label: 'Booking confirmed', at: now.toISOString() }
-        ]
-      };
-      profile.bookings.push(booking);
-      saveProfile();
-      updateStats();
-      bookButtons.forEach(btn => {
-        btn.disabled = false;
-        btn.textContent = btn.dataset.originalText;
-      });
-      noteInput.value = '';
-      showToast('Booking saved locally (demo mode).');
-      openBookingConfirmation(booking);
-    }, 500);
+  // ---- Review step — nothing is created until the person actually
+  // confirms here. Real bookings start as 'pending' (the studio has to
+  // accept/decline); demo mode still books instantly since there's no
+  // real studio owner on the other end to approve it.
+  function openBookingReview(d, slot, scheduledDate){
+    const noteInput = document.getElementById('booking-note-input');
+    const noteVal = (noteInput.value || '').trim().slice(0, 200);
+    const dateLabel = formatSelectedDateLabel();
+
+    const body = ''
+      + '<div style="border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:14px;">'
+      + '<div class="b-name" style="font-size:15px;">' + d.name + '</div>'
+      + '<div class="b-meta" style="margin-top:4px;">' + dateLabel + ' · ' + slot + '</div>'
+      + '</div>'
+      + '<div style="display:flex; justify-content:space-between; margin-bottom:14px;"><span style="color:var(--text-faint); font-size:12px;">Session rate</span><span style="font-size:12.5px; font-weight:600;">₹' + d.price + '/hr</span></div>'
+      + (noteVal ? '<div style="margin-bottom:14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; font-size:12px; color:var(--text-dim); font-style:italic;">📝 ' + noteVal + '</div>' : '')
+      + '<div style="font-size:11px; color:var(--text-faint); line-height:1.5; margin-bottom:16px;">'
+      + (BACKEND_ENABLED
+          ? 'This sends a request to the studio — they\'ll accept or decline it, and you\'ll be notified either way.'
+          : 'Demo mode — this books instantly since there\'s no real studio owner to approve it.')
+      + '</div>'
+      + '<button class="apply-btn" style="width:100%;" id="confirm-booking-btn" onclick="confirmBooking(\'' + d.id + '\', \'' + slot.replace(/'/g, "\\'") + '\', \'' + scheduledDate.toISOString() + '\')">Confirm Booking</button>'
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="closeInfoModal()">Back</button>';
+
+    openInfoModal('Review Booking', body);
+  }
+
+  async function confirmBooking(studioId, slot, dateIso){
+    const d = studios.find(s => s.id === studioId);
+    if(!d) return;
+    const scheduledDate = new Date(dateIso);
+    const noteInput = document.getElementById('booking-note-input');
+    const noteVal = (noteInput.value || '').trim().slice(0, 200);
+    const now = new Date();
+
+    const confirmBtn = document.getElementById('confirm-booking-btn');
+    if(confirmBtn){ confirmBtn.disabled = true; confirmBtn.textContent = 'Booking...'; }
+
+    const willBePending = BACKEND_ENABLED;
+    const booking = {
+      id: 'bk_' + Date.now(), // replaced with the real row id below once inserted
+      studioId: d.id,
+      studioName: d.name,
+      slot: slot,
+      price: d.price,
+      date: scheduledDate.toISOString(),
+      bookedAt: now.toISOString(),
+      note: noteVal,
+      status: willBePending ? 'pending' : 'confirmed',
+      timeline: willBePending
+        ? [{ label: 'Booking requested', at: now.toISOString() }]
+        : [{ label: 'Booking requested', at: now.toISOString() }, { label: 'Booking confirmed', at: now.toISOString() }]
+    };
+
+    if(BACKEND_ENABLED){
+      if(!profile.supabaseUserId){
+        if(confirmBtn){ confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Booking'; }
+        showToast('Sign in first.', 'error');
+        return;
+      }
+      try {
+        const { data: inserted, error } = await sb.from('bookings').insert({
+          studio_id: d.id,
+          user_id: profile.supabaseUserId,
+          booking_date: scheduledDate.toISOString().slice(0, 10),
+          time_slot: slot,
+          price: d.price,
+          status: 'pending',
+        }).select('id').single();
+        if(error) throw error;
+        if(inserted) booking.id = inserted.id; // use the real row id from here on
+
+        // Best-effort — the studio owner already gets this live via the
+        // realtime bookings subscription if their dashboard is open; this
+        // notification is what reaches them if it isn't.
+        try {
+          const { data: studioRow } = await sb.from('studios').select('owner_id').eq('id', d.id).single();
+          if(studioRow && studioRow.owner_id) createNotification(studioRow.owner_id, 'New booking request', d.name + ' · ' + slot);
+        } catch(e){}
+      } catch(err){
+        if(confirmBtn){ confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Booking'; }
+        showToast('Could not send the booking request — please try again.', 'error');
+        return;
+      }
+    }
+
+    profile.bookings.push(booking);
+    saveProfile();
+    updateStats();
+    noteInput.value = '';
+    closeInfoModal();
+    showToast(willBePending ? 'Booking request sent.' : 'Booking confirmed (demo mode).');
+    openBookingConfirmation(booking);
   }
 
   function openBookingConfirmation(booking){
@@ -3862,7 +3923,7 @@
     showToast('Pick a new time to rebook ' + booking.studioName + '.');
   }
 
-  function cancelBooking(id){
+  async function cancelBooking(id){
     const idx = profile.bookings.findIndex(b => b.id === id);
     if(idx === -1) return;
     profile.bookings.splice(idx, 1);
@@ -3870,6 +3931,12 @@
     updateStats();
     showToast('Booking cancelled.');
     renderBookingHistory(); // refresh the list in place, keeping search/filter state
+
+    if(BACKEND_ENABLED && profile.supabaseUserId){
+      try {
+        await sb.from('bookings').update({ status: 'cancelled' }).eq('id', id).eq('user_id', profile.supabaseUserId);
+      } catch(err){ /* local cancellation already reflected; backend sync is best-effort here */ }
+    }
   }
 
   function showToast(msg, type){
@@ -5714,8 +5781,10 @@
       const d = new Date(b.date);
       const dateStr = d.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
       const isPast = d < now;
-      const statusLabel = isPast ? 'Completed' : 'Upcoming';
-      const statusColor = isPast ? 'var(--text-faint)' : 'var(--teal)';
+      let statusLabel, statusColor;
+      if(b.status === 'pending'){ statusLabel = 'Pending'; statusColor = 'var(--amber)'; }
+      else if(b.status === 'cancelled'){ statusLabel = 'Cancelled'; statusColor = 'var(--danger)'; }
+      else { statusLabel = isPast ? 'Completed' : 'Upcoming'; statusColor = isPast ? 'var(--text-faint)' : 'var(--teal)'; }
       return '<div class="booking-row" style="flex-direction:column; align-items:stretch; gap:8px;">'
         + '<div style="display:flex; justify-content:space-between; align-items:flex-start; cursor:pointer;" onclick="openBookingDetail(\'' + b.id + '\')">'
         + '<div><div class="b-name">' + b.studioName + '</div><div class="b-meta">' + dateStr + ' · ' + b.slot + '</div>'
@@ -5742,7 +5811,10 @@
     const d = new Date(b.date);
     const dateStr = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
     const isPast = new Date(b.date) < new Date(new Date().toDateString());
-    const statusLabel = isPast ? 'Completed' : 'Upcoming';
+    let statusLabel;
+    if(b.status === 'pending') statusLabel = 'Pending';
+    else if(b.status === 'cancelled') statusLabel = 'Cancelled';
+    else statusLabel = isPast ? 'Completed' : 'Upcoming';
 
     const timeline = (b.timeline && b.timeline.length) ? b.timeline : [{ label:'Booking confirmed', at:b.date }];
     if(isPast) timeline.push({ label:'Session completed', at:b.date });
