@@ -420,6 +420,27 @@
   .mic-btn.listening{ color:var(--danger); animation:micPulse 1s ease-in-out infinite; }
   @keyframes micPulse{ 0%,100%{ opacity:1; } 50%{ opacity:.4; } }
 
+  .spinning-refresh{ display:inline-block; animation:spinRefresh .8s linear infinite; }
+  @keyframes spinRefresh{ to{ transform:rotate(360deg); } }
+
+  /* ---- CONNECTION STATUS + NOTIFICATION BELL ---- */
+  .conn-dot{ width:8px; height:8px; border-radius:50%; background:var(--text-faint); flex-shrink:0; }
+  .conn-dot.online{ background:var(--teal); }
+  .conn-dot.offline{ background:var(--danger); }
+  .notif-bell{ position:relative; cursor:pointer; font-size:16px; }
+  .notif-bell-badge{
+    position:absolute; top:-4px; right:-6px; background:var(--danger); color:#fff;
+    font-size:9px; font-weight:700; min-width:15px; height:15px; border-radius:8px;
+    display:none; align-items:center; justify-content:center; padding:0 3px;
+  }
+  .notif-bell-badge.show{ display:flex; }
+  .notif-row{ padding:11px 14px; border-top:1px solid var(--border); font-size:12px; }
+  .notif-row:first-child{ border-top:none; }
+  .notif-row.unread{ background:var(--surface-2); }
+  .notif-row .nr-title{ font-weight:600; margin-bottom:2px; }
+  .notif-row .nr-body{ color:var(--text-faint); }
+  .notif-row .nr-time{ font-size:10px; color:var(--text-faint); margin-top:4px; }
+
   .search-suggest-panel{
     position:absolute; top:calc(100% + 6px); left:20px; right:66px; z-index:50;
     background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md);
@@ -1308,7 +1329,13 @@
           <div class="greet-label" id="greet-time">Good Evening</div>
           <div class="greet-name" id="greet-name">Hey there 👋</div>
         </div>
-        <div class="avatar" id="home-avatar" onclick="nav('profile')">A</div>
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div class="conn-dot" id="conn-status-dot" title="Realtime connection status" style="display:none;"></div>
+          <div class="notif-bell" id="notif-bell" onclick="openNotificationCenter()" role="button" tabindex="0" aria-label="Notifications" style="display:none;">
+            🔔<span class="notif-bell-badge" id="notif-bell-badge">0</span>
+          </div>
+          <div class="avatar" id="home-avatar" onclick="nav('profile')">A</div>
+        </div>
       </div>
 
       <div class="demo-banner" id="demo-banner">
@@ -1711,7 +1738,7 @@
             <div class="dash-title">Founder Dashboard</div>
             <div class="dash-subtitle">Platform performance, growth, and user management</div>
           </div>
-          <div class="reset-btn" onclick="loadFounderDashboard()" role="button" tabindex="0" aria-label="Refresh">⟳ Refresh</div>
+          <button class="reset-btn" id="fd-refresh-btn" onclick="refreshFounderDashboard()" aria-label="Refresh">⟳ Refresh</button>
         </div>
         <div id="founder-demo-banner" style="display:none; font-size:11px; color:var(--text-faint); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:9px 12px; margin-bottom:16px; line-height:1.5;">
           Demo data — connect Supabase to see real platform numbers here.
@@ -1720,6 +1747,7 @@
           <div class="dash-tab on" data-tab="overview" onclick="setFounderTab('overview')">Overview</div>
           <div class="dash-tab" data-tab="users" onclick="setFounderTab('users')">Users</div>
           <div class="dash-tab" data-tab="studios" onclick="setFounderTab('studios')">Studios</div>
+          <div class="dash-tab" data-tab="access" onclick="setFounderTab('access')">Studio Access</div>
         </div>
       </div>
 
@@ -1752,8 +1780,18 @@
         </div>
 
         <div class="dash-panel" id="fd-panel-studios">
-          <div class="eyebrow">Most Booked Studios</div>
+          <div class="eyebrow">Studio Management</div>
           <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-studio-leaderboard"></div>
+        </div>
+
+        <div class="dash-panel" id="fd-panel-access">
+          <div style="font-size:11.5px; color:var(--text-faint); margin-bottom:14px; line-height:1.5;">
+            Only whitelisted emails can be promoted to Studio Owner in the Users tab. Add an email here first.
+          </div>
+          <input class="auth-input" id="fd-whitelist-add-input" placeholder="Email to whitelist..." style="margin-bottom:10px;">
+          <button class="apply-btn" style="width:100%; margin-bottom:20px;" onclick="addToWhitelist()">Add to Whitelist</button>
+          <div class="eyebrow">Whitelisted Emails</div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-whitelist-list"></div>
         </div>
       </div>
      </div>
@@ -1773,6 +1811,7 @@
             <div class="dash-title" id="sd-studio-name">Studio</div>
             <div class="dash-subtitle" id="sd-studio-loc">—</div>
           </div>
+          <button class="reset-btn" id="sd-refresh-btn" onclick="refreshStudioDashboard()" aria-label="Refresh" style="margin-right:8px;">⟳</button>
           <button class="reset-btn" onclick="openEditStudioListing()">Edit Listing</button>
         </div>
         <div id="sd-demo-banner" style="display:none; font-size:11px; color:var(--text-faint); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:9px 12px; margin-bottom:16px; line-height:1.5;">
@@ -2093,22 +2132,38 @@
 
   // ---- Presence heartbeat ("online right now") ----
   // Updates the signed-in user's last_active_at every 45s while the tab is
-  // open. The Founder's Dashboard treats anyone active in the last few
-  // minutes as "online" — no separate presence table needed.
+  // open AND visible. The Founder's Dashboard treats anyone active in the
+  // last few minutes as "online" — no separate presence table needed.
   let _heartbeatTimer = null;
+  let _heartbeatWasRunning = false; // remembers whether to resume after the tab is hidden
+  function _presenceBeat(){
+    if(typeof profile === 'undefined' || !profile.supabaseUserId) return;
+    sb.from('profiles').update({ last_active_at: new Date().toISOString() })
+      .eq('id', profile.supabaseUserId).then(() => {}, () => {});
+  }
   function startPresenceHeartbeat(){
-    if(!BACKEND_ENABLED || _heartbeatTimer) return;
-    const beat = () => {
-      if(typeof profile === 'undefined' || !profile.supabaseUserId) return;
-      sb.from('profiles').update({ last_active_at: new Date().toISOString() })
-        .eq('id', profile.supabaseUserId).then(() => {}, () => {});
-    };
-    beat();
-    _heartbeatTimer = setInterval(beat, 45000);
+    if(!BACKEND_ENABLED) return;
+    _heartbeatWasRunning = true;
+    if(_heartbeatTimer || document.visibilityState === 'hidden') return; // will resume on visibilitychange instead
+    _presenceBeat();
+    _heartbeatTimer = setInterval(_presenceBeat, 45000);
   }
   function stopPresenceHeartbeat(){
+    _heartbeatWasRunning = false;
     if(_heartbeatTimer){ clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
   }
+  // Genuinely pause while the tab is hidden (no wasted requests while
+  // backgrounded), and beat immediately on refocus rather than waiting up
+  // to 45s for the next tick — so "online now" reflects reality quickly.
+  document.addEventListener('visibilitychange', () => {
+    if(!_heartbeatWasRunning) return;
+    if(document.visibilityState === 'hidden'){
+      if(_heartbeatTimer){ clearInterval(_heartbeatTimer); _heartbeatTimer = null; }
+    } else {
+      _presenceBeat();
+      if(!_heartbeatTimer) _heartbeatTimer = setInterval(_presenceBeat, 45000);
+    }
+  });
 
   // ============================================================
   // REAL AUTH (Supabase) — only active when BACKEND_ENABLED
@@ -2183,6 +2238,11 @@
     profile.role = (dbProfile && dbProfile.role) || 'user';
     saveProfile();
     renderSettingsUI(); // refresh Founder Dashboard entry visibility now that role is known
+
+    document.getElementById('notif-bell').style.display = 'flex';
+    startConnectionStatusMonitor();
+    refreshUnreadNotificationCount();
+    subscribeToOwnNotifications();
   }
 
   // Real "Continue with Google" — a full redirect to Google and back,
@@ -2217,6 +2277,125 @@
     });
   }
   restoreSupabaseSession();
+
+  // ============================================================
+  // REALTIME
+  // ============================================================
+  // Every channel this app opens gets tracked here so logout() can
+  // actually close them — leaving realtime connections open after
+  // sign-out would keep receiving (and, worse, keep the connection
+  // counted as "online") for a signed-out session.
+  const activeRealtimeChannels = [];
+  function trackRealtimeChannel(channel){
+    activeRealtimeChannels.push(channel);
+    return channel;
+  }
+  function cleanupAllRealtimeChannels(){
+    while(activeRealtimeChannels.length){
+      const ch = activeRealtimeChannels.pop();
+      try { sb.removeChannel(ch); } catch(e){}
+    }
+    setConnectionStatus('offline');
+  }
+
+  // ---- Connection status indicator ----
+  function setConnectionStatus(state){
+    const dot = document.getElementById('conn-status-dot');
+    if(!dot) return;
+    dot.classList.remove('online', 'offline');
+    if(state === 'online') dot.classList.add('online');
+    else if(state === 'offline') dot.classList.add('offline');
+    dot.title = state === 'online' ? 'Realtime: connected' : state === 'offline' ? 'Realtime: disconnected' : 'Realtime: connecting...';
+  }
+
+  // A lightweight channel with no table filter, purely to reflect overall
+  // realtime connectivity in the UI — separate from the per-screen
+  // bookings/notifications channels below, so it stays alive across
+  // screen changes for as long as the user is signed in.
+  function startConnectionStatusMonitor(){
+    if(!BACKEND_ENABLED) return;
+    document.getElementById('conn-status-dot').style.display = 'block';
+    const channel = sb.channel('connection-status')
+      .subscribe((status) => {
+        if(status === 'SUBSCRIBED') setConnectionStatus('online');
+        else if(status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setConnectionStatus('offline');
+      });
+    trackRealtimeChannel(channel);
+  }
+
+  // ---- Notification center ----
+  let unreadNotificationCount = 0;
+  function updateNotifBadge(count){
+    unreadNotificationCount = count;
+    const badge = document.getElementById('notif-bell-badge');
+    badge.textContent = count > 9 ? '9+' : String(count);
+    badge.classList.toggle('show', count > 0);
+  }
+
+  async function createNotification(userId, title, body){
+    if(!BACKEND_ENABLED || !userId) return;
+    try { await sb.from('notifications').insert({ user_id: userId, title, body }); } catch(e){}
+  }
+
+  async function refreshUnreadNotificationCount(){
+    if(!BACKEND_ENABLED || !profile.supabaseUserId) return;
+    try {
+      const { count } = await sb.from('notifications').select('id', { count: 'exact', head: true })
+        .eq('user_id', profile.supabaseUserId).eq('read', false);
+      updateNotifBadge(count || 0);
+    } catch(e){}
+  }
+
+  async function openNotificationCenter(){
+    if(!BACKEND_ENABLED){
+      openInfoModal('Notifications', '<div class="empty-note">Connect Supabase to see real notifications here.</div>');
+      return;
+    }
+    let rows = [];
+    try {
+      const { data } = await sb.from('notifications').select('*')
+        .eq('user_id', profile.supabaseUserId).order('created_at', { ascending: false }).limit(30);
+      rows = data || [];
+    } catch(e){}
+
+    const body = rows.length ? rows.map(n => {
+      const time = new Date(n.created_at).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'numeric', minute:'2-digit' });
+      return '<div class="notif-row' + (n.read ? '' : ' unread') + '">'
+        + '<div class="nr-title">' + n.title + '</div>'
+        + (n.body ? '<div class="nr-body">' + n.body + '</div>' : '')
+        + '<div class="nr-time">' + time + '</div></div>';
+    }).join('') : '<div class="empty-note">No notifications yet.</div>';
+
+    openInfoModal('Notifications', body);
+
+    // Mark everything visible as read now that the person has actually
+    // opened the list — matches how most notification centers behave.
+    const unreadIds = rows.filter(n => !n.read).map(n => n.id);
+    if(unreadIds.length){
+      try {
+        await sb.from('notifications').update({ read: true }).in('id', unreadIds);
+        updateNotifBadge(0);
+      } catch(e){}
+    }
+  }
+
+  // Live badge updates — a new row for this user bumps the unread count
+  // and toasts immediately, without polling.
+  let _notificationsChannel = null;
+  function subscribeToOwnNotifications(){
+    if(!BACKEND_ENABLED || !profile.supabaseUserId || _notificationsChannel) return;
+    _notificationsChannel = trackRealtimeChannel(
+      sb.channel('notifications-' + profile.supabaseUserId)
+        .on('postgres_changes', {
+          event: 'INSERT', schema: 'public', table: 'notifications',
+          filter: 'user_id=eq.' + profile.supabaseUserId,
+        }, (payload) => {
+          updateNotifBadge(unreadNotificationCount + 1);
+          showToast(payload.new.title);
+        })
+        .subscribe()
+    );
+  }
 
   // ---- ACTIVE SCREEN PERSISTENCE ----
   // Survives Alt+Tab / tab switches and page reloads within the same
@@ -3922,8 +4101,14 @@
     }catch(e){}
     if(BACKEND_ENABLED){
       sb.auth.signOut().catch(() => {}); // real session end; local state below is cleared regardless
+      cleanupAllRealtimeChannels();
+      _notificationsChannel = null;
+      unsubscribeStudioBookingsRealtime();
+      unsubscribeFounderActivity();
     }
     stopPresenceHeartbeat();
+    document.getElementById('notif-bell').style.display = 'none';
+    document.getElementById('conn-status-dot').style.display = 'none';
     clearSavedActiveScreen(); // so the next real sign-in starts fresh on Home, not wherever this session left off
     setActiveAccountKey(null);
     profile = emptyProfile();
@@ -4461,6 +4646,32 @@
     nav('founder-dashboard');
     setFounderTab('overview');
     loadFounderDashboard();
+    subscribeToFounderActivity();
+  }
+
+  // Realtime for the Founder Dashboard: rather than re-running every
+  // aggregate RPC on every single insert (noisy and needlessly expensive
+  // for a dashboard nobody's staring at pixel-by-pixel), a new booking
+  // anywhere on the platform just surfaces a toast prompting a refresh —
+  // the actual numbers update via the existing Refresh button.
+  let _founderActivityChannel = null;
+  function subscribeToFounderActivity(){
+    if(!BACKEND_ENABLED || _founderActivityChannel) return;
+    _founderActivityChannel = trackRealtimeChannel(
+      sb.channel('founder-activity')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bookings' }, () => {
+          showToast('New booking activity — tap ⟳ Refresh to update.');
+        })
+        .subscribe()
+    );
+  }
+  function unsubscribeFounderActivity(){
+    if(_founderActivityChannel){
+      try { sb.removeChannel(_founderActivityChannel); } catch(e){}
+      const idx = activeRealtimeChannels.indexOf(_founderActivityChannel);
+      if(idx > -1) activeRealtimeChannels.splice(idx, 1);
+      _founderActivityChannel = null;
+    }
   }
 
   function setFounderTab(tab){
@@ -4480,21 +4691,51 @@
     };
   }
 
+  // Each section below fetches + renders completely independently, and
+  // Promise.allSettled means one section failing can NEVER block another
+  // from loading. This is the actual fix for "User Management shows no
+  // users" — it was previously the last item inside one shared try/catch
+  // with four other RPC calls, so any single one of those failing meant
+  // the user list silently never even got requested.
   async function loadFounderDashboard(){
     const banner = document.getElementById('founder-demo-banner');
+    banner.style.display = BACKEND_ENABLED ? 'none' : 'block';
+    await Promise.allSettled([
+      loadFounderStatsSection(),
+      loadFounderVisitorsSection(),
+      loadFounderGrowthSection(),
+      loadFounderStudiosSection(),
+      loadFounderUserList(),
+      loadFounderWhitelist(),
+    ]);
+  }
 
+  // Wraps loadFounderDashboard with real button feedback: disables +
+  // spins the refresh icon, then a success or error toast depending on
+  // whether every section actually succeeded.
+  async function refreshFounderDashboard(){
+    const btn = document.getElementById('fd-refresh-btn');
+    btn.disabled = true;
+    btn.classList.add('spinning-refresh');
+    try {
+      await loadFounderDashboard();
+      showToast('Dashboard updated.');
+    } catch(err){
+      showToast('Could not refresh the dashboard.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('spinning-refresh');
+    }
+  }
+
+  async function loadFounderStatsSection(){
     if(BACKEND_ENABLED){
-      banner.style.display = 'none';
       try {
-        const [stats, visitors, growth, pending, leaderboard] = await Promise.all([
+        const [stats, pending, onlineNow] = await Promise.all([
           sb.rpc('admin_platform_stats').then(r => r.data && r.data[0]),
-          sb.rpc('admin_monthly_visitors', { p_months: 6 }).then(r => r.data || []),
-          sb.rpc('admin_signup_growth', { p_days: 14 }).then(r => r.data || []),
           sb.rpc('admin_pending_bookings_count').then(r => r.data),
-          sb.rpc('admin_studio_leaderboard', { p_limit: 6 }).then(r => r.data || []),
+          sb.rpc('admin_online_now', { p_minutes: 3 }).then(r => r.data),
         ]);
-        const onlineNow = await sb.rpc('admin_online_now', { p_minutes: 3 }).then(r => r.data);
-
         renderFounderStats({
           onlineNow: onlineNow || 0,
           totalUsers: (stats && stats.total_users) || 0,
@@ -4506,18 +4747,11 @@
           totalStudios: (stats && stats.total_studios) || 0,
           publishedStudios: (stats && stats.published_studios) || 0,
         });
-        renderFounderVisitors(visitors.map(v => ({ label: v.month_start, count: v.unique_sessions })));
-        renderFounderGrowth(growth.map(g => ({ label: g.day, count: g.signups })));
-        renderFounderLeaderboard(leaderboard.map(s => ({ name: s.title, count: s.bookings_count, value: s.revenue })));
-        loadFounderUserList();
       } catch(err){
-        showToast('Could not load dashboard data — check your Supabase config.', 'error');
+        showToast('Could not load platform stats.', 'error');
       }
       return;
     }
-
-    // ---- Demo mode ----
-    banner.style.display = 'block';
     const rand = fdSeededRandom('founder-dashboard-demo');
     renderFounderStats({
       onlineNow: 3 + Math.floor(rand() * 9),
@@ -4530,10 +4764,34 @@
       totalStudios: studios.length,
       publishedStudios: studios.length,
     });
+  }
 
+  async function loadFounderVisitorsSection(){
+    if(BACKEND_ENABLED){
+      try {
+        const { data } = await sb.rpc('admin_monthly_visitors', { p_months: 6 });
+        renderFounderVisitors((data || []).map(v => ({ label: v.month_start, count: v.unique_sessions })));
+      } catch(err){
+        renderFounderVisitors([]);
+      }
+      return;
+    }
+    const rand = fdSeededRandom('founder-visitors-demo');
     const months = ['Feb','Mar','Apr','May','Jun','Jul'];
     renderFounderVisitors(months.map(m => ({ label: m, count: 300 + Math.floor(rand() * 900) })));
+  }
 
+  async function loadFounderGrowthSection(){
+    if(BACKEND_ENABLED){
+      try {
+        const { data } = await sb.rpc('admin_signup_growth', { p_days: 14 });
+        renderFounderGrowth((data || []).map(g => ({ label: g.day, count: g.signups })));
+      } catch(err){
+        renderFounderGrowth([]);
+      }
+      return;
+    }
+    const rand = fdSeededRandom('founder-growth-demo');
     const days = [];
     const today = new Date();
     for(let i = 13; i >= 0; i--){
@@ -4541,14 +4799,6 @@
       days.push({ label: d.toLocaleDateString('en-IN', { day:'numeric', month:'short' }), count: Math.floor(rand() * 14) });
     }
     renderFounderGrowth(days);
-
-    const leaderboard = studios.map(s => ({
-      name: s.name,
-      count: 10 + Math.floor(rand() * 90),
-      value: (10 + Math.floor(rand() * 90)) * s.price
-    })).sort((a, b) => b.value - a.value).slice(0, 6);
-    renderFounderLeaderboard(leaderboard);
-    loadFounderUserList();
   }
 
   function renderFounderStats(s){
@@ -4577,14 +4827,126 @@
   function renderFounderVisitors(rows){ renderFounderBarList('fd-monthly-visitors', rows); }
   function renderFounderGrowth(rows){ renderFounderBarList('fd-signup-growth', rows); }
 
-  function renderFounderLeaderboard(rows){
+  // ---- FOUNDER DASHBOARD: Studio Management ----
+  // Every studio, regardless of owner — ranked by booking count (this
+  // replaces the old simple leaderboard with the same ranking, plus real
+  // management actions).
+  async function loadFounderStudiosSection(){
+    if(BACKEND_ENABLED){
+      try {
+        const { data } = await sb.rpc('admin_list_studios');
+        renderFounderStudiosList(data || []);
+      } catch(err){
+        document.getElementById('fd-studio-leaderboard').innerHTML = '<div class="empty-note">Could not load studios.</div>';
+      }
+      return;
+    }
+    const rand = fdSeededRandom('founder-studios-demo');
+    const rows = studios.map(s => ({
+      id: s.id, title: s.name, address: s.address, owner_id: null,
+      owner_email: null, verified: s.verified, status: 'published',
+      bookings_count: 10 + Math.floor(rand() * 90)
+    })).sort((a, b) => b.bookings_count - a.bookings_count);
+    renderFounderStudiosList(rows);
+  }
+
+  function renderFounderStudiosList(rows){
     const container = document.getElementById('fd-studio-leaderboard');
-    if(!rows.length){ container.innerHTML = '<div class="empty-note">No bookings yet.</div>'; return; }
-    container.innerHTML = rows.map((r, i) =>
-      '<div class="leaderboard-row"><div class="lb-rank">#' + (i + 1) + '</div>'
-      + '<div><div class="lb-name">' + r.name + '</div><div class="lb-meta">' + r.count + ' bookings</div></div>'
-      + '<div class="lb-value">₹' + Math.round(r.value).toLocaleString('en-IN') + '</div></div>'
-    ).join('');
+    if(!rows.length){ container.innerHTML = '<div class="empty-note">No studios yet.</div>'; return; }
+    container.innerHTML = rows.map((s, i) => {
+      const verifiedBadge = s.verified
+        ? '<span class="role-badge role-founder">Verified</span>'
+        : '<span class="role-badge role-user">Unverified</span>';
+      const ownerLine = s.owner_email ? 'Owner: ' + s.owner_email : 'Owner: unassigned';
+      return '<div class="user-row">'
+        + '<div class="ur-top"><div><div class="ur-email">#' + (i + 1) + ' ' + s.title + '</div>'
+        + '<div class="ur-meta">' + (s.address || 'No address') + ' · ' + s.bookings_count + ' bookings</div>'
+        + '<div class="ur-meta">' + ownerLine + '</div></div>'
+        + verifiedBadge + '</div>'
+        + '<div class="ur-role-actions">'
+        + '<div class="chip-opt" onclick="openAssignOwnerModal(\'' + s.id + '\', \'' + s.title.replace(/'/g, "\\'") + '\')">Assign Owner</div>'
+        + '<div class="chip-opt" onclick="toggleStudioVerified(\'' + s.id + '\', ' + (!s.verified) + ')">' + (s.verified ? 'Unverify' : 'Verify') + '</div>'
+        + '<div class="chip-opt" onclick="goToStudioDashboard(\'' + s.id + '\')">Open Dashboard</div>'
+        + '</div></div>';
+    }).join('');
+  }
+
+  async function toggleStudioVerified(studioId, newVerified){
+    if(BACKEND_ENABLED){
+      try {
+        const { error } = await sb.rpc('admin_set_studio_verified', { p_studio_id: studioId, p_verified: newVerified });
+        if(error) throw error;
+      } catch(err){
+        showToast('Could not update verification.', 'error');
+        return;
+      }
+    } else {
+      const s = studios.find(x => x.id === studioId);
+      if(s) s.verified = newVerified;
+    }
+    showToast(newVerified ? 'Studio verified.' : 'Studio unverified.');
+    loadFounderStudiosSection();
+    render();
+  }
+
+  function openAssignOwnerModal(studioId, studioTitle){
+    const body = ''
+      + '<div style="font-size:12.5px; color:var(--text-dim); margin-bottom:12px; line-height:1.5;">Search for the user to assign as owner of <b>' + studioTitle + '</b>. Only whitelisted studio owners can be assigned.</div>'
+      + '<input class="auth-input" id="assign-owner-search" placeholder="Search by email..." oninput="searchAssignOwnerCandidates(this.value, \'' + studioId + '\')">'
+      + '<div id="assign-owner-results" style="margin-top:10px;"></div>'
+      + '<button class="reset-btn" style="width:100%; margin-top:14px; color:var(--danger);" onclick="clearStudioOwner(\'' + studioId + '\')">Remove current owner</button>';
+    openInfoModal('Assign Studio Owner', body);
+  }
+
+  let _assignOwnerDebounce = null;
+  function searchAssignOwnerCandidates(query, studioId){
+    clearTimeout(_assignOwnerDebounce);
+    _assignOwnerDebounce = setTimeout(async () => {
+      const resultsEl = document.getElementById('assign-owner-results');
+      const q = query.trim();
+      if(!q){ resultsEl.innerHTML = ''; return; }
+      if(!BACKEND_ENABLED){ resultsEl.innerHTML = '<div class="empty-note">Connect Supabase to search real users.</div>'; return; }
+      try {
+        const { data } = await sb.rpc('admin_search_users', { p_query: q });
+        const rows = data || [];
+        resultsEl.innerHTML = rows.length ? rows.map(u =>
+          '<div class="search-suggest-row" onmousedown="assignStudioOwner(\'' + studioId + '\', \'' + u.id + '\', \'' + u.email.replace(/'/g, "\\'") + '\')">'
+          + u.email + ' <span style="color:var(--text-faint);">· ' + roleLabel(u.role) + '</span></div>'
+        ).join('') : '<div class="empty-note">No users match.</div>';
+      } catch(err){
+        resultsEl.innerHTML = '<div class="empty-note">Search failed.</div>';
+      }
+    }, 200);
+  }
+
+  async function assignStudioOwner(studioId, userId, email){
+    if(BACKEND_ENABLED){
+      try {
+        const { error } = await sb.rpc('admin_set_studio_owner', { p_studio_id: studioId, p_owner_id: userId });
+        if(error) throw error;
+      } catch(err){
+        showToast('Could not assign owner.', 'error');
+        return;
+      }
+    }
+    closeInfoModal();
+    showToast(email + ' is now the owner.');
+    loadFounderStudiosSection();
+  }
+
+  async function clearStudioOwner(studioId){
+    if(BACKEND_ENABLED){
+      try {
+        const { error } = await sb.rpc('admin_set_studio_owner', { p_studio_id: studioId, p_owner_id: null });
+        if(error) throw error;
+      } catch(err){
+        showToast('Could not remove owner.', 'error');
+        return;
+      }
+    }
+    closeInfoModal();
+    showToast('Owner removed.');
+    loadFounderStudiosSection();
   }
 
   // ---- FOUNDER DASHBOARD: User Management ----
@@ -4601,6 +4963,9 @@
     { id:'demo_u4', email:'karan.v@example.com', full_name:'Karan V.', role:'user', created_at:'2026-01-27' },
     { id:'demo_u5', email:'devika.r@example.com', full_name:'Devika R.', role:'founder', created_at:'2025-12-08' },
   ];
+  // Demo-mode whitelist state — naina.k@example.com is pre-whitelisted so
+  // the existing demo studio_owner above is a realistic, consistent state.
+  let DEMO_WHITELIST = ['naina.k@example.com'];
   let _founderUserSearchDebounce = null;
 
   function onFounderUserSearch(query){
@@ -4668,17 +5033,92 @@
         const { error } = await sb.rpc('admin_update_user_role', { p_user_id: userId, p_new_role: newRole });
         if(error) throw error;
       } catch(err){
-        showToast('Could not update role — check your Supabase config.', 'error');
+        // Postgres raise exception messages (e.g. the whitelist rejection)
+        // arrive in err.message — show that verbatim instead of a generic
+        // toast, since it's specifically written to explain what to do.
+        showToast((err && err.message) || 'Could not update role.', 'error');
         return;
       }
     } else {
       const u = DEMO_USER_POOL.find(x => x.id === userId);
-      if(u) u.role = newRole;
+      if(u){
+        if(newRole === 'studio_owner' && !DEMO_WHITELIST.includes(u.email)){
+          showToast('This user is not on the Studio Owner whitelist yet. Add their email to the whitelist first.', 'error');
+          return;
+        }
+        u.role = newRole;
+      }
     }
     closeInfoModal();
     showToast('Role updated.');
     loadFounderUserList(document.getElementById('fd-user-search').value);
   }
+
+  // ---- FOUNDER DASHBOARD: Studio Owner Whitelist ----
+  // Enforcement is server-side, in admin_update_user_role() — this UI is
+  // just the management surface for it.
+  async function loadFounderWhitelist(){
+    if(BACKEND_ENABLED){
+      try {
+        const { data } = await sb.rpc('admin_list_whitelist');
+        renderFounderWhitelist(data || []);
+      } catch(err){
+        document.getElementById('fd-whitelist-list').innerHTML = '<div class="empty-note">Could not load whitelist.</div>';
+      }
+      return;
+    }
+    renderFounderWhitelist(DEMO_WHITELIST.map(email => ({ email, created_at: new Date().toISOString() })));
+  }
+
+  function renderFounderWhitelist(rows){
+    const container = document.getElementById('fd-whitelist-list');
+    if(!rows.length){ container.innerHTML = '<div class="empty-note">No emails whitelisted yet.</div>'; return; }
+    container.innerHTML = rows.map(r => {
+      const joinDate = new Date(r.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      return '<div class="user-row"><div class="ur-top">'
+        + '<div><div class="ur-email">' + r.email + '</div><div class="ur-meta">Added ' + joinDate + '</div></div>'
+        + '<span class="cancel-link" onclick="removeFromWhitelist(\'' + r.email.replace(/'/g, "\\'") + '\')">Remove</span>'
+        + '</div></div>';
+    }).join('');
+  }
+
+  async function addToWhitelist(){
+    const input = document.getElementById('fd-whitelist-add-input');
+    const email = input.value.trim().toLowerCase();
+    if(!email || !email.includes('@')){ showToast('Enter a valid email.', 'error'); return; }
+
+    if(BACKEND_ENABLED){
+      try {
+        const { error } = await sb.rpc('admin_add_to_whitelist', { p_email: email });
+        if(error) throw error;
+      } catch(err){
+        showToast((err && err.message) || 'Could not add to whitelist.', 'error');
+        return;
+      }
+    } else if(!DEMO_WHITELIST.includes(email)){
+      DEMO_WHITELIST.push(email);
+    }
+    input.value = '';
+    showToast('Added to whitelist.');
+    loadFounderWhitelist();
+  }
+
+  async function removeFromWhitelist(email){
+    if(BACKEND_ENABLED){
+      try {
+        const { error } = await sb.rpc('admin_remove_from_whitelist', { p_email: email });
+        if(error) throw error;
+      } catch(err){
+        showToast('Could not remove from whitelist.', 'error');
+        return;
+      }
+    } else {
+      DEMO_WHITELIST = DEMO_WHITELIST.filter(e => e !== email);
+    }
+    showToast('Removed from whitelist.');
+    loadFounderWhitelist();
+  }
+
 
   // ============================================================
   // STUDIO DASHBOARD
@@ -4734,9 +5174,19 @@
       return;
     }
 
+    if(!profile.supabaseUserId){ showToast('Sign in first.', 'error'); return; }
+
+    // Founders get to choose between every studio on the platform and just
+    // the ones actually assigned to them — regular studio owners never see
+    // this choice and stay restricted to owner_id = auth.uid(), enforced
+    // by RLS regardless of what this UI offers.
+    if(profile.role === 'founder'){
+      openFounderStudioScopeChoice();
+      return;
+    }
+
     // Real mode — only studios this account actually owns (owner_id =
     // auth.uid()), enforced both here and by RLS server-side.
-    if(!profile.supabaseUserId){ showToast('Sign in first.', 'error'); return; }
     let owned = [];
     try {
       const { data } = await sb.from('studios').select('id').eq('owner_id', profile.supabaseUserId);
@@ -4754,8 +5204,23 @@
     openStudioPicker(owned.map(o => o.id));
   }
 
+  async function openFounderStudioScopeChoice(){
+    let owned = [];
+    try {
+      const { data } = await sb.from('studios').select('id').eq('owner_id', profile.supabaseUserId);
+      owned = data || [];
+    } catch(e){ owned = []; }
+    const ownedIdsJson = JSON.stringify(owned.map(o => o.id));
+
+    const body = ''
+      + '<div style="font-size:12.5px; color:var(--text-dim); margin-bottom:16px; line-height:1.5;">As founder, you can inspect any studio on the platform, or just the ones assigned to you.</div>'
+      + '<button class="apply-btn" style="width:100%; margin-bottom:10px;" onclick="closeInfoModal(); openStudioPicker();">All Studios (' + studios.length + ')</button>'
+      + '<button class="reset-btn" style="width:100%;" onclick="closeInfoModal(); openStudioPicker(' + ownedIdsJson + ');">My Studios (' + owned.length + ')</button>';
+    openInfoModal('Studio Dashboard', body);
+  }
+
   function openStudioPicker(restrictToIds){
-    const list = restrictToIds ? studios.filter(s => restrictToIds.includes(s.id)) : studios;
+    const list = (restrictToIds && restrictToIds.length) ? studios.filter(s => restrictToIds.includes(s.id)) : (restrictToIds ? [] : studios);
     const rows = list.map(s => {
       const gradient = 'linear-gradient(135deg,' + s.swatch[0] + ',' + s.swatch[1] + ')';
       return '<div class="fav-row" onclick="claimStudio(\'' + s.id + '\')">'
@@ -4763,10 +5228,13 @@
         + '<div><div class="f-name">' + s.name + '</div><div class="f-meta">' + s.loc + '</div></div>'
         + '</div>';
     }).join('');
-    const note = restrictToIds
-      ? 'Pick which of your studios to manage.'
-      : 'Demo mode — pick any studio below to preview its owner dashboard.';
-    openInfoModal('Manage a Studio', '<div style="font-size:11.5px; color:var(--text-faint); margin-bottom:12px; line-height:1.5;">' + note + '</div>' + rows);
+    let note;
+    if(!BACKEND_ENABLED) note = 'Demo mode — pick any studio below to preview its owner dashboard.';
+    else if(restrictToIds) note = 'Pick which of your studios to manage.';
+    else note = 'Founder view — every studio on the platform.';
+    const body = '<div style="font-size:11.5px; color:var(--text-faint); margin-bottom:12px; line-height:1.5;">' + note + '</div>'
+      + (rows || '<div class="empty-note">No studios to show.</div>');
+    openInfoModal('Manage a Studio', body);
   }
 
   function claimStudio(id){
@@ -4781,6 +5249,36 @@
     nav('studio-dashboard');
     setStudioTab('overview');
     loadStudioDashboard();
+    subscribeToStudioBookingsRealtime(id);
+  }
+
+  // Realtime for the Studio Dashboard: any insert/update on THIS studio's
+  // bookings (a new request, an accept/decline from another tab/device)
+  // refreshes stats and the Requests list live. Only one studio's channel
+  // is ever open at a time — switching studios swaps the subscription.
+  let _studioBookingsChannel = null;
+  function subscribeToStudioBookingsRealtime(studioId){
+    if(!BACKEND_ENABLED) return;
+    unsubscribeStudioBookingsRealtime();
+    _studioBookingsChannel = trackRealtimeChannel(
+      sb.channel('studio-bookings-' + studioId)
+        .on('postgres_changes', {
+          event: '*', schema: 'public', table: 'bookings',
+          filter: 'studio_id=eq.' + studioId,
+        }, () => {
+          loadStudioStats();
+          loadPendingRequests();
+        })
+        .subscribe()
+    );
+  }
+  function unsubscribeStudioBookingsRealtime(){
+    if(_studioBookingsChannel){
+      try { sb.removeChannel(_studioBookingsChannel); } catch(e){}
+      const idx = activeRealtimeChannels.indexOf(_studioBookingsChannel);
+      if(idx > -1) activeRealtimeChannels.splice(idx, 1);
+      _studioBookingsChannel = null;
+    }
   }
 
   function setStudioTab(tab){
@@ -4807,9 +5305,22 @@
     });
     document.getElementById('sd-demo-banner').style.display = BACKEND_ENABLED ? 'none' : 'block';
 
-    await loadStudioStats();
-    await loadPendingRequests();
-    await loadBlockedSlots();
+    await Promise.allSettled([loadStudioStats(), loadPendingRequests(), loadBlockedSlots()]);
+  }
+
+  async function refreshStudioDashboard(){
+    const btn = document.getElementById('sd-refresh-btn');
+    btn.disabled = true;
+    btn.classList.add('spinning-refresh');
+    try {
+      await loadStudioDashboard();
+      showToast('Studio dashboard updated.');
+    } catch(err){
+      showToast('Could not refresh the studio dashboard.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('spinning-refresh');
+    }
   }
 
   async function loadStudioStats(){
@@ -4905,7 +5416,7 @@
     badge.textContent = requests.length ? ' (' + requests.length + ')' : '';
     list.innerHTML = requests.length ? requests.map(r => {
       const dateStr = new Date(r.date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
-      return '<div class="booking-row" style="flex-direction:column; align-items:stretch; gap:8px;">'
+      return '<div class="booking-row" data-request-id="' + r.id + '" style="flex-direction:column; align-items:stretch; gap:8px;">'
         + '<div style="display:flex; justify-content:space-between;">'
         + '<div><div class="b-name">' + r.customer + '</div><div class="b-meta">' + dateStr + ' · ' + r.slot + '</div></div>'
         + '<div class="b-price">₹' + r.price + '</div>'
@@ -4921,11 +5432,32 @@
     const s = studios.find(x => x.id === profile.ownedStudioId);
     if(!s) return;
 
+    // Optimistic UI: remove the row and update the badge immediately,
+    // before the server confirms anything — rolls back by reloading the
+    // real list if the update actually fails.
+    const rowEl = document.querySelector('[data-request-id="' + id + '"]');
+    if(rowEl) rowEl.remove();
+    const badge = document.getElementById('sd-requests-badge');
+    const currentCount = parseInt((badge.textContent.match(/\d+/) || ['0'])[0], 10);
+    badge.textContent = currentCount > 1 ? ' (' + (currentCount - 1) + ')' : '';
+    if(!document.getElementById('sd-pending-list').children.length){
+      document.getElementById('sd-pending-list').innerHTML = '<div class="empty-note">No pending requests.</div>';
+    }
+
     if(BACKEND_ENABLED){
       try {
+        const { data: bookingRow } = await sb.from('bookings').select('user_id, time_slot, booking_date').eq('id', id).single();
         await sb.from('bookings').update({ status: newStatus }).eq('id', id);
+        if(bookingRow){
+          createNotification(
+            bookingRow.user_id,
+            newStatus === 'confirmed' ? 'Booking confirmed' : 'Booking declined',
+            s.name + ' · ' + bookingRow.booking_date + ' · ' + bookingRow.time_slot
+          );
+        }
       } catch(err){
-        showToast('Could not update the booking — check your Supabase config.', 'error');
+        showToast('Could not update the booking — reloading.', 'error');
+        loadPendingRequests(); // roll back the optimistic removal
         return;
       }
     } else {
@@ -4933,7 +5465,6 @@
       state.pending = state.pending.filter(p => p.id !== id);
     }
     showToast(newStatus === 'confirmed' ? 'Booking accepted.' : 'Booking declined.');
-    loadPendingRequests();
   }
 
   // ---- Blocked dates (studio availability) ----
