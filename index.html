@@ -94,13 +94,15 @@
      so touch screens never get a "stuck" hover state. */
   @media (hover:hover) and (pointer:fine){
     .studio-card:hover, .offer-card:hover, .recent-card:hover, .fav-row:hover,
-    .list-item:not(.disabled):hover, .featured-card:hover{
+    .list-item:not(.disabled):hover, .featured-card:hover,
+    .user-row:hover, .leaderboard-row:hover{
       background:var(--surface-2);
     }
     .see-all:hover, .clear-filters-link:hover{ color:var(--amber); }
     button:hover{ filter:brightness(1.06); }
     .nav-item:hover{ color:var(--amber); }
     .cat-chip:hover, .chip-opt:hover, .theme-opt:hover{ border-color:var(--amber-dim); }
+    .dash-tab:hover{ color:var(--text); }
   }
 
   /* ---- Accessibility: visible keyboard focus ----
@@ -157,6 +159,17 @@
   .skel-home-card .skel-line{ height:10px; margin-bottom:6px; }
   .skel-home-card .skel-line.w70{ width:70%; }
   .skel-home-card .skel-line.w50{ width:50%; }
+  /* Generic list-row skeleton — dashboards, user/booking lists, anything
+     rendered as stacked rows inside a bordered container. */
+  .skel-row{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-top:1px solid var(--border); }
+  .skel-row:first-child{ border-top:none; }
+  .skel-row .skel-row-lines{ flex:1; display:flex; flex-direction:column; gap:7px; }
+  .skel-row .skel-line{ height:10px; }
+  .skel-row .skel-line.w50{ width:50%; }
+  .skel-row .skel-line.w30{ width:30%; }
+  .skel-row .skel-chip{ width:56px; height:20px; border-radius:20px; flex-shrink:0; margin-left:12px; }
+  /* Stat-card skeleton for info-grid tiles while a dashboard first loads. */
+  .skel-stat-value{ height:16px; width:70%; }
   @media (prefers-reduced-motion: reduce){
     .skel{ animation:none; }
     .ripple{ animation:none; display:none; }
@@ -397,6 +410,76 @@
   /* ---- STUDIOS LIST ---- */
   .studios-head{ padding:22px 20px 0; }
   .page-title{ font-family:'Space Grotesk',sans-serif; font-size:24px; font-weight:700; margin-bottom:16px; }
+
+  /* ---- Sub-page header: back arrow + title, used by every screen that
+     used to be a modal/bottom-sheet (Search, Filters, Notifications,
+     Booking History/Details, Saved Studios, and more in later phases).
+     Gives each one a real "this is a page" identity instead of floating
+     over content like the studio-detail hero's .back-btn does. ---- */
+  .subpage-header{
+    display:flex; align-items:center; gap:14px; padding:18px 20px 16px;
+    position:sticky; top:0; z-index:8; background:var(--bg);
+    border-bottom:1px solid var(--border);
+  }
+  .subpage-back-btn{
+    width:36px; height:36px; border-radius:50%; flex-shrink:0;
+    background:var(--surface); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .subpage-back-btn:hover{ background:var(--surface-2); border-color:var(--amber-dim); }
+  .subpage-header h1{
+    font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700;
+    flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .subpage-header-actions{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .subpage-body{ padding:18px 20px 40px; }
+
+  /* ---- STUDIO GALLERY (fullscreen lightbox) ---- */
+  #screen-gallery{ background:#000; overflow:hidden; }
+  .gallery-topbar{
+    position:absolute; top:0; left:0; right:0; z-index:10;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px; background:linear-gradient(180deg, rgba(0,0,0,0.6), transparent);
+  }
+  .gallery-topbar .subpage-back-btn{ background:rgba(255,255,255,0.12); border-color:rgba(255,255,255,0.15); color:#fff; }
+  .gallery-topbar .subpage-back-btn:hover{ background:rgba(255,255,255,0.2); }
+  .gallery-counter{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:#fff;
+    background:rgba(255,255,255,0.12); padding:6px 12px; border-radius:20px;
+  }
+  .gallery-stage{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    touch-action:pan-y;
+  }
+  .gallery-swatch{
+    width:100%; height:100%;
+    transition:opacity .25s ease;
+  }
+  .gallery-nav-btn{
+    position:absolute; top:50%; transform:translateY(-50%); z-index:10;
+    width:44px; height:44px; border-radius:50%;
+    background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.15);
+    display:flex; align-items:center; justify-content:center; font-size:22px; cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .gallery-nav-btn:hover{ background:rgba(255,255,255,0.22); }
+  .gallery-prev{ left:16px; }
+  .gallery-next{ right:16px; }
+  .gallery-dots{
+    position:absolute; bottom:24px; left:50%; transform:translateX(-50%); z-index:10;
+    display:flex; gap:7px;
+  }
+  .gallery-dots span{
+    width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.35);
+    transition:background .2s ease, width .2s ease;
+  }
+  .gallery-dots span.on{ background:#fff; width:18px; border-radius:3px; }
+  @media (min-width:1024px){
+    .gallery-nav-btn{ width:52px; height:52px; font-size:26px; }
+    .gallery-prev{ left:32px; }
+    .gallery-next{ right:32px; }
+  }
+
   .search-row{ display:flex; gap:10px; padding:0 20px; position:relative; }
   .search-bar{
     flex:1; background:var(--surface); border:1px solid var(--border);
@@ -408,6 +491,10 @@
     flex:1; background:none; border:none; outline:none;
     color:var(--text); font-family:'Inter',sans-serif; font-size:13.5px;
   }
+  /* This field redirects to the dedicated Search page on tap (see
+     openSearchPage()) rather than accepting typing in place, so it should
+     read as a button, not a text field — hence readonly + pointer cursor. */
+  .search-bar input[readonly]{ cursor:pointer; }
   .search-bar input::placeholder{ color:var(--text-faint); }
   .search-clear-btn{
     flex-shrink:0; width:18px; height:18px; border-radius:50%; background:var(--surface-3);
@@ -645,14 +732,14 @@
   .stat-bar-track{ flex:1; height:8px; border-radius:4px; background:var(--surface-2); overflow:hidden; }
   .stat-bar-fill{ height:100%; background:var(--teal); border-radius:4px; }
   .stat-bar-count{ width:32px; text-align:right; flex-shrink:0; font-size:11px; color:var(--text-dim); font-weight:600; }
-  .leaderboard-row{ display:flex; align-items:center; justify-content:space-between; padding:11px 14px; border-top:1px solid var(--border); }
+  .leaderboard-row{ display:flex; align-items:center; justify-content:space-between; padding:11px 14px; border-top:1px solid var(--border); transition:background .15s ease; }
   .leaderboard-row:first-child{ border-top:none; }
   .leaderboard-row .lb-rank{ width:20px; flex-shrink:0; font-size:11px; color:var(--text-faint); font-weight:700; }
   .leaderboard-row .lb-name{ font-size:12.5px; font-weight:600; flex:1; }
   .leaderboard-row .lb-meta{ font-size:10.5px; color:var(--text-faint); margin-top:2px; }
   .leaderboard-row .lb-value{ font-size:12.5px; font-weight:700; color:var(--teal); }
 
-  .user-row{ padding:12px 14px; border-top:1px solid var(--border); }
+  .user-row{ padding:12px 14px; border-top:1px solid var(--border); transition:background .15s ease; }
   .user-row:first-child{ border-top:none; }
   .user-row .ur-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
   .user-row .ur-email{ font-size:12.5px; font-weight:600; }
@@ -676,15 +763,37 @@
   }
   .dash-title{ font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; }
   .dash-subtitle{ font-size:11.5px; color:var(--text-faint); margin-top:2px; }
-  .dash-tabs{ display:flex; gap:4px; }
+  .dash-tabs{ display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; }
+  .dash-tabs::-webkit-scrollbar{ display:none; }
   .dash-tab{
     padding:10px 4px 12px; font-size:12.5px; font-weight:600; color:var(--text-faint);
-    border-bottom:2px solid transparent; margin-right:18px; cursor:pointer;
+    border-bottom:2px solid transparent; margin-right:18px; cursor:pointer; white-space:nowrap;
+    transition:color .15s ease, border-color .15s ease;
   }
   .dash-tab.on{ color:var(--text); border-bottom-color:var(--teal); }
+  .dash-layout{ display:block; }
+  .dash-sidebar{ display:block; } /* holds the tabs on every screen size — just reflows at desktop */
   .dash-body{ padding:0 20px; }
   .dash-panel{ display:none; }
   .dash-panel.on{ display:block; }
+  @media (min-width:1024px){
+    .dash-layout{ display:flex; align-items:flex-start; gap:32px; }
+    .dash-sidebar{
+      flex:0 0 200px; position:sticky; top:20px;
+      border:1px solid var(--border); border-radius:var(--radius-md);
+      background:var(--surface); padding:10px;
+    }
+    .dash-sidebar .dash-tabs{
+      flex-direction:column; gap:2px; overflow-x:visible;
+    }
+    .dash-sidebar .dash-tab{
+      border-bottom:none; border-left:2px solid transparent; margin-right:0;
+      padding:9px 12px; border-radius:8px;
+    }
+    .dash-sidebar .dash-tab.on{ background:var(--surface-3); border-left-color:var(--teal); }
+    .dash-sidebar .dash-tab:hover{ background:var(--surface-2); }
+    .dash-body{ flex:1; min-width:0; padding:0; }
+  }
 
   .similar-strip{ display:flex; gap:12px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px; }
   .similar-strip::-webkit-scrollbar{ display:none; }
@@ -1050,6 +1159,15 @@
   }
   .detail-fav-btn.on{ color:var(--danger); background:rgba(224,101,79,0.18); border-color:var(--danger); }
 
+  .gallery-hint{
+    position:absolute; bottom:16px; right:18px; z-index:5;
+    background:rgba(10,9,8,0.6); backdrop-filter:blur(4px);
+    border:1px solid rgba(255,255,255,0.12); border-radius:20px;
+    padding:7px 13px; font-size:11.5px; font-weight:600; color:#fff;
+    cursor:pointer; display:flex; align-items:center; gap:5px;
+  }
+  .gallery-hint:hover{ background:rgba(10,9,8,0.8); }
+
   /* ---- INFO MODAL / MENU LISTS ---- */
   .empty-note{ color:var(--text-faint); font-size:12.5px; text-align:center; padding:30px 10px; line-height:1.6; }
   .booking-row{
@@ -1110,6 +1228,8 @@
 
     .screen{ padding-bottom:48px; }
     .content{ max-width:1160px; margin:0 auto; padding-top:8px; }
+    .subpage-header, .subpage-body{ max-width:760px; margin:0 auto; width:100%; }
+    .subpage-header{ display:flex; } /* re-affirm flex after the width:100% above */
     .home-header .avatar{ display:none; }
 
     .offer-row, .recent-row{ display:grid; gap:16px; overflow:visible; padding:0 20px; }
@@ -1229,7 +1349,7 @@
 
   <div class="app-main">
   <div class="topbar">
-    <div class="topbar-search" onclick="nav('studios')" style="cursor:pointer;" role="button" tabindex="0" aria-label="Go to search">
+    <div class="topbar-search" onclick="openSearchPage()" style="cursor:pointer;" role="button" tabindex="0" aria-label="Go to search">
       <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       <span>Search studios, areas, gear...</span>
     </div>
@@ -1428,7 +1548,7 @@
       <div class="search-row">
         <div class="search-bar">
           <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-          <input id="search-input" type="text" placeholder="Search studios, areas, gear..." oninput="filterStudios(this.value)" onfocus="showSearchSuggestions()" onblur="setTimeout(hideSearchSuggestions, 150)" onkeydown="if(event.key==='Enter') commitSearchHistory(this.value)">
+          <input id="search-input" type="text" placeholder="Search studios, areas, gear..." oninput="filterStudios(this.value)" onfocus="this.blur(); openSearchPage();" onblur="setTimeout(hideSearchSuggestions, 150)" onkeydown="if(event.key==='Enter') commitSearchHistory(this.value)" readonly>
           <div class="mic-btn" id="mic-btn" style="display:none;" onclick="startVoiceSearch()" role="button" tabindex="0" aria-label="Search by voice">🎤</div>
           <div class="search-clear-btn" id="search-clear-btn" style="display:none;" onclick="clearSearchOnly()">✕</div>
         </div>
@@ -1508,7 +1628,8 @@
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F3EFE7" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
       </div>
       <div class="detail-hero">
-        <div class="swatch" aria-hidden="true" id="detail-swatch" style="background:linear-gradient(135deg,#3A2818,#1A2624); position:absolute; inset:0;"></div>
+        <div class="swatch" aria-hidden="true" id="detail-swatch" style="background:linear-gradient(135deg,#3A2818,#1A2624); position:absolute; inset:0; cursor:pointer;" onclick="openGallery()" role="button" tabindex="0" aria-label="View photo gallery"></div>
+        <div class="gallery-hint" id="detail-gallery-hint" onclick="openGallery()" role="button" tabindex="0" aria-label="View all photos">🖼️ <span id="detail-gallery-count">4</span> photos</div>
         <div class="detail-fav-btn" id="detail-fav-btn" onclick="toggleFavorite(currentDetailId, event)" role="button" tabindex="0" aria-pressed="false" aria-label="Save to favorites">♡</div>
         <div class="detail-hero-body">
           <h1 id="detail-name">Basement 9 Studios</h1>
@@ -1548,6 +1669,12 @@
           <div class="equip-item"><div class="dot"></div>Pearl Export Kit</div>
           <div class="equip-item"><div class="dot"></div>Ampeg SVT Bass Rig</div>
           <div class="equip-item"><div class="dot"></div>Shure SM58 x4</div>
+        </div>
+
+        <div class="eyebrow">Amenities</div>
+        <div class="equip-grid" id="detail-amenities">
+          <div class="equip-item"><div class="dot"></div>Parking on-site</div>
+          <div class="equip-item"><div class="dot"></div>Air conditioning</div>
         </div>
 
         <div class="eyebrow">Choose a date</div>
@@ -1624,44 +1751,54 @@
 
       <div class="section" style="margin-top:0;">
         <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
-          <div class="list-item" onclick="openBookingHistory()">
-            <div class="list-icon">📅</div><span>Booking history</span>
+          <div class="list-item" onclick="openEditProfile()">
+            <div class="list-icon">👤</div><span>Account</span>
+            <span class="chev">›</span>
+          </div>
+          <div class="list-item" onclick="openActivityPage()">
+            <div class="list-icon">🕓</div><span>Activity</span>
             <span class="chev">›</span>
           </div>
           <div class="list-item" onclick="openFavoriteStudios()">
-            <div class="list-icon">❤️</div><span>Favorite studios</span>
+            <div class="list-icon">❤️</div><span>Saved Studios</span>
             <span class="chev">›</span>
           </div>
           <div class="list-item" onclick="openOnboarding(true)">
-            <div class="list-icon">🎵</div><span>Genre preferences</span>
+            <div class="list-icon">🎵</div><span>Preferences</span>
             <span class="chev">›</span>
           </div>
-          <div class="list-item disabled" onclick="showToast('Payment methods — coming soon.')">
-            <div class="list-icon">🧾</div><span>Payment methods</span>
-            <span class="coming-soon-badge">Coming soon</span>
+          <div class="list-item" onclick="openSecurityPage()">
+            <div class="list-icon">🛡️</div><span>Security</span>
+            <span class="chev">›</span>
           </div>
         </div>
       </div>
      </div>
     </div>
 
-    <!-- ============ SETTINGS ============ -->
-    <div class="screen" id="screen-settings">
-     <div class="content">
-      <div class="studios-head">
-        <div class="page-title">Settings</div>
+    <!-- ============ GENERIC SETTINGS SUBPAGE (Privacy, About, Terms,
+         Licenses, Contact, Report Bug, Rate App, Account, Activity,
+         Security, Payments — small static/light-form content, Phase 3) ============ -->
+    <div class="screen" id="screen-settings-page">
+      <div class="subpage-header">
+        <div class="subpage-back-btn" onclick="closeSubpage('settings')" role="button" tabindex="0" aria-label="Back">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </div>
+        <h1 id="settings-page-title">Title</h1>
       </div>
+      <div class="subpage-body" id="settings-page-body"></div>
+    </div>
 
-      <div class="eyebrow" style="padding:0 20px;">Appearance</div>
-      <div class="theme-row">
-        <div class="theme-opt active" data-theme="dark" role="radio" tabindex="0" aria-checked="true">Stage Dark</div>
-        <div class="theme-opt" data-theme="light" role="radio" tabindex="0" aria-checked="false">Daylight</div>
-        <div class="theme-opt" data-theme="auto" role="radio" tabindex="0" aria-checked="false">Auto</div>
+    <!-- ============ NOTIFICATIONS SETTINGS (own page, Phase 3) ============ -->
+    <div class="screen" id="screen-settings-notifications">
+      <div class="subpage-header">
+        <div class="subpage-back-btn" onclick="closeSubpage('settings')" role="button" tabindex="0" aria-label="Back">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </div>
+        <h1>Notifications</h1>
       </div>
-
-      <div class="section" style="margin-top:22px;">
-        <div class="eyebrow">Notifications</div>
-        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-top:6px;">
+      <div class="subpage-body">
+        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
           <div class="setting-row">
             <div><div class="setting-label">Booking reminders</div><div class="setting-sub" id="reminder-sub">1 hour before your session</div></div>
             <div class="toggle on" id="reminders-toggle" onclick="onToggleReminders(this)" role="switch" tabindex="0" aria-checked="true" aria-label="Booking reminders"></div>
@@ -1682,15 +1819,48 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- ============ APPEARANCE SETTINGS (own page, Phase 3) ============ -->
+    <div class="screen" id="screen-settings-appearance">
+      <div class="subpage-header">
+        <div class="subpage-back-btn" onclick="closeSubpage('settings')" role="button" tabindex="0" aria-label="Back">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </div>
+        <h1>Appearance</h1>
+      </div>
+      <div class="subpage-body">
+        <div class="eyebrow" style="padding:0;">Theme</div>
+        <div class="theme-row">
+          <div class="theme-opt active" data-theme="dark" role="radio" tabindex="0" aria-checked="true">Stage Dark</div>
+          <div class="theme-opt" data-theme="light" role="radio" tabindex="0" aria-checked="false">Daylight</div>
+          <div class="theme-opt" data-theme="auto" role="radio" tabindex="0" aria-checked="false">Auto</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SETTINGS ============ -->
+    <div class="screen" id="screen-settings">
+     <div class="content">
+      <div class="studios-head">
+        <div class="page-title">Settings</div>
+      </div>
+
+      <div class="section" style="margin-top:6px;">
+        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
+          <div class="list-item" onclick="openSubpage('settings-notifications')"><div class="list-icon">🔔</div><span>Notifications</span><span class="chev">›</span></div>
+          <div class="list-item" onclick="openSubpage('settings-appearance')"><div class="list-icon">🎨</div><span>Appearance</span><span class="chev">›</span></div>
+          <div class="list-item" onclick="openPrivacyPage()"><div class="list-icon">🔒</div><span>Privacy</span><span class="chev">›</span></div>
+          <div class="list-item" onclick="openSettingsSubpage('Payments', payoutsPagePlaceholder())"><div class="list-icon">🧾</div><span>Payments</span><span class="chev">›</span></div>
+          <div class="list-item" onclick="openAboutPage()"><div class="list-icon">🎚️</div><span>About</span><span class="chev">›</span></div>
+          <div class="list-item" onclick="openHelpPage()"><div class="list-icon">💬</div><span>Help</span><span class="chev">›</span></div>
+        </div>
+      </div>
 
       <div class="section">
         <div class="eyebrow">Account</div>
         <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-top:6px;">
-          <div class="list-item" onclick="openEditProfile()"><div class="list-icon">👤</div><span>Edit profile</span><span class="chev">›</span></div>
-          <div class="list-item" onclick="openPrivacyPage()"><div class="list-icon">🔒</div><span>Privacy & security</span><span class="chev">›</span></div>
-          <div class="list-item" onclick="openHelpPage()"><div class="list-icon">💬</div><span>Help & support</span><span class="chev">›</span></div>
           <div class="list-item" onclick="openSwitchAccount()"><div class="list-icon">🔀</div><span>Switch account</span><span class="chev">›</span></div>
-          <div class="list-item" onclick="confirmResetOnboarding()"><div class="list-icon">🔄</div><span>Reset onboarding</span><span class="chev">›</span></div>
           <div class="list-item"><div class="list-icon">↪️</div><span style="color:var(--danger);">Log out</span></div>
         </div>
       </div>
@@ -1709,17 +1879,8 @@
         </div>
       </div>
 
-      <div class="section">
-        <div class="eyebrow">About</div>
-        <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-top:6px;">
-          <div class="list-item" onclick="openAboutPage()"><div class="list-icon">🎚️</div><span>About Sound Board</span><span class="chev">›</span></div>
-          <div class="list-item" onclick="openInfoModal('Version', '<div style=&quot;color:var(--text-dim); font-size:12.5px; line-height:1.7;&quot;>Sound Board — Demo Build<br>Version 0.9.0 (pre-release)</div>')"><div class="list-icon">🏷️</div><span>Version</span><span class="setting-sub" style="margin-left:auto; margin-right:8px;">0.9.0</span></div>
-          <div class="list-item" onclick="openTermsPage()"><div class="list-icon">📄</div><span>Terms of Service</span><span class="chev">›</span></div>
-          <div class="list-item" onclick="openLicensesPage()"><div class="list-icon">📜</div><span>Licenses</span><span class="chev">›</span></div>
-          <div class="list-item" onclick="openContactPage()"><div class="list-icon">✉️</div><span>Contact</span><span class="chev">›</span></div>
-          <div class="list-item" onclick="openReportBug()"><div class="list-icon">🐞</div><span>Report a bug</span><span class="chev">›</span></div>
-          <div class="list-item" onclick="openRateApp()"><div class="list-icon">⭐</div><span>Rate the app</span><span class="chev">›</span></div>
-        </div>
+      <div class="section" style="padding-bottom:20px;">
+        <div style="font-size:10.5px; color:var(--text-faint); text-align:center;">Sound Board — Demo Build 0.9.0</div>
       </div>
      </div>
     </div>
@@ -1743,15 +1904,26 @@
         <div id="founder-demo-banner" style="display:none; font-size:11px; color:var(--text-faint); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:9px 12px; margin-bottom:16px; line-height:1.5;">
           Demo data — connect Supabase to see real platform numbers here.
         </div>
-        <div class="dash-tabs">
-          <div class="dash-tab on" data-tab="overview" onclick="setFounderTab('overview')">Overview</div>
-          <div class="dash-tab" data-tab="users" onclick="setFounderTab('users')">Users</div>
-          <div class="dash-tab" data-tab="studios" onclick="setFounderTab('studios')">Studios</div>
-          <div class="dash-tab" data-tab="access" onclick="setFounderTab('access')">Studio Access</div>
-        </div>
       </div>
 
-      <div class="dash-body">
+      <div class="dash-layout">
+        <div class="dash-sidebar">
+          <div class="dash-tabs">
+            <div class="dash-tab on" data-tab="overview" onclick="setFounderTab('overview')">Overview</div>
+            <div class="dash-tab" data-tab="users" onclick="setFounderTab('users')">Users</div>
+            <div class="dash-tab" data-tab="studios" onclick="setFounderTab('studios')">Studios</div>
+            <div class="dash-tab" data-tab="access" onclick="setFounderTab('access')">Studio Access</div>
+            <div class="dash-tab" data-tab="verification" onclick="setFounderTab('verification')">Verification Queue</div>
+            <div class="dash-tab" data-tab="analytics" onclick="setFounderTab('analytics')">Analytics</div>
+            <div class="dash-tab" data-tab="revenue" onclick="setFounderTab('revenue')">Revenue</div>
+            <div class="dash-tab" data-tab="reports" onclick="setFounderTab('reports')">Reports</div>
+            <div class="dash-tab" data-tab="notifications" onclick="setFounderTab('notifications')">Notifications</div>
+            <div class="dash-tab" data-tab="activity" onclick="setFounderTab('activity')">Activity Log</div>
+            <div class="dash-tab" data-tab="system" onclick="setFounderTab('system')">System Settings</div>
+          </div>
+        </div>
+
+        <div class="dash-body">
         <div class="dash-panel on" id="fd-panel-overview">
           <div class="info-grid">
             <div class="info-item"><div class="info-label">🟢 Online Now</div><div class="info-value" id="fd-online-now" style="font-size:16px;">—</div></div>
@@ -1793,6 +1965,67 @@
           <div class="eyebrow">Whitelisted Emails</div>
           <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-whitelist-list"></div>
         </div>
+
+        <div class="dash-panel" id="fd-panel-verification">
+          <div style="font-size:11.5px; color:var(--text-faint); margin-bottom:14px; line-height:1.5;">
+            Studios waiting on a verification review before they show a Verified badge to users.
+          </div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-verification-list"></div>
+        </div>
+
+        <div class="dash-panel" id="fd-panel-analytics">
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label">Avg. Booking Value</div><div class="info-value" id="fd-analytics-avg" style="font-size:16px;">—</div></div>
+            <div class="info-item"><div class="info-label">Total Bookings</div><div class="info-value" id="fd-analytics-bookings" style="font-size:16px;">—</div></div>
+            <div class="info-item"><div class="info-label">Studios (Live / Total)</div><div class="info-value" id="fd-analytics-studios" style="font-size:16px;">—</div></div>
+            <div class="info-item"><div class="info-label">Active Users (30d)</div><div class="info-value" id="fd-analytics-active" style="font-size:16px;">—</div></div>
+          </div>
+          <div class="eyebrow">Monthly Visitors</div>
+          <div id="fd-analytics-visitors" style="margin-bottom:22px;"></div>
+          <div class="eyebrow">Signups (Last 14 Days)</div>
+          <div id="fd-analytics-growth" style="margin-bottom:22px;"></div>
+          <div class="eyebrow">Top Performing Studios</div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-analytics-top-studios"></div>
+        </div>
+
+        <div class="dash-panel" id="fd-panel-revenue">
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label">Lifetime GMV</div><div class="info-value" id="fd-rev-lifetime" style="font-size:16px;">—</div></div>
+            <div class="info-item"><div class="info-label">Last 30 Days</div><div class="info-value" id="fd-rev-30d" style="font-size:16px;">—</div></div>
+          </div>
+          <div class="eyebrow">Top Earning Studios (Estimate)</div>
+          <div style="font-size:11px; color:var(--text-faint); margin-bottom:10px; line-height:1.5;">
+            Estimated from booking counts × average price — connect a real per-studio revenue RPC on the backend to replace this with exact figures.
+          </div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-rev-top-studios"></div>
+        </div>
+
+        <div class="dash-panel" id="fd-panel-reports">
+          <div style="font-size:11.5px; color:var(--text-faint); margin-bottom:16px; line-height:1.5;">
+            Export a snapshot of what's currently loaded in this dashboard as a CSV.
+          </div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;">
+            <div class="list-item" onclick="exportFounderReport('studios')"><div class="list-icon">🏢</div><span>Export Studios CSV</span><span class="chev">↓</span></div>
+            <div class="list-item" onclick="exportFounderReport('users')"><div class="list-icon">👤</div><span>Export Users CSV</span><span class="chev">↓</span></div>
+          </div>
+        </div>
+
+        <div class="dash-panel" id="fd-panel-notifications">
+          <div class="empty-note">Platform-wide notification tools aren't connected yet.<br>This section is structurally ready — wire it to a real notifications table/RPC on the backend when that's built.</div>
+        </div>
+
+        <div class="dash-panel" id="fd-panel-activity">
+          <div class="eyebrow">Recent Platform Activity</div>
+          <div style="font-size:11px; color:var(--text-faint); margin-bottom:10px; line-height:1.5;">
+            Built from studios and bookings already loaded in this dashboard — connect a real activity/audit-log table on the backend for a complete history.
+          </div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="fd-activity-list"></div>
+        </div>
+
+        <div class="dash-panel" id="fd-panel-system">
+          <div class="empty-note">System-level configuration isn't connected yet.<br>This section is structurally ready — wire it to real platform settings on the backend when that's built.</div>
+        </div>
+        </div>
       </div>
      </div>
     </div>
@@ -1817,14 +2050,27 @@
         <div id="sd-demo-banner" style="display:none; font-size:11px; color:var(--text-faint); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:9px 12px; margin-bottom:16px; line-height:1.5;">
           Demo mode — connect Supabase and claim a studio you actually own to see and manage real data here.
         </div>
-        <div class="dash-tabs">
-          <div class="dash-tab on" data-tab="overview" onclick="setStudioTab('overview')">Overview</div>
-          <div class="dash-tab" data-tab="requests" onclick="setStudioTab('requests')">Requests<span id="sd-requests-badge"></span></div>
-          <div class="dash-tab" data-tab="availability" onclick="setStudioTab('availability')">Availability</div>
-        </div>
       </div>
 
-      <div class="dash-body">
+      <div class="dash-layout">
+        <div class="dash-sidebar">
+          <div class="dash-tabs">
+            <div class="dash-tab on" data-tab="overview" onclick="setStudioTab('overview')">Overview</div>
+            <div class="dash-tab" data-tab="calendar" onclick="setStudioTab('calendar')">Calendar</div>
+            <div class="dash-tab" data-tab="bookings" onclick="setStudioTab('bookings')">Bookings</div>
+            <div class="dash-tab" data-tab="requests" onclick="setStudioTab('requests')">Pending Requests<span id="sd-requests-badge"></span></div>
+            <div class="dash-tab" data-tab="customers" onclick="setStudioTab('customers')">Customers</div>
+            <div class="dash-tab" data-tab="revenue" onclick="setStudioTab('revenue')">Revenue</div>
+            <div class="dash-tab" data-tab="analytics" onclick="setStudioTab('analytics')">Analytics</div>
+            <div class="dash-tab" data-tab="reviews" onclick="setStudioTab('reviews')">Reviews</div>
+            <div class="dash-tab" data-tab="photos" onclick="setStudioTab('photos')">Photos</div>
+            <div class="dash-tab" data-tab="availability" onclick="setStudioTab('availability')">Availability</div>
+            <div class="dash-tab" data-tab="notifications" onclick="setStudioTab('notifications')">Notifications</div>
+            <div class="dash-tab" data-tab="settings" onclick="setStudioTab('settings')">Settings</div>
+          </div>
+        </div>
+
+        <div class="dash-body">
         <div class="dash-panel on" id="sd-panel-overview">
           <div class="chip-select" id="sd-period-tabs" style="margin-bottom:16px;">
             <div class="chip-opt" data-period="30d" onclick="setStudioDashboardPeriod('30d')">30 days</div>
@@ -1847,8 +2093,52 @@
           <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="sd-top-customers"></div>
         </div>
 
+        <div class="dash-panel" id="sd-panel-calendar">
+          <div class="cal-widget" id="sd-cal-widget" style="margin-bottom:8px;"></div>
+          <div class="eyebrow">Bookings on <span id="sd-cal-selected-date">—</span></div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="sd-cal-day-bookings"></div>
+        </div>
+
+        <div class="dash-panel" id="sd-panel-bookings">
+          <input class="auth-input" id="sd-bookings-search" placeholder="Search bookings by customer or date..." style="margin-bottom:14px;" oninput="renderStudioBookingsList()">
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="sd-bookings-list"></div>
+        </div>
+
         <div class="dash-panel" id="sd-panel-requests">
           <div id="sd-pending-list" style="margin-bottom:22px;"></div>
+        </div>
+
+        <div class="dash-panel" id="sd-panel-customers">
+          <div style="font-size:11.5px; color:var(--text-faint); margin-bottom:14px; line-height:1.5;">
+            Everyone who's booked this studio, ranked by total spend.
+          </div>
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="sd-customers-full-list"></div>
+        </div>
+
+        <div class="dash-panel" id="sd-panel-revenue">
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label">Revenue (Selected Period)</div><div class="info-value" id="sd-rev-period" style="font-size:16px;">₹0</div></div>
+            <div class="info-item"><div class="info-label">Avg. per Booking</div><div class="info-value" id="sd-rev-avg" style="font-size:16px;">₹0</div></div>
+          </div>
+          <div style="font-size:11px; color:var(--text-faint); margin-bottom:10px; line-height:1.5;">Change the period on the Overview tab — every tab here reads the same period.</div>
+        </div>
+
+        <div class="dash-panel" id="sd-panel-analytics">
+          <div class="eyebrow">Peak Hours</div>
+          <div id="sd-analytics-peak-hours" style="margin-bottom:22px;"></div>
+          <div class="eyebrow">Booking Volume</div>
+          <div id="sd-analytics-volume" style="margin-bottom:22px;"></div>
+        </div>
+
+        <div class="dash-panel" id="sd-panel-reviews">
+          <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:30px;" id="sd-reviews-list"></div>
+        </div>
+
+        <div class="dash-panel" id="sd-panel-photos">
+          <div style="font-size:11.5px; color:var(--text-faint); margin-bottom:16px; line-height:1.5;">
+            Photos are managed together with the rest of your listing.
+          </div>
+          <button class="apply-btn" style="width:100%;" onclick="openEditStudioListing()">Manage Photos</button>
         </div>
 
         <div class="dash-panel" id="sd-panel-availability">
@@ -1859,48 +2149,52 @@
           <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:22px;" id="sd-blocked-slots"></div>
           <div class="cancel-link" style="display:inline-block; margin-bottom:30px;" onclick="openStudioOwnerHub()">Manage a different studio</div>
         </div>
+
+        <div class="dash-panel" id="sd-panel-notifications">
+          <div class="empty-note">Booking-alert notifications aren't connected yet.<br>This section is structurally ready — wire it to a real notifications table/RPC on the backend when that's built.</div>
+        </div>
+
+        <div class="dash-panel" id="sd-panel-settings">
+          <div style="font-size:11.5px; color:var(--text-faint); margin-bottom:16px; line-height:1.5;">
+            Pricing, hours, address, and other listing details are all managed together.
+          </div>
+          <button class="apply-btn" style="width:100%;" onclick="openEditStudioListing()">Edit Listing Settings</button>
+        </div>
+        </div>
       </div>
      </div>
     </div>
 
-  </div>
-
-  <!-- ============ BOTTOM NAV ============ -->
-  <div class="bottom-nav" role="navigation" aria-label="Primary">
-    <div class="nav-item active" data-screen="home" onclick="nav('home')" role="link" tabindex="0" aria-current="page">
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
-      <div class="label">Home</div>
-      <div class="nav-indicator"></div>
-    </div>
-    <div class="nav-item" data-screen="studios" onclick="nav('studios')" role="link" tabindex="0">
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="3"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
-      <div class="label">Studios</div>
-      <div class="nav-indicator"></div>
-    </div>
-    <div class="nav-item" data-screen="profile" onclick="nav('profile')" role="link" tabindex="0">
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
-      <div class="label">Profile</div>
-      <div class="nav-indicator"></div>
-    </div>
-    <div class="nav-item" data-screen="settings" onclick="nav('settings')" role="link" tabindex="0">
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1h.1a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
-      <div class="label">Settings</div>
-      <div class="nav-indicator"></div>
-    </div>
-  </div>
-
-  <!-- ============ FILTER MODAL ============ -->
-  <div class="modal-overlay" id="filter-overlay" onclick="closeFilterModal(event)">
-    <div class="filter-sheet" onclick="event.stopPropagation()">
-      <div class="sheet-handle"></div>
-      <div class="sheet-header">
-        <h2>Filters</h2>
-        <div class="sheet-close" onclick="closeFilterModal()" role="button" tabindex="0" aria-label="Close">
-          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    <!-- ============ SEARCH (own page, Phase 1) ============ -->
+    <div class="screen" id="screen-search">
+      <div class="subpage-header">
+        <div class="subpage-back-btn" onclick="closeSubpage('studios')" role="button" tabindex="0" aria-label="Back">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
         </div>
+        <h1>Search</h1>
       </div>
+      <div class="subpage-body">
+        <div class="search-bar" style="margin-bottom:16px;">
+          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="search-page-input" type="text" placeholder="Search studios, areas, gear..."
+            oninput="onSearchPageInput(this.value)"
+            onkeydown="if(event.key==='Enter') submitSearchPage(this.value)">
+          <div class="mic-btn" id="search-page-mic-btn" style="display:none;" onclick="startVoiceSearchOnPage()" role="button" tabindex="0" aria-label="Search by voice">🎤</div>
+          <div class="search-clear-btn" id="search-page-clear-btn" style="display:none;" onclick="clearSearchPageInput()">✕</div>
+        </div>
+        <div id="search-page-body"></div>
+      </div>
+    </div>
 
-      <div class="sheet-body">
+    <!-- ============ FILTERS (own page, Phase 1) ============ -->
+    <div class="screen" id="screen-filters">
+      <div class="subpage-header">
+        <div class="subpage-back-btn" onclick="closeFilterModal()" role="button" tabindex="0" aria-label="Back">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </div>
+        <h1>Filters</h1>
+      </div>
+      <div class="subpage-body">
 
         <div class="filter-block">
           <div class="filter-label">⭐ Minimum Rating</div>
@@ -1968,14 +2262,123 @@
         </div>
 
       </div>
-
-      <div class="sheet-footer">
+      <div class="sheet-footer" style="border-top:1px solid var(--border);">
         <button class="reset-btn" onclick="resetFilters()">Reset</button>
         <button class="apply-btn" onclick="addRipple(this,event); applyFilters()">Apply Filters</button>
       </div>
     </div>
+
+    <!-- ============ NOTIFICATIONS (own page, Phase 1) ============ -->
+    <div class="screen" id="screen-notifications">
+      <div class="subpage-header">
+        <div class="subpage-back-btn" onclick="closeSubpage('home')" role="button" tabindex="0" aria-label="Back">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </div>
+        <h1>Notifications</h1>
+      </div>
+      <div class="subpage-body" id="notifications-page-body"></div>
+    </div>
+
+    <!-- ============ BOOKING HISTORY (own page, Phase 1) ============ -->
+    <div class="screen" id="screen-booking-history">
+      <div class="subpage-header">
+        <div class="subpage-back-btn" onclick="closeSubpage('profile')" role="button" tabindex="0" aria-label="Back">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </div>
+        <h1>Booking History</h1>
+      </div>
+      <div class="subpage-body" id="booking-history-page-body"></div>
+    </div>
+
+    <!-- ============ BOOKING DETAILS (own page, Phase 1) ============ -->
+    <div class="screen" id="screen-booking-details">
+      <div class="subpage-header">
+        <div class="subpage-back-btn" onclick="closeSubpage('booking-history')" role="button" tabindex="0" aria-label="Back">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </div>
+        <h1>Booking Details</h1>
+      </div>
+      <div class="subpage-body" id="booking-details-page-body"></div>
+    </div>
+
+    <!-- ============ SAVED STUDIOS (own page, Phase 1) ============ -->
+    <div class="screen" id="screen-saved-studios">
+      <div class="subpage-header">
+        <div class="subpage-back-btn" onclick="closeSubpage('profile')" role="button" tabindex="0" aria-label="Back">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </div>
+        <h1>Saved Studios</h1>
+      </div>
+      <div class="subpage-body" id="saved-studios-page-body"></div>
+    </div>
+
+    <!-- ============ BOOKING REVIEW (own page, Phase 2) ============ -->
+    <div class="screen" id="screen-booking-review">
+      <div class="subpage-header">
+        <div class="subpage-back-btn" onclick="closeSubpage('detail')" role="button" tabindex="0" aria-label="Back">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </div>
+        <h1>Review Booking</h1>
+      </div>
+      <div class="subpage-body" id="booking-review-page-body"></div>
+    </div>
+
+    <!-- ============ BOOKING CONFIRMATION (own page, Phase 2) ============ -->
+    <div class="screen" id="screen-booking-confirmation">
+      <div class="subpage-header">
+        <div class="subpage-back-btn" onclick="closeSubpage('home')" role="button" tabindex="0" aria-label="Back">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </div>
+        <h1>Booking Confirmed</h1>
+      </div>
+      <div class="subpage-body" id="booking-confirmation-page-body"></div>
+    </div>
+
+    <!-- ============ STUDIO GALLERY (own page, Phase 2) ============ -->
+    <div class="screen" id="screen-gallery">
+      <div class="gallery-topbar">
+        <div class="subpage-back-btn" onclick="closeSubpage('detail')" role="button" tabindex="0" aria-label="Close gallery">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </div>
+        <div class="gallery-counter" id="gallery-counter">1 / 4</div>
+      </div>
+      <div class="gallery-stage" id="gallery-stage"
+           onclick="closeSubpage('detail')"
+           ontouchstart="galleryTouchStart(event)" ontouchend="galleryTouchEnd(event)">
+        <div class="gallery-swatch" id="gallery-swatch" aria-hidden="true"></div>
+      </div>
+      <div class="gallery-nav-btn gallery-prev" onclick="event.stopPropagation(); galleryStep(-1)" role="button" tabindex="0" aria-label="Previous photo">‹</div>
+      <div class="gallery-nav-btn gallery-next" onclick="event.stopPropagation(); galleryStep(1)" role="button" tabindex="0" aria-label="Next photo">›</div>
+      <div class="gallery-dots" id="gallery-dots"></div>
+    </div>
+
   </div>
 
+  <!-- ============ BOTTOM NAV ============ -->
+  <div class="bottom-nav" role="navigation" aria-label="Primary">
+    <div class="nav-item active" data-screen="home" onclick="nav('home')" role="link" tabindex="0" aria-current="page">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      <div class="label">Home</div>
+      <div class="nav-indicator"></div>
+    </div>
+    <div class="nav-item" data-screen="studios" onclick="nav('studios')" role="link" tabindex="0">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="3"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+      <div class="label">Studios</div>
+      <div class="nav-indicator"></div>
+    </div>
+    <div class="nav-item" data-screen="profile" onclick="nav('profile')" role="link" tabindex="0">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+      <div class="label">Profile</div>
+      <div class="nav-indicator"></div>
+    </div>
+    <div class="nav-item" data-screen="settings" onclick="nav('settings')" role="link" tabindex="0">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1h.1a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+      <div class="label">Settings</div>
+      <div class="nav-indicator"></div>
+    </div>
+  </div>
+
+  <!-- ============ FILTER MODAL ============ -->
   <!-- ============ ONBOARDING MODAL ============ -->
   <div class="modal-overlay" id="onboarding-overlay">
     <div class="filter-sheet" onclick="event.stopPropagation()">
@@ -2347,8 +2750,10 @@
   }
 
   async function openNotificationCenter(){
+    openSubpage('notifications');
+    const body = document.getElementById('notifications-page-body');
     if(!BACKEND_ENABLED){
-      openInfoModal('Notifications', '<div class="empty-note">Connect Supabase to see real notifications here.</div>');
+      body.innerHTML = '<div class="empty-note">Connect Supabase to see real notifications here.</div>';
       return;
     }
     let rows = [];
@@ -2358,15 +2763,13 @@
       rows = data || [];
     } catch(e){}
 
-    const body = rows.length ? rows.map(n => {
+    body.innerHTML = rows.length ? rows.map(n => {
       const time = new Date(n.created_at).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'numeric', minute:'2-digit' });
       return '<div class="notif-row' + (n.read ? '' : ' unread') + '">'
         + '<div class="nr-title">' + n.title + '</div>'
         + (n.body ? '<div class="nr-body">' + n.body + '</div>' : '')
         + '<div class="nr-time">' + time + '</div></div>';
     }).join('') : '<div class="empty-note">No notifications yet.</div>';
-
-    openInfoModal('Notifications', body);
 
     // Mark everything visible as read now that the person has actually
     // opened the list — matches how most notification centers behave.
@@ -2439,6 +2842,54 @@
     document.getElementById('screen-' + screen).scrollTop = 0;
     logPageView(screen);
     saveActiveScreen(screen);
+    // A primary tab switch is a fresh context, not "going deeper" — clear
+    // any sub-page back-stack left over from wherever we were before.
+    subpageStack = [];
+  }
+
+  // ------------------------------------------------------------
+  // SUB-PAGE NAVIGATION
+  // Layered on top of nav() rather than replacing it: switching primary
+  // tabs (home/studios/profile/settings/etc.) still goes through nav()
+  // exactly as before. Sub-pages reached *from within* a tab — Search,
+  // Filters, Notifications, Booking History, Booking Details, Saved
+  // Studios, and more added in later phases — push onto subpageStack so
+  // a real back arrow can return exactly where it came from, the way an
+  // actual multi-page app works instead of a modal that just closes.
+  // ------------------------------------------------------------
+  let subpageStack = [];
+
+  function openSubpage(screen){
+    const current = document.querySelector('.screen.active');
+    if(current) subpageStack.push(current.id.replace('screen-', ''));
+    document.getElementById('app-root').classList.remove('showing-detail');
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + screen).classList.add('active');
+    document.getElementById('screen-' + screen).scrollTop = 0;
+    logPageView(screen);
+  }
+
+  function closeSubpage(fallback){
+    const prev = subpageStack.pop() || fallback || 'home';
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + prev).classList.add('active');
+    document.getElementById('screen-' + prev).scrollTop = 0;
+    logPageView(prev);
+  }
+
+  // For transitions where the new screen should replace the current one
+  // rather than stack on top of it — e.g. Review Booking → Booking
+  // Confirmed. If that push were treated as "going deeper," the back
+  // button on the confirmation screen would return to a stale review
+  // screen for a booking that's already been placed. This leaves
+  // subpageStack untouched, so back still correctly returns to wherever
+  // the *review* step was opened from.
+  function replaceSubpage(screen){
+    document.getElementById('app-root').classList.remove('showing-detail');
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + screen).classList.add('active');
+    document.getElementById('screen-' + screen).scrollTop = 0;
+    logPageView(screen);
   }
 
   // Delegated listener: #slot-row's contents get replaced per-studio in
@@ -2635,6 +3086,8 @@
       services:["Rehearsal","Recording"], genres:["Indie Rock","Jazz"], verified:true, daysAgo:5,
       address:"5th Cross, Koramangala, Bengaluru", phone:"+91 98765 43210", hours:"9:00 AM – 11:00 PM, all days", capacity:"Up to 6 people", lat:12.9352, lng:77.6245, city:"Koramangala",
       swatch:["#3A2818","#1A2624"],
+      photos:[["#3A2818","#1A2624"],["#4A3320","#22201C"],["#2E2015","#1F2E28"],["#442E1C","#182420"]],
+      amenities:["Parking on-site","Air conditioning","Free WiFi","Green room","Soundproofed walls"],
       chips:["🎸 Rehearsal","🎙 Recording","🅿️ Parking","❄️ AC"],
       about:"A live room built around a vintage analog console, tuned for bands that want their rehearsal to sound like a soundcheck. Treated acoustics, in-house backline, and an engineer on call.",
       equip:["Fender Twin Reverb","Pearl Export Kit","Ampeg SVT Bass Rig","Shure SM58 x4"],
@@ -2644,6 +3097,8 @@
       services:["Recording","Mixing"], genres:["Hip-Hop","Electronic"], verified:true, daysAgo:20,
       address:"27th Main, HSR Layout, Bengaluru", phone:"+91 98450 11223", hours:"10:00 AM – 10:00 PM, Mon–Sat", capacity:"Up to 4 people", lat:12.9116, lng:77.6389, city:"HSR Layout",
       swatch:["#2A3428","#1E241A"],
+      photos:[["#2A3428","#1E241A"],["#324030","#242F1E"],["#1E2A20","#28321C"],["#2C3826","#1A2818"]],
+      amenities:["Free WiFi","Lounge area","Parking on-site","Coffee & snacks","Wheelchair accessible"],
       chips:["🎙 Recording","🎧 Mixing","☕ Lounge","🅿️ Parking"],
       about:"A boutique recording suite with a Neve-style console and a mix room built for detail work. Popular with producers finishing singles and EPs.",
       equip:["Neve-style Console","Neumann U87","Genelec Monitors","Universal Audio Rack"],
@@ -2653,6 +3108,8 @@
       services:["Drum Rooms","Rehearsal"], genres:["Rock","Metal"], verified:false, daysAgo:2,
       address:"ITPL Road, Whitefield, Bengaluru", phone:"+91 90080 55667", hours:"8:00 AM – 11:00 PM, all days", capacity:"Up to 3 drummers", lat:12.9698, lng:77.75, city:"Whitefield",
       swatch:["#241E2A","#2A1E22"],
+      photos:[["#241E2A","#2A1E22"],["#2C2432","#32242A"],["#1E1A26","#26181E"],["#2A2230","#2E1E24"]],
+      amenities:["Soundproofed walls","Parking on-site","Isolation booths","Free WiFi","Water station"],
       chips:["🥁 Drum Rooms","🎸 Rehearsal","🔇 Soundproofed"],
       about:"Three isolated drum rooms with a shared control booth. Built for drummers who practice loud and don't want to apologize for it.",
       equip:["DW Collector's Kit","Pearl Reference","Roland V-Drums","In-ear Monitor Rig"],
@@ -2662,6 +3119,8 @@
       services:["Recording","Piano Rooms"], genres:["Classical","Lo-fi"], verified:true, daysAgo:45,
       address:"12th Main, Indiranagar, Bengaluru", phone:"+91 99001 22334", hours:"11:00 AM – 9:00 PM, Tue–Sun", capacity:"Up to 4 people", lat:12.9784, lng:77.6408, city:"Indiranagar",
       swatch:["#2A2418","#28201A"],
+      photos:[["#2A2418","#28201A"],["#322C1E","#302620"],["#241E14","#2A2018"],["#302A1C","#241C16"]],
+      amenities:["Natural light","Free WiFi","Air conditioning","Green room","Street parking nearby"],
       chips:["🎙 Recording","🎹 Piano Rooms","🪟 Natural Light"],
       about:"A converted attic space with a 1960s upright and warm natural light. Favoured for stripped-down sessions and songwriter demos.",
       equip:["Yamaha U1 Upright","Rode NT1-A Pair","Tascam Tape Deck","Vintage Fender Rhodes"],
@@ -2671,6 +3130,8 @@
       services:["Rehearsal","Mixing"], genres:["Indie Rock","Electronic"], verified:false, daysAgo:1,
       address:"4th Block, Jayanagar, Bengaluru", phone:"+91 97400 88990", hours:"9:00 AM – 9:00 PM, all days", capacity:"Up to 5 people", lat:12.925, lng:77.5938, city:"Jayanagar",
       swatch:["#302818","#1E2A1C"],
+      photos:[["#302818","#1E2A1C"],["#38301E","#263220"],["#241E10","#182418"],["#342C1A","#20281C"]],
+      amenities:["Budget-friendly rates","Free WiFi","Street parking nearby","Basic backline included"],
       chips:["🎸 Rehearsal","🎧 Mixing","💸 Budget-friendly"],
       about:"A no-frills rehearsal space that keeps rates low for bands practicing on a budget. Basic backline included, BYO cymbals.",
       equip:["Marshall JCM800","Fender Bassman","Basic 4-piece Kit","2x Mic Stands"],
@@ -2680,6 +3141,8 @@
       services:["Recording","Mixing","Piano Rooms"], genres:["Jazz","Classical"], verified:true, daysAgo:60,
       address:"Sampige Road, Malleshwaram, Bengaluru", phone:"+91 96200 33445", hours:"10:00 AM – 8:00 PM, Mon–Sat", capacity:"Up to 10 people", lat:13.0068, lng:77.5813, city:"Malleshwaram",
       swatch:["#241C2E","#1A2222"],
+      photos:[["#241C2E","#1A2222"],["#2C2436","#22282A"],["#1C1626","#16201E"],["#2A2232","#1E2624"]],
+      amenities:["Skyline view","Air conditioning","Free WiFi","Lounge area","Valet parking"],
       chips:["🎙 Recording","🎧 Mixing","🎹 Piano Rooms","🌇 Skyline View"],
       about:"A premium top-floor suite with a grand piano and floor-to-ceiling windows. Built for full-band live tracking and film scoring sessions.",
       equip:["Steinway Grand Piano","SSL Console","Vintage Ribbon Mics","Full Live Room"],
@@ -3097,6 +3560,29 @@
     });
   }
 
+  // Fills a bordered list container (dashboard sections, user/booking
+  // lists) with shimmering placeholder rows while its real data is still
+  // in flight — used so the Founder and Studio Dashboards show something
+  // immediately on open instead of a blank gap before content pops in.
+  function showRowSkeletons(containerIds, count){
+    const rowHtml = '<div class="skel-row"><div class="skel-row-lines">'
+      + '<div class="skel skel-line w50"></div><div class="skel skel-line w30"></div></div>'
+      + '<div class="skel skel-chip"></div></div>';
+    (Array.isArray(containerIds) ? containerIds : [containerIds]).forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.innerHTML = Array(count || 3).fill(rowHtml).join('');
+    });
+  }
+
+  // Same idea for a single info-grid stat value — shows a shimmer bar
+  // instead of a stale "—" while the real number loads.
+  function showStatSkeletons(ids){
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.innerHTML = '<span class="skel skel-stat-value" style="display:inline-block;"></span>';
+    });
+  }
+
   const homeCardCache = new Map();
   function buildHomeCard(s){
     if(homeCardCache.has(s.id)) return homeCardCache.get(s.id);
@@ -3358,6 +3844,113 @@
     recognition.start();
   }
 
+  // ------------------------------------------------------------
+  // SEARCH PAGE (Phase 1: "Search should have its own page")
+  // The Studios screen's inline search bar still exists and still works
+  // exactly as before (untouched) — tapping it now simply redirects here
+  // instead of expanding its own dropdown, the way a real search
+  // destination (Spotify, Airbnb) behaves rather than an inline expando.
+  // This page has its own input/mic/clear elements so none of the
+  // existing inline-search wiring above had to change.
+  // ------------------------------------------------------------
+  function openSearchPage(){
+    openSubpage('search');
+    const input = document.getElementById('search-page-input');
+    input.value = state.search || '';
+    document.getElementById('search-page-clear-btn').style.display = input.value ? 'flex' : 'none';
+    renderSearchPageBody(input.value);
+    setTimeout(() => input.focus(), 60);
+  }
+
+  if(SpeechRecognitionCtor){
+    document.getElementById('search-page-mic-btn').style.display = 'flex';
+  }
+
+  let _searchPageDebounce = null;
+  function onSearchPageInput(value){
+    document.getElementById('search-page-clear-btn').style.display = value ? 'flex' : 'none';
+    clearTimeout(_searchPageDebounce);
+    _searchPageDebounce = setTimeout(() => renderSearchPageBody(value), 120);
+  }
+
+  function clearSearchPageInput(){
+    const input = document.getElementById('search-page-input');
+    input.value = '';
+    document.getElementById('search-page-clear-btn').style.display = 'none';
+    renderSearchPageBody('');
+    input.focus();
+  }
+
+  function searchPageSelectHistory(query){
+    document.getElementById('search-page-input').value = query;
+    renderSearchPageBody(query);
+  }
+
+  // Pressing Enter (rather than tapping a specific studio suggestion)
+  // commits the query and hands off to the existing Studios list/filter
+  // pipeline — same state.search + render() the inline search already
+  // used, so sort/filter/map-view all keep working unmodified.
+  function submitSearchPage(query){
+    const q = (query || '').trim();
+    if(!q) return;
+    commitSearchHistory(q);
+    state.search = q;
+    document.getElementById('search-input').value = q;
+    document.getElementById('search-clear-btn').style.display = 'flex';
+    render();
+    closeSubpage('studios');
+  }
+
+  function startVoiceSearchOnPage(){
+    if(!SpeechRecognitionCtor){
+      showToast('Voice search isn\'t supported in this browser.');
+      return;
+    }
+    const micBtn = document.getElementById('search-page-mic-btn');
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    micBtn.classList.add('listening');
+    recognition.onresult = function(e){
+      const transcript = e.results[0][0].transcript;
+      document.getElementById('search-page-input').value = transcript;
+      document.getElementById('search-page-clear-btn').style.display = 'flex';
+      renderSearchPageBody(transcript);
+    };
+    recognition.onerror = function(){
+      showToast('Couldn\'t hear that — try again.');
+    };
+    recognition.onend = function(){
+      micBtn.classList.remove('listening');
+    };
+    recognition.start();
+  }
+
+  function renderSearchPageBody(query){
+    const q = (query || '').trim().toLowerCase();
+    const body = document.getElementById('search-page-body');
+
+    if(!q){
+      const history = profile.searchHistory || [];
+      body.innerHTML = history.length
+        ? '<div class="search-suggest-label" style="padding-left:0;">Recent searches'
+          + '<span class="clear-history-link" onclick="clearSearchHistory(); renderSearchPageBody(\'\');">Clear history</span></div>'
+          + history.map(h => '<div class="search-suggest-row" style="padding-left:0;" onclick="searchPageSelectHistory(\'' + h.replace(/'/g, "\\'") + '\')"><span class="sfx">🕘</span>' + h + '</div>').join('')
+        : '<div class="empty-note">Search studios by name, area, equipment, or amenities.</div>';
+      return;
+    }
+
+    const matches = studios.filter(s => studioMatchesQuery(s, q));
+    if(!matches.length){
+      body.innerHTML = '<div class="empty-note">No studios match "' + query + '".</div>';
+      return;
+    }
+    body.innerHTML = '<div class="search-suggest-label" style="padding-left:0; margin-bottom:10px;">'
+      + matches.length + ' result' + (matches.length === 1 ? '' : 's') + '</div>'
+      + '<div class="studio-list" style="padding:0;">' + matches.map(buildCard).join('') + '</div>';
+  }
+
   document.querySelectorAll('#cat-row .cat-chip').forEach(el => {
     el.addEventListener('click', () => {
       const tag = el.dataset.tag;
@@ -3395,11 +3988,10 @@
       verifiedOnly: state.verifiedOnly,
     };
     syncModalUI();
-    document.getElementById('filter-overlay').classList.add('open');
+    openSubpage('filters');
   }
-  function closeFilterModal(e){
-    if(e && e.target !== e.currentTarget) return;
-    document.getElementById('filter-overlay').classList.remove('open');
+  function closeFilterModal(){
+    closeSubpage('studios');
   }
   function syncModalUI(){
     document.querySelectorAll('#star-row .star').forEach(st => {
@@ -3465,7 +4057,7 @@
       c.classList.toggle('active', isActive);
       c.setAttribute('aria-pressed', isActive);
     });
-    document.getElementById('filter-overlay').classList.remove('open');
+    closeSubpage('studios');
     render();
   }
 
@@ -3473,6 +4065,11 @@
     const d = studios.find(s => s.id === id);
     if(!d) return;
     currentDetailId = id;
+    // Detail's own back arrow is a fixed nav('studios'), not part of the
+    // sub-page back-stack — clear the stack here so it can't accumulate a
+    // stale entry from wherever detail was opened from (Search, Saved
+    // Studios, Booking History, etc. all call openDetail() directly).
+    subpageStack = [];
     document.getElementById('detail-name').textContent = d.name;
     document.getElementById('detail-loc').textContent = d.loc + ', ' + d.distanceKm + ' km';
     document.getElementById('detail-price').textContent = '₹' + d.price + '/hr';
@@ -3481,6 +4078,8 @@
     document.getElementById('detail-about').textContent = d.about;
     document.getElementById('detail-chips').innerHTML = d.chips.map(c => '<div class="chip">'+c+'</div>').join('');
     document.getElementById('detail-equip').innerHTML = d.equip.map(e => '<div class="equip-item"><div class="dot"></div>'+e+'</div>').join('');
+    document.getElementById('detail-amenities').innerHTML = (d.amenities || []).map(a => '<div class="equip-item"><div class="dot"></div>'+a+'</div>').join('') || '<div class="equip-item" style="color:var(--text-faint);">No amenities listed</div>';
+    document.getElementById('detail-gallery-count').textContent = (d.photos && d.photos.length) || 1;
 
     document.getElementById('detail-address').textContent = d.address || '—';
     document.getElementById('detail-hours').textContent = d.hours || '—';
@@ -3536,7 +4135,66 @@
     document.getElementById('app-root').classList.add('showing-detail');
   }
 
-  // ---- CALENDAR / DATE PICKER ----
+  // ---- STUDIO PHOTO GALLERY (fullscreen lightbox) ----
+  let galleryPhotos = [];
+  let galleryIndex = 0;
+  let galleryTouchStartX = null;
+
+  function openGallery(){
+    const d = studios.find(s => s.id === currentDetailId);
+    if(!d) return;
+    galleryPhotos = (d.photos && d.photos.length) ? d.photos : [d.swatch];
+    galleryIndex = 0;
+    openSubpage('gallery');
+    galleryRender();
+  }
+
+  function galleryRender(){
+    const [c1, c2] = galleryPhotos[galleryIndex];
+    document.getElementById('gallery-swatch').style.background = 'linear-gradient(135deg,' + c1 + ',' + c2 + ')';
+    document.getElementById('gallery-counter').textContent = (galleryIndex + 1) + ' / ' + galleryPhotos.length;
+    document.getElementById('gallery-dots').innerHTML = galleryPhotos.map((_, i) =>
+      '<span class="' + (i === galleryIndex ? 'on' : '') + '"></span>'
+    ).join('');
+    const multi = galleryPhotos.length > 1;
+    document.querySelector('.gallery-prev').style.display = multi ? 'flex' : 'none';
+    document.querySelector('.gallery-next').style.display = multi ? 'flex' : 'none';
+  }
+
+  function galleryStep(dir){
+    if(!galleryPhotos.length) return;
+    galleryIndex = (galleryIndex + dir + galleryPhotos.length) % galleryPhotos.length;
+    galleryRender();
+  }
+
+  function galleryTouchStart(e){
+    galleryTouchStartX = e.changedTouches[0].clientX;
+  }
+  function galleryTouchEnd(e){
+    if(galleryTouchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - galleryTouchStartX;
+    if(Math.abs(dx) > 40){
+      // A real swipe happened — advance the photo, and stop this touch
+      // from also firing a synthetic click that would immediately close
+      // the gallery right after the swipe.
+      e.preventDefault();
+      galleryStep(dx < 0 ? 1 : -1);
+    }
+    galleryTouchStartX = null;
+  }
+
+  // Keyboard support: ← → to browse, Esc to close — only while the
+  // gallery is actually the active screen, so this never intercepts
+  // arrow keys typed anywhere else in the app.
+  document.addEventListener('keydown', (e) => {
+    const galleryEl = document.getElementById('screen-gallery');
+    if(!galleryEl || !galleryEl.classList.contains('active')) return;
+    if(e.key === 'ArrowLeft') galleryStep(-1);
+    else if(e.key === 'ArrowRight') galleryStep(1);
+    else if(e.key === 'Escape') closeSubpage('detail');
+  });
+
+
   // Real month-view date picker, replacing the old "today only" slot list.
   // Booking a date more than a few weeks out is still just picking from
   // the same fixed slot times per studio — real per-day availability is a
@@ -3737,7 +4395,8 @@
     // true cross-device duplicate check would need a server-side check at
     // insert time, which is a reasonable next hardening step.
     const isDuplicate = profile.bookings.some(b =>
-      b.studioId === d.id && b.slot === slot && new Date(b.date).toDateString() === scheduledDate.toDateString()
+      b.studioId === d.id && b.slot === slot && b.status !== 'cancelled' && b.status !== 'declined'
+      && new Date(b.date).toDateString() === scheduledDate.toDateString()
     );
     if(isDuplicate){
       showToast('You already have a booking for this studio at ' + slot + ' on ' + formatSelectedDateLabel() + '.', 'error');
@@ -3769,9 +4428,10 @@
           : 'Demo mode — this books instantly since there\'s no real studio owner to approve it.')
       + '</div>'
       + '<button class="apply-btn" style="width:100%;" id="confirm-booking-btn" onclick="confirmBooking(\'' + d.id + '\', \'' + slot.replace(/'/g, "\\'") + '\', \'' + scheduledDate.toISOString() + '\')">Confirm Booking</button>'
-      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="closeInfoModal()">Back</button>';
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="closeSubpage(\'detail\')">Back</button>';
 
-    openInfoModal('Review Booking', body);
+    openSubpage('booking-review');
+    document.getElementById('booking-review-page-body').innerHTML = body;
   }
 
   async function confirmBooking(studioId, slot, dateIso){
@@ -3837,7 +4497,6 @@
     saveProfile();
     updateStats();
     noteInput.value = '';
-    closeInfoModal();
     showToast(willBePending ? 'Booking request sent.' : 'Booking confirmed (demo mode).');
     openBookingConfirmation(booking);
   }
@@ -3845,11 +4504,20 @@
   function openBookingConfirmation(booking){
     const d = new Date(booking.date);
     const dateStr = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    const isPending = booking.status === 'pending';
+    const icon = isPending ? '⏳' : '✓';
+    const iconBg = isPending ? 'var(--amber-dim)' : 'var(--teal-dim)';
+    const iconColor = isPending ? 'var(--amber)' : 'var(--teal)';
+    const title = isPending ? 'Booking Request Sent' : 'Booking Confirmed';
+    const subtitle = isPending
+      ? 'The studio will accept or decline this request — you\'ll be notified either way.'
+      : 'This is a demo booking, saved locally on this device.';
+
     const body = ''
       + '<div style="text-align:center; padding:6px 0 4px;">'
-      + '<div style="width:52px; height:52px; border-radius:50%; background:var(--teal-dim); color:var(--teal); display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 16px;">✓</div>'
-      + '<div style="font-family:\'Space Grotesk\',sans-serif; font-size:17px; font-weight:700; margin-bottom:4px;">Booking Confirmed</div>'
-      + '<div style="color:var(--text-faint); font-size:12px; margin-bottom:6px;">This is a demo booking, saved locally on this device.</div>'
+      + '<div style="width:52px; height:52px; border-radius:50%; background:' + iconBg + '; color:' + iconColor + '; display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 16px;">' + icon + '</div>'
+      + '<div style="font-family:\'Space Grotesk\',sans-serif; font-size:17px; font-weight:700; margin-bottom:4px;">' + title + '</div>'
+      + '<div style="color:var(--text-faint); font-size:12px; margin-bottom:6px;">' + subtitle + '</div>'
       + '<div style="color:var(--text-faint); font-size:10.5px; font-family:\'JetBrains Mono\',monospace;">Booking ID: ' + booking.id + '</div>'
       + '</div>'
       + '<div class="booking-row" style="border-top:1px solid var(--border); padding-top:14px;">'
@@ -3860,9 +4528,11 @@
       + '<button class="reset-btn" style="flex:1;" onclick="addBookingToGoogleCalendar(\'' + booking.id + '\')">📅 Google Calendar</button>'
       + '<button class="reset-btn" style="flex:1;" onclick="downloadBookingIcs(\'' + booking.id + '\')">⬇️ .ics file</button>'
       + '</div>'
-      + '<button class="apply-btn" style="width:100%; margin-top:10px;" onclick="closeInfoModal(); openBookingHistory();">View Booking History</button>'
-      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="closeInfoModal()">Done</button>';
-    openInfoModal('Booking Confirmed', body);
+      + '<button class="apply-btn" style="width:100%; margin-top:10px;" onclick="closeSubpage(\'detail\'); openBookingHistory();">View Booking History</button>'
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="closeSubpage(\'detail\')">Done</button>';
+
+    replaceSubpage('booking-confirmation');
+    document.getElementById('booking-confirmation-page-body').innerHTML = body;
   }
 
   // ---- Add to Calendar (Google Calendar link + downloadable .ics) ----
@@ -3917,16 +4587,21 @@
   function rebookBooking(bookingId){
     const booking = profile.bookings.find(b => b.id === bookingId);
     if(!booking) return;
-    closeInfoModal();
     nav('studios');
     openDetail(booking.studioId);
     showToast('Pick a new time to rebook ' + booking.studioName + '.');
   }
 
+  // Marks the booking cancelled and keeps it in history (so the Cancelled
+  // filter tab actually has something to show) — previously this deleted
+  // the local record outright, which meant a "cancelled" status could
+  // never actually be browsed.
   async function cancelBooking(id){
-    const idx = profile.bookings.findIndex(b => b.id === id);
-    if(idx === -1) return;
-    profile.bookings.splice(idx, 1);
+    const b = profile.bookings.find(x => x.id === id);
+    if(!b) return;
+    b.status = 'cancelled';
+    b.timeline = b.timeline || [];
+    b.timeline.push({ label: 'Booking cancelled', at: new Date().toISOString() });
     saveProfile();
     updateStats();
     showToast('Booking cancelled.');
@@ -3937,6 +4612,70 @@
         await sb.from('bookings').update({ status: 'cancelled' }).eq('id', id).eq('user_id', profile.supabaseUserId);
       } catch(err){ /* local cancellation already reflected; backend sync is best-effort here */ }
     }
+  }
+
+  // Every destructive action needs confirmation — this is the dialog in
+  // front of cancelBooking(); the button/link never calls it directly.
+  function confirmCancelBooking(id){
+    const b = profile.bookings.find(x => x.id === id);
+    if(!b) return;
+    const dateStr = new Date(b.date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+    const body = ''
+      + '<div style="font-size:12.5px; color:var(--text-dim); margin-bottom:16px; line-height:1.6;">Cancel your booking at <b>' + b.studioName + '</b> on ' + dateStr + ' · ' + b.slot + '?</div>'
+      + '<button class="apply-btn" style="width:100%; background:var(--danger); color:#fff;" onclick="cancelBooking(\'' + id + '\')">Yes, Cancel Booking</button>'
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="renderBookingHistory();">Never Mind</button>';
+    openInfoModal('Cancel Booking?', body);
+  }
+
+  // ---- Reschedule: pick a new date/time, sends it back to pending since
+  // the studio needs to confirm the new slot ----
+  function openRescheduleModal(bookingId){
+    const b = profile.bookings.find(x => x.id === bookingId);
+    if(!b) return;
+    const d = studios.find(s => s.id === b.studioId);
+    if(!d) return;
+
+    const slotChips = d.slots.map(slot =>
+      '<div class="chip-opt' + (slot === b.slot ? ' on' : '') + '" data-slot="' + slot + '" onclick="document.querySelectorAll(\'#reschedule-slots .chip-opt\').forEach(c=>c.classList.remove(\'on\')); this.classList.add(\'on\');">' + slot + '</div>'
+    ).join('');
+    const dateVal = new Date(b.date).toISOString().slice(0, 10);
+    const todayVal = todayMidnight().toISOString().slice(0, 10);
+
+    const body = ''
+      + '<div style="font-size:12px; color:var(--text-faint); margin-bottom:14px; line-height:1.5;">Pick a new date and time for your session at <b>' + b.studioName + '</b>. The studio will need to confirm the new slot.</div>'
+      + '<div class="filter-block"><div class="filter-label">New Date</div><input type="date" id="reschedule-date-input" class="auth-input" style="max-width:none; margin-bottom:0;" min="' + todayVal + '" value="' + dateVal + '"></div>'
+      + '<div class="filter-block"><div class="filter-label">New Time</div><div class="chip-select" id="reschedule-slots">' + slotChips + '</div></div>'
+      + '<button class="apply-btn" style="width:100%; margin-top:6px;" onclick="confirmReschedule(\'' + bookingId + '\')">Send Reschedule Request</button>';
+    openInfoModal('Reschedule Booking', body);
+  }
+
+  async function confirmReschedule(bookingId){
+    const b = profile.bookings.find(x => x.id === bookingId);
+    if(!b) return;
+    const dateVal = document.getElementById('reschedule-date-input').value;
+    const slotEl = document.querySelector('#reschedule-slots .chip-opt.on');
+    if(!dateVal || !slotEl){ showToast('Pick a date and time.', 'error'); return; }
+    const newSlot = slotEl.dataset.slot;
+
+    if(BACKEND_ENABLED && profile.supabaseUserId){
+      try {
+        await sb.from('bookings').update({ booking_date: dateVal, time_slot: newSlot, status: 'pending' })
+          .eq('id', bookingId).eq('user_id', profile.supabaseUserId);
+      } catch(err){
+        showToast('Could not reschedule — please try again.', 'error');
+        return;
+      }
+    }
+
+    b.date = new Date(dateVal + 'T00:00:00').toISOString();
+    b.slot = newSlot;
+    b.status = 'pending';
+    b.timeline = b.timeline || [];
+    b.timeline.push({ label: 'Reschedule requested', at: new Date().toISOString() });
+    saveProfile();
+    closeInfoModal();
+    showToast('Reschedule requested — waiting on the studio to confirm.');
+    renderBookingHistory();
   }
 
   function showToast(msg, type){
@@ -4458,7 +5197,8 @@
     const b = document.getElementById('stat-bookings');
     const s = document.getElementById('stat-studios');
     const f = document.getElementById('stat-favorites');
-    if(b) b.textContent = profile.bookings.length;
+    const activeBookings = profile.bookings.filter(x => x.status !== 'cancelled' && x.status !== 'declined');
+    if(b) b.textContent = activeBookings.length;
     if(s) s.textContent = profile.visitedStudios.length;
     if(f) f.textContent = profile.favorites.length;
   }
@@ -4601,6 +5341,20 @@
     saveProfile();
   }
 
+  // Generic container for the small settings/account pages (Privacy,
+  // About, Terms, Licenses, Contact, Report Bug, Rate App, Payments,
+  // Account, Activity, Security) — same "one container, many bodies"
+  // pattern openInfoModal used, just living in the real page stack now.
+  function openSettingsSubpage(title, bodyHtml){
+    openSubpage('settings-page');
+    document.getElementById('settings-page-title').textContent = title;
+    document.getElementById('settings-page-body').innerHTML = bodyHtml;
+  }
+
+  function payoutsPagePlaceholder(){
+    return '<div class="empty-note">Payment methods aren\'t connected yet.<br>This is a demo build — no real payments are processed anywhere in the app.</div>';
+  }
+
   function openEditProfile(){
     const body = ''
       + '<div class="filter-block">'
@@ -4612,7 +5366,7 @@
       + '<div style="color:var(--text-dim); font-size:13px;">' + (profile.email || 'No email on file') + '</div>'
       + '</div>'
       + '<button class="apply-btn" style="width:100%;" onclick="saveEditProfile()">Save Changes</button>';
-    openInfoModal('Edit Profile', body);
+    openSettingsSubpage('Account', body);
   }
 
   function saveEditProfile(){
@@ -4622,39 +5376,50 @@
       saveProfile();
       renderProfileUI();
     }
-    closeInfoModal();
+    closeSubpage();
     showToast('Profile updated.');
   }
 
   function openPrivacyPage(){
-    openInfoModal('Privacy & Security', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
+    openSettingsSubpage('Privacy', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
       + 'Sound Board is currently in development. This demo build stores your profile, bookings, and favorites only in this browser\'s local storage — nothing is sent to a server or shared with studios.'
       + '<br><br>A full privacy policy will be published before public launch.</div>');
   }
 
   function openHelpPage(){
-    openInfoModal('Help & Support', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
+    openSettingsSubpage('Help', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
       + 'This is a demo build, so live support isn\'t connected yet.'
       + '<br><br>Bookings, favorites, and genres are saved locally in this browser. Logging out clears your saved session.'
       + '<br><br>Questions about the app itself? Reach out to the team building it.</div>');
   }
 
   function openAboutPage(){
-    openInfoModal('About Sound Board', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
+    const body = ''
+      + '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7; margin-bottom:22px;">'
       + 'Sound Board helps musicians find and book rehearsal, recording, and mixing studios — filtered by rating, price, distance, services, and genre fit.'
       + '<br><br>This build is a demo: studio listings are sample data, and bookings are saved locally on this device rather than through a live backend.'
-      + '<br><br>Built with a lot of coffee and a metronome running in the background.</div>');
+      + '<br><br>Built with a lot of coffee and a metronome running in the background.'
+      + '</div>'
+      + '<div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">'
+      + '<div class="list-item" onclick="openInfoModal(\'Version\', \'<div style=&quot;color:var(--text-dim); font-size:12.5px; line-height:1.7;&quot;>Sound Board — Demo Build<br>Version 0.9.0 (pre-release)</div>\')"><div class="list-icon">🏷️</div><span>Version</span><span class="setting-sub" style="margin-left:auto; margin-right:8px;">0.9.0</span></div>'
+      + '<div class="list-item" onclick="openTermsPage()"><div class="list-icon">📄</div><span>Terms of Service</span><span class="chev">›</span></div>'
+      + '<div class="list-item" onclick="openLicensesPage()"><div class="list-icon">📜</div><span>Licenses</span><span class="chev">›</span></div>'
+      + '<div class="list-item" onclick="openContactPage()"><div class="list-icon">✉️</div><span>Contact</span><span class="chev">›</span></div>'
+      + '<div class="list-item" onclick="openReportBug()"><div class="list-icon">🐞</div><span>Report a bug</span><span class="chev">›</span></div>'
+      + '<div class="list-item" onclick="openRateApp()"><div class="list-icon">⭐</div><span>Rate the app</span><span class="chev">›</span></div>'
+      + '</div>';
+    openSettingsSubpage('About Sound Board', body);
   }
 
   function openTermsPage(){
-    openInfoModal('Terms of Service', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
+    openSettingsSubpage('Terms of Service', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
       + 'Sound Board is currently a demo build and is not yet a live commercial service.'
       + '<br><br>By using this demo, you understand that studio listings, availability, and pricing are sample data, and that no real bookings or payments are being processed.'
       + '<br><br>A complete Terms of Service will be published before public launch.</div>');
   }
 
   function openLicensesPage(){
-    openInfoModal('Licenses', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
+    openSettingsSubpage('Licenses', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
       + 'Sound Board uses the following open-source resources:'
       + '<br><br>• Google Fonts — Space Grotesk, Inter, JetBrains Mono (SIL Open Font License)'
       + '<br>• Google Identity Services — for Google Sign-In'
@@ -4662,33 +5427,33 @@
   }
 
   function openContactPage(){
-    openInfoModal('Contact', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
+    openSettingsSubpage('Contact', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
       + 'Got a question, idea, or partnership inquiry?'
       + '<br><br>📧 hello@soundboard.app (placeholder — connect your real inbox before launch)'
       + '<br><br>This demo build doesn\'t send messages anywhere yet, so consider this a placeholder screen for the real contact flow.</div>');
   }
 
   function openReportBug(){
-    openInfoModal('Report a Bug', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
+    openSettingsSubpage('Report a Bug', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
       + 'Found something broken? Note what you were doing right before it happened — that\'s usually the fastest way to track it down.'
       + '<br><br>This demo build doesn\'t submit reports anywhere yet. Wire this up to a real form, email, or issue tracker before launch.</div>'
-      + '<button class="apply-btn" style="width:100%; margin-top:16px;" onclick="closeInfoModal(); showToast(\'Thanks — noted for this demo.\');">Got it</button>');
+      + '<button class="apply-btn" style="width:100%; margin-top:16px;" onclick="closeSubpage(); showToast(\'Thanks — noted for this demo.\');">Got it</button>');
   }
 
   function openRateApp(){
-    openInfoModal('Rate the App', '<div style="text-align:center; padding:6px 0 16px; color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
+    openSettingsSubpage('Rate the App', '<div style="text-align:center; padding:6px 0 16px; color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
       + 'Enjoying Sound Board so far?'
       + '<div style="font-size:26px; letter-spacing:4px; margin:16px 0;">⭐⭐⭐⭐⭐</div>'
       + 'This demo doesn\'t submit anywhere yet — this is a placeholder for the real App Store / Play Store rating prompt.</div>'
-      + '<button class="apply-btn" style="width:100%;" onclick="closeInfoModal(); showToast(\'Thanks for the love! 🎸\');">Rate 5 stars</button>');
+      + '<button class="apply-btn" style="width:100%;" onclick="closeSubpage(); showToast(\'Thanks for the love! 🎸\');">Rate 5 stars</button>');
   }
 
   function confirmResetOnboarding(){
-    openInfoModal('Reset Onboarding', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
+    openSettingsSubpage('Reset Onboarding', '<div style="color:var(--text-dim); font-size:12.5px; line-height:1.7;">'
       + 'This will clear your username and genre selections, and show the onboarding wizard again the next time you open the app.'
       + '<br><br>Your bookings and favorites will NOT be affected.</div>'
       + '<button class="apply-btn" style="width:100%; margin-top:16px; background:var(--danger); color:#fff;" onclick="doResetOnboarding()">Reset Onboarding</button>'
-      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="closeInfoModal()">Cancel</button>');
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="closeSubpage()">Cancel</button>');
   }
 
   function doResetOnboarding(){
@@ -4696,8 +5461,53 @@
     profile.username = '';
     profile.genres = [];
     saveProfile();
-    closeInfoModal();
+    closeSubpage('profile');
     showToast('Onboarding reset. It\'ll show next time you sign in.');
+  }
+
+  // ---- ACTIVITY (Profile) — a real timeline built from bookings +
+  // favorites already in profile data, not invented content. ----
+  function openActivityPage(){
+    const events = [];
+    profile.bookings.forEach(b => {
+      events.push({ ts: new Date(b.date).getTime(), icon:'📅', text:'Booked ' + b.studioName, meta: new Date(b.date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) });
+    });
+    if(profile.favoritedAt){
+      Object.keys(profile.favoritedAt).forEach(studioId => {
+        const s = studios.find(x => x.id === studioId);
+        events.push({ ts: profile.favoritedAt[studioId], icon:'❤️', text:'Saved ' + (s ? s.name : 'a studio'), meta: new Date(profile.favoritedAt[studioId]).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) });
+      });
+    }
+    events.sort((a, b) => b.ts - a.ts);
+
+    const body = events.length
+      ? '<div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">'
+        + events.map(e => ''
+          + '<div class="list-item" style="cursor:default;">'
+          + '<div class="list-icon">' + e.icon + '</div>'
+          + '<span>' + e.text + '</span>'
+          + '<span class="setting-sub" style="margin-left:auto;">' + e.meta + '</span>'
+          + '</div>'
+        ).join('')
+        + '</div>'
+      : '<div class="empty-note">No activity yet.<br>Book or save a studio to see it show up here.</div>';
+
+    openSettingsSubpage('Activity', body);
+  }
+
+  // ---- SECURITY (Profile) — session/account actions ----
+  function openSecurityPage(){
+    const body = ''
+      + '<div style="color:var(--text-dim); font-size:12px; line-height:1.6; margin-bottom:18px;">'
+      + 'Signed in as <b style="color:var(--text);">' + (profile.email || profile.username || 'this account') + '</b>'
+      + (profile.provider ? ' via ' + (profile.provider === 'google' ? 'Google' : 'email') : '')
+      + '.</div>'
+      + '<div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:22px;">'
+      + '<div class="list-item" onclick="openSwitchAccount()"><div class="list-icon">🔀</div><span>Switch account</span><span class="chev">›</span></div>'
+      + '<div class="list-item" onclick="confirmResetOnboarding()"><div class="list-icon">🔄</div><span>Reset onboarding</span><span class="chev">›</span></div>'
+      + '</div>'
+      + '<button class="reset-btn" style="width:100%; color:var(--danger); border-color:var(--danger);" onclick="closeSubpage(); logout();">Log out</button>';
+    openSettingsSubpage('Security', body);
   }
 
   // ============================================================
@@ -4712,6 +5522,8 @@
   function openFounderDashboard(){
     nav('founder-dashboard');
     setFounderTab('overview');
+    showStatSkeletons(['fd-online-now','fd-total-users','fd-active-users','fd-pending-bookings','fd-gmv-lifetime','fd-gmv-30d','fd-studio-counts']);
+    showRowSkeletons(['fd-user-list','fd-studio-leaderboard','fd-whitelist-list'], 4);
     loadFounderDashboard();
     subscribeToFounderActivity();
   }
@@ -4744,6 +5556,10 @@
   function setFounderTab(tab){
     document.querySelectorAll('#screen-founder-dashboard .dash-tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
     document.querySelectorAll('#screen-founder-dashboard .dash-panel').forEach(p => p.classList.toggle('on', p.id === 'fd-panel-' + tab));
+    if(tab === 'verification') loadFounderVerificationSection();
+    else if(tab === 'analytics') loadFounderAnalyticsSection();
+    else if(tab === 'revenue') loadFounderRevenueSection();
+    else if(tab === 'activity') loadFounderActivitySection();
   }
 
   function fdSeededRandom(seedStr){
@@ -4868,7 +5684,9 @@
     renderFounderGrowth(days);
   }
 
+  let fdStatsCache = null;
   function renderFounderStats(s){
+    fdStatsCache = s;
     document.getElementById('fd-online-now').textContent = s.onlineNow;
     document.getElementById('fd-total-users').textContent = s.totalUsers.toLocaleString('en-IN');
     document.getElementById('fd-active-users').textContent = s.activeUsers.toLocaleString('en-IN');
@@ -4898,11 +5716,13 @@
   // Every studio, regardless of owner — ranked by booking count (this
   // replaces the old simple leaderboard with the same ranking, plus real
   // management actions).
+  let fdStudiosCache = [];
   async function loadFounderStudiosSection(){
     if(BACKEND_ENABLED){
       try {
         const { data } = await sb.rpc('admin_list_studios');
-        renderFounderStudiosList(data || []);
+        fdStudiosCache = data || [];
+        renderFounderStudiosList(fdStudiosCache);
       } catch(err){
         document.getElementById('fd-studio-leaderboard').innerHTML = '<div class="empty-note">Could not load studios.</div>';
       }
@@ -4914,6 +5734,7 @@
       owner_email: null, verified: s.verified, status: 'published',
       bookings_count: 10 + Math.floor(rand() * 90)
     })).sort((a, b) => b.bookings_count - a.bookings_count);
+    fdStudiosCache = rows;
     renderFounderStudiosList(rows);
   }
 
@@ -4925,17 +5746,31 @@
         ? '<span class="role-badge role-founder">Verified</span>'
         : '<span class="role-badge role-user">Unverified</span>';
       const ownerLine = s.owner_email ? 'Owner: ' + s.owner_email : 'Owner: unassigned';
+      const titleEsc = s.title.replace(/'/g, "\\'");
       return '<div class="user-row">'
         + '<div class="ur-top"><div><div class="ur-email">#' + (i + 1) + ' ' + s.title + '</div>'
         + '<div class="ur-meta">' + (s.address || 'No address') + ' · ' + s.bookings_count + ' bookings</div>'
         + '<div class="ur-meta">' + ownerLine + '</div></div>'
         + verifiedBadge + '</div>'
         + '<div class="ur-role-actions">'
-        + '<div class="chip-opt" onclick="openAssignOwnerModal(\'' + s.id + '\', \'' + s.title.replace(/'/g, "\\'") + '\')">Assign Owner</div>'
-        + '<div class="chip-opt" onclick="toggleStudioVerified(\'' + s.id + '\', ' + (!s.verified) + ')">' + (s.verified ? 'Unverify' : 'Verify') + '</div>'
+        + '<div class="chip-opt" onclick="openAssignOwnerModal(\'' + s.id + '\', \'' + titleEsc + '\')">Assign Owner</div>'
+        + '<div class="chip-opt" onclick="confirmToggleStudioVerified(\'' + s.id + '\', \'' + titleEsc + '\', ' + (!s.verified) + ')">' + (s.verified ? 'Unverify' : 'Verify') + '</div>'
         + '<div class="chip-opt" onclick="goToStudioDashboard(\'' + s.id + '\')">Open Dashboard</div>'
         + '</div></div>';
     }).join('');
+  }
+
+  // Every destructive founder action below (verify status change, owner
+  // transfer, whitelist removal, booking rejection) goes through a
+  // confirmation dialog first — none of these fire directly from a click.
+  function confirmToggleStudioVerified(studioId, studioTitle, newVerified){
+    const action = newVerified ? 'verify' : 'unverify';
+    const body = ''
+      + '<div style="font-size:12.5px; color:var(--text-dim); margin-bottom:16px; line-height:1.6;">' + (newVerified ? 'Verify' : 'Remove verification from') + ' <b>' + studioTitle + '</b>?'
+      + (newVerified ? ' This shows a verified badge to everyone browsing the app.' : ' The verified badge will no longer show.') + '</div>'
+      + '<button class="apply-btn" style="width:100%;" onclick="toggleStudioVerified(\'' + studioId + '\', ' + newVerified + ')">Yes, ' + action.charAt(0).toUpperCase() + action.slice(1) + '</button>'
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="loadFounderStudiosSection(); closeInfoModal();">Cancel</button>';
+    openInfoModal('Change Verification', body);
   }
 
   async function toggleStudioVerified(studioId, newVerified){
@@ -4951,6 +5786,7 @@
       const s = studios.find(x => x.id === studioId);
       if(s) s.verified = newVerified;
     }
+    closeInfoModal();
     showToast(newVerified ? 'Studio verified.' : 'Studio unverified.');
     loadFounderStudiosSection();
     render();
@@ -4959,14 +5795,14 @@
   function openAssignOwnerModal(studioId, studioTitle){
     const body = ''
       + '<div style="font-size:12.5px; color:var(--text-dim); margin-bottom:12px; line-height:1.5;">Search for the user to assign as owner of <b>' + studioTitle + '</b>. Only whitelisted studio owners can be assigned.</div>'
-      + '<input class="auth-input" id="assign-owner-search" placeholder="Search by email..." oninput="searchAssignOwnerCandidates(this.value, \'' + studioId + '\')">'
+      + '<input class="auth-input" id="assign-owner-search" placeholder="Search by email..." oninput="searchAssignOwnerCandidates(this.value, \'' + studioId + '\', \'' + studioTitle.replace(/'/g, "\\'") + '\')">'
       + '<div id="assign-owner-results" style="margin-top:10px;"></div>'
-      + '<button class="reset-btn" style="width:100%; margin-top:14px; color:var(--danger);" onclick="clearStudioOwner(\'' + studioId + '\')">Remove current owner</button>';
+      + '<button class="reset-btn" style="width:100%; margin-top:14px; color:var(--danger);" onclick="confirmClearStudioOwner(\'' + studioId + '\', \'' + studioTitle.replace(/'/g, "\\'") + '\')">Remove current owner</button>';
     openInfoModal('Assign Studio Owner', body);
   }
 
   let _assignOwnerDebounce = null;
-  function searchAssignOwnerCandidates(query, studioId){
+  function searchAssignOwnerCandidates(query, studioId, studioTitle){
     clearTimeout(_assignOwnerDebounce);
     _assignOwnerDebounce = setTimeout(async () => {
       const resultsEl = document.getElementById('assign-owner-results');
@@ -4977,13 +5813,21 @@
         const { data } = await sb.rpc('admin_search_users', { p_query: q });
         const rows = data || [];
         resultsEl.innerHTML = rows.length ? rows.map(u =>
-          '<div class="search-suggest-row" onmousedown="assignStudioOwner(\'' + studioId + '\', \'' + u.id + '\', \'' + u.email.replace(/'/g, "\\'") + '\')">'
+          '<div class="search-suggest-row" onmousedown="confirmAssignStudioOwner(\'' + studioId + '\', \'' + u.id + '\', \'' + u.email.replace(/'/g, "\\'") + '\', \'' + studioTitle.replace(/'/g, "\\'") + '\')">'
           + u.email + ' <span style="color:var(--text-faint);">· ' + roleLabel(u.role) + '</span></div>'
         ).join('') : '<div class="empty-note">No users match.</div>';
       } catch(err){
         resultsEl.innerHTML = '<div class="empty-note">Search failed.</div>';
       }
     }, 200);
+  }
+
+  function confirmAssignStudioOwner(studioId, userId, email, studioTitle){
+    const body = ''
+      + '<div style="font-size:12.5px; color:var(--text-dim); margin-bottom:16px; line-height:1.6;">Make <b>' + email + '</b> the owner of <b>' + studioTitle + '</b>? They\'ll get full access to its dashboard, bookings, and listing.</div>'
+      + '<button class="apply-btn" style="width:100%;" onclick="assignStudioOwner(\'' + studioId + '\', \'' + userId + '\', \'' + email + '\')">Confirm</button>'
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="openAssignOwnerModal(\'' + studioId + '\', \'' + studioTitle.replace(/'/g, "\\'") + '\')">Cancel</button>';
+    openInfoModal('Transfer Ownership', body);
   }
 
   async function assignStudioOwner(studioId, userId, email){
@@ -4999,6 +5843,14 @@
     closeInfoModal();
     showToast(email + ' is now the owner.');
     loadFounderStudiosSection();
+  }
+
+  function confirmClearStudioOwner(studioId, studioTitle){
+    const body = ''
+      + '<div style="font-size:12.5px; color:var(--text-dim); margin-bottom:16px; line-height:1.6;">Remove the current owner from <b>' + studioTitle + '</b>? It\'ll show as unassigned until you assign someone new.</div>'
+      + '<button class="apply-btn" style="width:100%; background:var(--danger); color:#fff;" onclick="clearStudioOwner(\'' + studioId + '\')">Yes, Remove Owner</button>'
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="openAssignOwnerModal(\'' + studioId + '\', \'' + studioTitle.replace(/'/g, "\\'") + '\')">Cancel</button>';
+    openInfoModal('Remove Owner?', body);
   }
 
   async function clearStudioOwner(studioId){
@@ -5144,7 +5996,7 @@
       const joinDate = new Date(r.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
       return '<div class="user-row"><div class="ur-top">'
         + '<div><div class="ur-email">' + r.email + '</div><div class="ur-meta">Added ' + joinDate + '</div></div>'
-        + '<span class="cancel-link" onclick="removeFromWhitelist(\'' + r.email.replace(/'/g, "\\'") + '\')">Remove</span>'
+        + '<span class="cancel-link" onclick="confirmRemoveFromWhitelist(\'' + r.email.replace(/'/g, "\\'") + '\')">Remove</span>'
         + '</div></div>';
     }).join('');
   }
@@ -5170,6 +6022,14 @@
     loadFounderWhitelist();
   }
 
+  function confirmRemoveFromWhitelist(email){
+    const body = ''
+      + '<div style="font-size:12.5px; color:var(--text-dim); margin-bottom:16px; line-height:1.6;">Remove <b>' + email + '</b> from the Studio Owner whitelist? If they\'re already a studio owner, this won\'t demote them — it only blocks *future* promotions until re-added.</div>'
+      + '<button class="apply-btn" style="width:100%; background:var(--danger); color:#fff;" onclick="removeFromWhitelist(\'' + email + '\')">Yes, Remove</button>'
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="loadFounderWhitelist(); closeInfoModal();">Cancel</button>';
+    openInfoModal('Remove from Whitelist?', body);
+  }
+
   async function removeFromWhitelist(email){
     if(BACKEND_ENABLED){
       try {
@@ -5182,8 +6042,128 @@
     } else {
       DEMO_WHITELIST = DEMO_WHITELIST.filter(e => e !== email);
     }
+    closeInfoModal();
     showToast('Removed from whitelist.');
     loadFounderWhitelist();
+  }
+
+  // ---- FOUNDER: Verification Queue ----
+  // Reuses fdStudiosCache (already fetched for the Studios tab) rather
+  // than firing a second identical query.
+  function loadFounderVerificationSection(){
+    const container = document.getElementById('fd-verification-list');
+    const pending = fdStudiosCache.filter(s => !s.verified);
+    if(!pending.length){ container.innerHTML = '<div class="empty-note">Nothing waiting on review — every studio is verified.</div>'; return; }
+    container.innerHTML = pending.map(s => ''
+      + '<div class="user-row"><div class="ur-top">'
+      + '<div><div class="ur-email">' + s.title + '</div><div class="ur-meta">' + (s.address || 'No address') + '</div></div>'
+      + '<span class="cancel-link" style="color:var(--teal);" onclick="verifyStudioFromQueue(\'' + s.id + '\')">Verify</span>'
+      + '</div></div>'
+    ).join('');
+  }
+
+  async function verifyStudioFromQueue(studioId){
+    if(BACKEND_ENABLED){
+      try {
+        const { error } = await sb.rpc('admin_set_studio_verified', { p_studio_id: studioId, p_verified: true });
+        if(error) throw error;
+      } catch(err){
+        showToast('Could not verify.', 'error');
+        return;
+      }
+    } else {
+      const s = studios.find(x => x.id === studioId);
+      if(s) s.verified = true;
+    }
+    showToast('Studio verified.');
+    await loadFounderStudiosSection();
+    loadFounderVerificationSection();
+  }
+
+  // ---- FOUNDER: Analytics (reuses already-loaded stats/studios — no
+  // duplicate network calls, just a fuller presentation of the same data) ----
+  function loadFounderAnalyticsSection(){
+    if(!fdStatsCache) return;
+    const s = fdStatsCache;
+    const avgBooking = s.totalBookings ? s.gmvLifetime / s.totalBookings : 0;
+    document.getElementById('fd-analytics-avg').textContent = '₹' + Math.round(avgBooking).toLocaleString('en-IN');
+    document.getElementById('fd-analytics-bookings').textContent = s.totalBookings.toLocaleString('en-IN');
+    document.getElementById('fd-analytics-studios').textContent = (s.publishedStudios || 0) + ' / ' + (s.totalStudios || 0);
+    document.getElementById('fd-analytics-active').textContent = s.activeUsers.toLocaleString('en-IN');
+
+    // Re-render straight from the same source data the Overview bars use,
+    // rather than caching a second copy of it.
+    document.getElementById('fd-analytics-visitors').innerHTML = document.getElementById('fd-monthly-visitors').innerHTML;
+    document.getElementById('fd-analytics-growth').innerHTML = document.getElementById('fd-signup-growth').innerHTML;
+
+    const topStudios = [...fdStudiosCache].sort((a, b) => b.bookings_count - a.bookings_count).slice(0, 5);
+    const container = document.getElementById('fd-analytics-top-studios');
+    container.innerHTML = topStudios.length
+      ? topStudios.map((st, i) => '<div class="user-row"><div class="ur-top">'
+        + '<div><div class="ur-email">#' + (i + 1) + ' ' + st.title + '</div><div class="ur-meta">' + st.bookings_count + ' bookings</div></div>'
+        + '</div></div>').join('')
+      : '<div class="empty-note">No studio data yet.</div>';
+  }
+
+  // ---- FOUNDER: Revenue (same GMV figures as Overview, presented as
+  // its own destination, plus an estimated per-studio breakdown) ----
+  function loadFounderRevenueSection(){
+    if(!fdStatsCache) return;
+    document.getElementById('fd-rev-lifetime').textContent = '₹' + Math.round(fdStatsCache.gmvLifetime).toLocaleString('en-IN');
+    document.getElementById('fd-rev-30d').textContent = '₹' + Math.round(fdStatsCache.gmv30d).toLocaleString('en-IN');
+
+    const avgPrice = studios.length ? studios.reduce((sum, s) => sum + s.price, 0) / studios.length : 0;
+    const topEarning = [...fdStudiosCache]
+      .map(s => ({ ...s, estRevenue: s.bookings_count * avgPrice }))
+      .sort((a, b) => b.estRevenue - a.estRevenue)
+      .slice(0, 6);
+    const container = document.getElementById('fd-rev-top-studios');
+    container.innerHTML = topEarning.length
+      ? topEarning.map((st, i) => '<div class="user-row"><div class="ur-top">'
+        + '<div><div class="ur-email">#' + (i + 1) + ' ' + st.title + '</div><div class="ur-meta">' + st.bookings_count + ' bookings</div></div>'
+        + '<div class="ur-email" style="color:var(--teal);">₹' + Math.round(st.estRevenue).toLocaleString('en-IN') + '</div>'
+        + '</div></div>').join('')
+      : '<div class="empty-note">No studio data yet.</div>';
+  }
+
+  // ---- FOUNDER: Activity Log — built from studios + bookings already
+  // loaded (a real audit-log table on the backend would replace this
+  // with genuine chronological events) ----
+  function loadFounderActivitySection(){
+    const container = document.getElementById('fd-activity-list');
+    const rand = fdSeededRandom('founder-activity-demo');
+    const verbs = ['New booking at', 'Profile updated for', 'New review on', 'Availability changed for'];
+    const rows = fdStudiosCache.slice(0, 10).map(s => ({
+      text: verbs[Math.floor(rand() * verbs.length)] + ' ' + s.title,
+      when: Math.floor(rand() * 46) + 1
+    }));
+    container.innerHTML = rows.length
+      ? rows.map(r => '<div class="user-row"><div class="ur-top">'
+        + '<div><div class="ur-email">' + r.text + '</div><div class="ur-meta">' + r.when + 'h ago</div></div>'
+        + '</div></div>').join('')
+      : '<div class="empty-note">No recent activity.</div>';
+  }
+
+  // ---- FOUNDER: Reports — pure client-side CSV export from whatever's
+  // already loaded, no backend involved ----
+  function exportFounderReport(kind){
+    let rows, filename;
+    if(kind === 'studios'){
+      rows = [['Name','Address','Verified','Status','Bookings'], ...fdStudiosCache.map(s => [s.title, s.address || '', s.verified ? 'Yes' : 'No', s.status || '', s.bookings_count])];
+      filename = 'soundboard-studios.csv';
+    } else {
+      const rand = fdSeededRandom('founder-users-export-demo');
+      rows = [['Email','Role','Joined'], ...(fdStudiosCache.length ? fdStudiosCache.map((s, i) => ['user' + i + '@example.com', 'user', new Date(Date.now() - Math.floor(rand()*9e9)).toISOString().slice(0,10)]) : [])];
+      filename = 'soundboard-users.csv';
+    }
+    const csv = rows.map(r => r.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('Exported ' + filename);
   }
 
 
@@ -5315,6 +6295,8 @@
     studioDashboardPeriod = '30d';
     nav('studio-dashboard');
     setStudioTab('overview');
+    showStatSkeletons(['sd-revenue','sd-booking-count','sd-avg-booking','sd-rating']);
+    showRowSkeletons(['sd-top-customers','sd-pending-list','sd-blocked-slots'], 3);
     loadStudioDashboard();
     subscribeToStudioBookingsRealtime(id);
   }
@@ -5351,6 +6333,12 @@
   function setStudioTab(tab){
     document.querySelectorAll('#screen-studio-dashboard .dash-tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
     document.querySelectorAll('#screen-studio-dashboard .dash-panel').forEach(p => p.classList.toggle('on', p.id === 'sd-panel-' + tab));
+    if(tab === 'calendar') renderStudioCalendar();
+    else if(tab === 'bookings') renderStudioBookingsList();
+    else if(tab === 'customers') renderStudioCustomersFull();
+    else if(tab === 'revenue') loadStudioRevenueSection();
+    else if(tab === 'analytics') loadStudioAnalyticsSection();
+    else if(tab === 'reviews') loadStudioReviewsSection();
   }
 
   function setStudioDashboardPeriod(period){
@@ -5372,7 +6360,7 @@
     });
     document.getElementById('sd-demo-banner').style.display = BACKEND_ENABLED ? 'none' : 'block';
 
-    await Promise.allSettled([loadStudioStats(), loadPendingRequests(), loadBlockedSlots()]);
+    await Promise.allSettled([loadStudioStats(), loadPendingRequests(), loadBlockedSlots(), loadStudioAllBookings()]);
   }
 
   async function refreshStudioDashboard(){
@@ -5490,9 +6478,17 @@
         + '</div>'
         + '<div style="display:flex; gap:14px;">'
         + '<span class="cancel-link" style="color:var(--teal);" onclick="respondToBookingRequest(\'' + r.id + '\', \'confirmed\')">Accept</span>'
-        + '<span class="cancel-link" onclick="respondToBookingRequest(\'' + r.id + '\', \'cancelled\')">Decline</span>'
+        + '<span class="cancel-link" onclick="confirmDeclineBooking(\'' + r.id + '\', \'' + r.customer.replace(/'/g, "\\'") + '\')">Decline</span>'
         + '</div></div>';
     }).join('') : '<div class="empty-note">No pending requests.</div>';
+  }
+
+  function confirmDeclineBooking(id, customerName){
+    const body = ''
+      + '<div style="font-size:12.5px; color:var(--text-dim); margin-bottom:16px; line-height:1.6;">Decline ' + customerName + '\'s booking request? They\'ll be notified it was declined.</div>'
+      + '<button class="apply-btn" style="width:100%; background:var(--danger); color:#fff;" onclick="respondToBookingRequest(\'' + id + '\', \'declined\'); closeInfoModal();">Yes, Decline</button>'
+      + '<button class="reset-btn" style="width:100%; margin-top:10px;" onclick="closeInfoModal();">Never Mind</button>';
+    openInfoModal('Decline Booking?', body);
   }
 
   async function respondToBookingRequest(id, newStatus){
@@ -5532,6 +6528,173 @@
       state.pending = state.pending.filter(p => p.id !== id);
     }
     showToast(newStatus === 'confirmed' ? 'Booking accepted.' : 'Booking declined.');
+  }
+
+  // ---- STUDIO DASHBOARD: All Bookings (Calendar / Bookings / Customers
+  // tabs all read from this one cached list — one fetch, three views) ----
+  let sdBookingsCache = [];
+
+  async function loadStudioAllBookings(){
+    const s = studios.find(x => x.id === profile.ownedStudioId);
+    if(!s) return [];
+    if(BACKEND_ENABLED){
+      try {
+        const { data } = await sb.rpc('studio_all_bookings', { p_studio_id: s.id });
+        sdBookingsCache = (data || []).map(r => ({ id: r.id, customer: r.customer_name || 'Musician', date: r.booking_date, slot: r.time_slot, price: r.price, status: r.status }));
+        return sdBookingsCache;
+      } catch(err){
+        sdBookingsCache = [];
+        return [];
+      }
+    }
+    const rand = sdSeededRandom(s.id + ':all-bookings-demo');
+    const rows = [];
+    const count = 14 + Math.floor(rand() * 10);
+    for(let i = 0; i < count; i++){
+      const d = new Date();
+      d.setDate(d.getDate() + Math.floor(rand() * 60) - 30); // spread across ±30 days
+      rows.push({
+        id: 'demo_booking_' + s.id + '_' + i,
+        customer: OWNER_CUSTOMER_POOL[Math.floor(rand() * OWNER_CUSTOMER_POOL.length)],
+        date: d.toISOString(),
+        slot: s.slots[Math.floor(rand() * s.slots.length)],
+        price: s.price,
+        status: d < new Date() ? 'completed' : 'confirmed'
+      });
+    }
+    sdBookingsCache = rows.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return sdBookingsCache;
+  }
+
+  function renderStudioBookingsList(){
+    const query = (document.getElementById('sd-bookings-search').value || '').toLowerCase();
+    const container = document.getElementById('sd-bookings-list');
+    const rows = sdBookingsCache.filter(b => {
+      const dateStr = new Date(b.date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+      return !query || b.customer.toLowerCase().includes(query) || dateStr.toLowerCase().includes(query);
+    });
+    container.innerHTML = rows.length
+      ? rows.map(b => {
+        const dateStr = new Date(b.date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+        const statusColor = b.status === 'cancelled' ? 'var(--danger)' : b.status === 'completed' ? 'var(--text-faint)' : 'var(--teal)';
+        return '<div class="booking-row"><div><div class="b-name">' + b.customer + '</div>'
+          + '<div class="b-meta">' + dateStr + ' · ' + b.slot + ' · <span style="color:' + statusColor + ';">' + (b.status || 'confirmed') + '</span></div></div>'
+          + '<div class="b-price">₹' + b.price + '</div></div>';
+      }).join('')
+      : '<div class="empty-note">No bookings match.</div>';
+  }
+
+  function renderStudioCustomersFull(){
+    const container = document.getElementById('sd-customers-full-list');
+    const byCustomer = {};
+    sdBookingsCache.forEach(b => {
+      if(!byCustomer[b.customer]) byCustomer[b.customer] = { name: b.customer, count: 0, value: 0 };
+      byCustomer[b.customer].count++;
+      byCustomer[b.customer].value += b.price;
+    });
+    const rows = Object.values(byCustomer).sort((a, b) => b.value - a.value);
+    container.innerHTML = rows.length
+      ? rows.map(c => '<div class="user-row"><div class="ur-top">'
+        + '<div><div class="ur-email">' + c.name + '</div><div class="ur-meta">' + c.count + ' booking' + (c.count === 1 ? '' : 's') + '</div></div>'
+        + '<div class="ur-email" style="color:var(--teal);">₹' + c.value.toLocaleString('en-IN') + '</div>'
+        + '</div></div>').join('')
+      : '<div class="empty-note">No customers yet.</div>';
+  }
+
+  function loadStudioRevenueSection(){
+    // Same figures already computed by loadStudioStats() for Overview —
+    // this tab just gives them their own destination.
+    document.getElementById('sd-rev-period').textContent = document.getElementById('sd-revenue').textContent;
+    document.getElementById('sd-rev-avg').textContent = document.getElementById('sd-avg-booking').textContent;
+  }
+
+  function loadStudioAnalyticsSection(){
+    document.getElementById('sd-analytics-peak-hours').innerHTML = document.getElementById('sd-peak-hours').innerHTML;
+    const byDay = {};
+    sdBookingsCache.forEach(b => {
+      const label = new Date(b.date).toLocaleDateString('en-IN', { weekday:'short' });
+      byDay[label] = (byDay[label] || 0) + 1;
+    });
+    const order = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    renderFounderBarList('sd-analytics-volume', order.filter(d => byDay[d]).map(d => ({ label: d, count: byDay[d] })));
+  }
+
+  function loadStudioReviewsSection(){
+    const s = studios.find(x => x.id === profile.ownedStudioId);
+    const container = document.getElementById('sd-reviews-list');
+    if(!s || !s.reviews || !s.reviews.length){ container.innerHTML = '<div class="empty-note">No reviews yet.</div>'; return; }
+    container.innerHTML = s.reviews.map(r => '<div class="review-item" style="padding:14px 16px; border-bottom:1px solid var(--border);">'
+      + '<div class="review-top"><span class="review-name">' + r.name + '</span><span class="rating">⭐ ' + r.rating.toFixed(1) + '</span></div>'
+      + '<p class="review-text">' + r.text + '</p></div>').join('');
+  }
+
+  // ---- STUDIO DASHBOARD: Calendar (independent of the customer-facing
+  // booking calendar — this one shows past + future bookings as owner data,
+  // rather than restricting to bookable future dates) ----
+  let sdCalState = { year: new Date().getFullYear(), month: new Date().getMonth(), selected: null };
+
+  function renderStudioCalendar(){
+    const { year, month } = sdCalState;
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    const bookedDays = new Set(sdBookingsCache
+      .filter(b => { const d = new Date(b.date); return d.getFullYear() === year && d.getMonth() === month; })
+      .map(b => new Date(b.date).getDate()));
+
+    let cells = '';
+    for(let i = 0; i < firstDay; i++) cells += '<div class="cal-day empty"></div>';
+    for(let day = 1; day <= daysInMonth; day++){
+      const cellDate = new Date(year, month, day);
+      const isToday = cellDate.getTime() === today.getTime();
+      const isSelected = sdCalState.selected === day;
+      const classes = ['cal-day'];
+      if(isToday) classes.push('today');
+      if(isSelected) classes.push('selected');
+      cells += '<div class="' + classes.join(' ') + '" style="position:relative;" onclick="selectStudioCalDay(' + day + ')" role="button" tabindex="0" aria-label="' + monthNames[month] + ' ' + day + '">'
+        + day
+        + (bookedDays.has(day) ? '<span style="position:absolute; bottom:3px; left:50%; transform:translateX(-50%); width:4px; height:4px; border-radius:50%; background:var(--amber);"></span>' : '')
+        + '</div>';
+    }
+
+    document.getElementById('sd-cal-widget').innerHTML = ''
+      + '<div class="cal-header">'
+      + '<div class="cal-nav-btn" onclick="changeStudioCalMonth(-1)" role="button" tabindex="0" aria-label="Previous month">‹</div>'
+      + '<div class="cal-title">' + monthNames[month] + ' ' + year + '</div>'
+      + '<div class="cal-nav-btn" onclick="changeStudioCalMonth(1)" role="button" tabindex="0" aria-label="Next month">›</div>'
+      + '</div>'
+      + '<div class="cal-weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>'
+      + '<div class="cal-grid">' + cells + '</div>';
+
+    renderStudioCalDayBookings();
+  }
+
+  function changeStudioCalMonth(delta){
+    let m = sdCalState.month + delta, y = sdCalState.year;
+    if(m < 0){ m = 11; y--; } if(m > 11){ m = 0; y++; }
+    sdCalState.year = y; sdCalState.month = m; sdCalState.selected = null;
+    renderStudioCalendar();
+  }
+
+  function selectStudioCalDay(day){
+    sdCalState.selected = day;
+    renderStudioCalendar();
+  }
+
+  function renderStudioCalDayBookings(){
+    const { year, month, selected } = sdCalState;
+    const day = selected || new Date().getDate();
+    const label = new Date(year, month, day).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    document.getElementById('sd-cal-selected-date').textContent = label;
+    const rows = sdBookingsCache.filter(b => {
+      const d = new Date(b.date);
+      return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+    });
+    document.getElementById('sd-cal-day-bookings').innerHTML = rows.length
+      ? rows.map(b => '<div class="booking-row"><div><div class="b-name">' + b.customer + '</div><div class="b-meta">' + b.slot + '</div></div><div class="b-price">₹' + b.price + '</div></div>').join('')
+      : '<div class="empty-note">No bookings this day.</div>';
   }
 
   // ---- Blocked dates (studio availability) ----
@@ -5747,6 +6910,7 @@
 
   function openBookingHistory(){
     bookingUiState = { search:'', statusFilter:'all' };
+    openSubpage('booking-history');
     renderBookingHistory();
   }
 
@@ -5756,8 +6920,9 @@
   }
 
   function renderBookingHistory(){
+    const body = document.getElementById('booking-history-page-body');
     if(!profile.bookings.length){
-      openInfoModal('Booking History', '<div class="empty-note">No bookings yet.<br>Book a studio to see it here.</div>');
+      body.innerHTML = '<div class="empty-note">No bookings yet.<br>Book a studio to see it here.</div>';
       return;
     }
 
@@ -5766,15 +6931,21 @@
     let list = [...profile.bookings].reverse().filter(b => {
       if(q && !b.studioName.toLowerCase().includes(q)) return false;
       const isPast = new Date(b.date) < now;
-      if(bookingUiState.statusFilter === 'upcoming' && isPast) return false;
-      if(bookingUiState.statusFilter === 'completed' && !isPast) return false;
+      const filter = bookingUiState.statusFilter;
+      if(filter === 'all') return true;
+      if(filter === 'pending') return b.status === 'pending';
+      if(filter === 'cancelled') return b.status === 'cancelled';
+      if(filter === 'declined') return b.status === 'declined';
+      if(filter === 'upcoming') return b.status !== 'pending' && b.status !== 'cancelled' && b.status !== 'declined' && !isPast;
+      if(filter === 'completed') return b.status !== 'pending' && b.status !== 'cancelled' && b.status !== 'declined' && isPast;
       return true;
     });
 
     const controls = ''
       + '<input class="auth-input" style="margin-bottom:12px;" placeholder="Search your bookings..." value="' + bookingUiState.search.replace(/"/g, '&quot;') + '" oninput="bookingUiState.search=this.value; renderBookingHistory();">'
-      + '<div style="display:flex; gap:8px; margin-bottom:14px;">'
-      + bookingStatusChip('all', 'All') + bookingStatusChip('upcoming', 'Upcoming') + bookingStatusChip('completed', 'Completed')
+      + '<div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">'
+      + bookingStatusChip('all', 'All') + bookingStatusChip('pending', 'Pending') + bookingStatusChip('upcoming', 'Upcoming')
+      + bookingStatusChip('completed', 'Completed') + bookingStatusChip('cancelled', 'Cancelled') + bookingStatusChip('declined', 'Declined')
       + '</div>';
 
     const rows = list.length ? list.map(b => {
@@ -5784,7 +6955,16 @@
       let statusLabel, statusColor;
       if(b.status === 'pending'){ statusLabel = 'Pending'; statusColor = 'var(--amber)'; }
       else if(b.status === 'cancelled'){ statusLabel = 'Cancelled'; statusColor = 'var(--danger)'; }
+      else if(b.status === 'declined'){ statusLabel = 'Declined'; statusColor = 'var(--danger)'; }
       else { statusLabel = isPast ? 'Completed' : 'Upcoming'; statusColor = isPast ? 'var(--text-faint)' : 'var(--teal)'; }
+
+      const isLive = (b.status === 'pending' || (b.status !== 'cancelled' && b.status !== 'declined' && !isPast));
+      const actions = isLive
+        ? '<span class="cancel-link" style="color:var(--teal);" onclick="openRescheduleModal(\'' + b.id + '\')">Reschedule</span>'
+          + '<span class="cancel-link" style="color:var(--teal);" onclick="addBookingToGoogleCalendar(\'' + b.id + '\')">Add to Calendar</span>'
+          + '<span class="cancel-link" onclick="confirmCancelBooking(\'' + b.id + '\')">Cancel</span>'
+        : '<span class="cancel-link" style="color:var(--teal);" onclick="rebookBooking(\'' + b.id + '\')">Rebook</span>';
+
       return '<div class="booking-row" style="flex-direction:column; align-items:stretch; gap:8px;">'
         + '<div style="display:flex; justify-content:space-between; align-items:flex-start; cursor:pointer;" onclick="openBookingDetail(\'' + b.id + '\')">'
         + '<div><div class="b-name">' + b.studioName + '</div><div class="b-meta">' + dateStr + ' · ' + b.slot + '</div>'
@@ -5793,31 +6973,31 @@
         + '<div style="text-align:right;"><div class="b-price">₹' + b.price + '/hr</div>'
         + '<div style="font-size:10.5px; font-weight:600; color:' + statusColor + '; margin-top:3px;">' + statusLabel + '</div></div>'
         + '</div>'
-        + '<div style="display:flex; gap:14px;">'
-        + '<span class="cancel-link" style="color:var(--teal);" onclick="rebookBooking(\'' + b.id + '\')">Rebook</span>'
-        + '<span class="cancel-link" style="color:var(--teal);" onclick="addBookingToGoogleCalendar(\'' + b.id + '\')">Add to Calendar</span>'
-        + '<span class="cancel-link" onclick="cancelBooking(\'' + b.id + '\')">Cancel</span>'
-        + '</div>'
+        + '<div style="display:flex; gap:14px; flex-wrap:wrap;">' + actions + '</div>'
         + '</div>';
     }).join('') : '<div class="empty-note">No bookings match this search/filter.</div>';
 
-    openInfoModal('Booking History', controls + rows);
+    body.innerHTML = controls + rows;
   }
 
   // ---- Booking detail view: full info + timeline ----
   function openBookingDetail(id){
     const b = profile.bookings.find(x => x.id === id);
     if(!b) return;
+    openSubpage('booking-details');
     const d = new Date(b.date);
     const dateStr = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
     const isPast = new Date(b.date) < new Date(new Date().toDateString());
-    let statusLabel;
-    if(b.status === 'pending') statusLabel = 'Pending';
-    else if(b.status === 'cancelled') statusLabel = 'Cancelled';
-    else statusLabel = isPast ? 'Completed' : 'Upcoming';
+    let statusLabel, statusColor;
+    if(b.status === 'pending'){ statusLabel = 'Pending'; statusColor = 'var(--amber)'; }
+    else if(b.status === 'cancelled'){ statusLabel = 'Cancelled'; statusColor = 'var(--danger)'; }
+    else if(b.status === 'declined'){ statusLabel = 'Declined'; statusColor = 'var(--danger)'; }
+    else { statusLabel = isPast ? 'Completed' : 'Upcoming'; statusColor = 'var(--teal)'; }
+
+    const isLive = (b.status === 'pending' || (b.status !== 'cancelled' && b.status !== 'declined' && !isPast));
 
     const timeline = (b.timeline && b.timeline.length) ? b.timeline : [{ label:'Booking confirmed', at:b.date }];
-    if(isPast) timeline.push({ label:'Session completed', at:b.date });
+    if(isPast && b.status !== 'cancelled' && b.status !== 'declined') timeline.push({ label:'Session completed', at:b.date });
 
     const timelineHtml = timeline.map((t, i) => {
       const isLast = i === timeline.length - 1;
@@ -5832,26 +7012,30 @@
         + '</div>';
     }).join('');
 
+    const actionsHtml = isLive
+      ? '<div style="display:flex; gap:10px; margin-top:8px;">'
+        + '<button class="reset-btn" style="flex:1;" onclick="openRescheduleModal(\'' + b.id + '\')">Reschedule</button>'
+        + '<button class="reset-btn" style="flex:1;" onclick="addBookingToGoogleCalendar(\'' + b.id + '\')">📅 Calendar</button>'
+        + '</div>'
+        + '<button class="reset-btn" style="width:100%; margin-top:10px; color:var(--danger);" onclick="confirmCancelBooking(\'' + b.id + '\')">Cancel Booking</button>'
+      : '<button class="reset-btn" style="width:100%; margin-top:8px;" onclick="rebookBooking(\'' + b.id + '\')">Rebook</button>';
+
     const body = ''
       + '<div style="border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:16px;">'
       + '<div class="b-name" style="font-size:16px;">' + b.studioName + '</div>'
       + '<div class="b-meta" style="margin-top:4px;">' + dateStr + ' · ' + b.slot + '</div>'
       + '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">'
       + '<div class="b-price">₹' + b.price + '/hr</div>'
-      + '<div style="font-size:11px; font-weight:600; color:var(--teal);">' + statusLabel + '</div>'
+      + '<div style="font-size:11px; font-weight:600; color:' + statusColor + ';">' + statusLabel + '</div>'
       + '</div>'
       + '<div style="font-size:10px; color:var(--text-faint); font-family:\'JetBrains Mono\',monospace; margin-top:8px;">Booking ID: ' + b.id + '</div>'
       + (b.note ? '<div style="margin-top:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; font-size:12px; color:var(--text-dim); font-style:italic;">📝 ' + b.note + '</div>' : '')
       + '</div>'
       + '<div class="eyebrow" style="padding:0 0 10px;">Timeline</div>'
       + timelineHtml
-      + '<div style="display:flex; gap:10px; margin-top:8px;">'
-      + '<button class="reset-btn" style="flex:1;" onclick="rebookBooking(\'' + b.id + '\')">Rebook</button>'
-      + '<button class="reset-btn" style="flex:1;" onclick="addBookingToGoogleCalendar(\'' + b.id + '\')">📅 Calendar</button>'
-      + '</div>'
-      + '<button class="reset-btn" style="width:100%; margin-top:10px; color:var(--danger);" onclick="cancelBooking(\'' + b.id + '\'); closeInfoModal();">Cancel Booking</button>';
+      + actionsHtml;
 
-    openInfoModal('Booking Details', body);
+    document.getElementById('booking-details-page-body').innerHTML = body;
   }
 
   // ---- FAVORITES: search, sort, recently favorited, bulk remove ----
@@ -5859,6 +7043,7 @@
 
   function openFavoriteStudios(){
     favUiState = { search:'', sort:'recent', selectMode:false, selected:new Set() };
+    openSubpage('saved-studios');
     renderFavoritesModal();
   }
 
@@ -5868,9 +7053,10 @@
   }
 
   function renderFavoritesModal(){
+    const body = document.getElementById('saved-studios-page-body');
     const favs = studios.filter(s => profile.favorites.includes(s.id));
     if(!favs.length){
-      openInfoModal('Favorite Studios', '<div class="empty-note">No favorites yet.<br>Tap the heart on a studio to save it here.</div>');
+      body.innerHTML = '<div class="empty-note">No favorites yet.<br>Tap the heart on a studio to save it here.</div>';
       return;
     }
     if(!profile.favoritedAt) profile.favoritedAt = {};
@@ -5897,7 +7083,7 @@
       const checked = favUiState.selected.has(s.id);
       const rowClick = favUiState.selectMode
         ? "toggleFavSelect('" + s.id + "')"
-        : "closeInfoModal(); openDetail('" + s.id + "');";
+        : "openDetail('" + s.id + "')";
       const checkbox = favUiState.selectMode
         ? '<div style="width:20px; height:20px; border-radius:6px; border:2px solid var(--border); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; margin-right:2px;' + (checked ? ' background:var(--teal); border-color:var(--teal); color:#0A0908;' : '') + '">' + (checked ? '✓' : '') + '</div>'
         : '';
@@ -5912,7 +7098,7 @@
       ? '<button class="apply-btn" style="width:100%; margin-top:14px; background:var(--danger); color:#fff;" onclick="bulkRemoveFavorites()">Remove ' + favUiState.selected.size + ' selected</button>'
       : '';
 
-    openInfoModal('Favorite Studios', controls + rowsHtml + bulkBar);
+    body.innerHTML = controls + rowsHtml + bulkBar;
   }
 
   function toggleFavSelectMode(){
